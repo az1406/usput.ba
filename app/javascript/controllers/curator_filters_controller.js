@@ -14,11 +14,10 @@ export default class extends Controller {
   expandedValueChanged() {
     if (this.hasContentTarget) {
       if (this.expandedValue) {
-        this.contentTarget.classList.remove("hidden")
-        this.contentTarget.classList.add("block")
+        // Force display by using inline style to override Tailwind responsive classes
+        this.contentTarget.style.display = "block"
       } else {
-        this.contentTarget.classList.add("hidden")
-        this.contentTarget.classList.remove("block")
+        this.contentTarget.style.display = "none"
       }
     }
 
