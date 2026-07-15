@@ -160,6 +160,14 @@ experience_categories_data = [
     default_duration: 180,
     position: 11,
     experience_types: %w[wellness nature]
+  },
+  {
+    key: "cycling",
+    name: "Cycling",
+    icon: "🚴",
+    default_duration: 180,
+    position: 12,
+    experience_types: %w[sport nature]
   }
 ]
 
@@ -926,6 +934,38 @@ Plan.all.each do |plan|
 end
 
 puts "Created #{Review.count} reviews"
+
+# Seed example events (each tied to a location)
+puts "Seeding events..."
+
+events_data = [
+  { title: "Sarajevo Film Festival", city: "Sarajevo", starts_in_days: 20, duration: 180,
+    description: "Jedan od najprestižnijih filmskih festivala u regiji, s projekcijama, gostima i radionicama.",
+    info: "Ulaznice u prodaji online i na blagajni. Preporučuje se raniji dolazak." },
+  { title: "Baščaršijske noći", city: "Sarajevo", starts_in_days: 8, duration: 120,
+    description: "Ljetni festival kulture, muzike i umjetnosti u srcu Sarajeva.",
+    info: "Besplatan ulaz za većinu programa. Provjerite raspored po danima." },
+  { title: "Mostarski ljetni festival", city: "Mostar", starts_in_days: 35, duration: 150,
+    description: "Koncerti klasične muzike i predstave uz Stari most.",
+    info: "Program traje tokom cijelog ljeta." },
+  { title: "Jazz Fest", city: "Sarajevo", starts_in_days: -15, duration: 200,
+    description: "Međunarodni jazz festival s vrhunskim izvođačima.",
+    info: "Festival je završen — hvala svima na dolasku!" }
+]
+
+events_data.each do |data|
+  location = Location.where(city: data[:city]).first || Location.first
+  next unless location
+
+  Event.find_or_create_by!(title: data[:title], location: location) do |event|
+    event.starts_at = data[:starts_in_days].days.from_now.change(hour: 20, min: 0)
+    event.duration = data[:duration]
+    event.description = data[:description]
+    event.info = data[:info]
+  end
+end
+
+puts "Created #{Event.count} events"
 
 puts "Seeding complete!"
 puts ""

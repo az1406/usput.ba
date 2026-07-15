@@ -490,4 +490,75 @@ class PlanTest < ActiveSupport::TestCase
     upcoming.destroy
     past.destroy
   end
+
+  # === Standalone location day-items ===
+
+  test "add_location adds a standalone location to a day" do
+    plan = Plan.create!(@valid_params)
+    plan.add_location(@location, day_number: 1)
+
+    assert_equal 1, plan.plan_locations.count
+    assert_equal [ @location ], plan.locations_for_day(1)
+    plan.destroy
+  end
+
+  test "remove_location removes a standalone location" do
+    plan = Plan.create!(@valid_params)
+    plan.add_location(@location, day_number: 1)
+    plan.remove_location(@location)
+
+    assert_equal 0, plan.plan_locations.count
+    plan.destroy
+  end
+
+  test "to_local_storage_format includes day locations" do
+    plan = Plan.create!(@valid_params)
+    plan.add_location(@location, day_number: 1)
+
+    day1 = plan.to_local_storage_format[:days].first
+    assert_equal [ @location.name ], day1[:locations].map { |l| l[:name] }
+    assert_equal 1, plan.to_local_storage_format[:total_locations]
+    plan.destroy
+  end
+
+  test "location round-trips through local storage export and import" do
+    plan = Plan.create!(@valid_params.merge(user: @user))
+    plan.add_location(@location, day_number: 1)
+
+    data = plan.to_local_storage_format.deep_stringify_keys
+    imported = Plan.create_from_local_storage(data, user: @user)[:plan]
+
+    assert_equal [ @location ], imported.locations_for_day(1)
+    plan.destroy
+    imported.destroy
+  end
+
+  test "plan with only a standalone location counts the day" do
+    # Mirrors the import path, which creates day-items directly (no day-range guard).
+    plan = Plan.create!(@valid_params)
+    plan.plan_locations.create!(location: @location, day_number: 2)
+
+    assert_equal 2, plan.calculated_duration_days
+    plan.destroy
+  end
+
+  test "location_days= sets standalone locations by day (curator path)" do
+    plan = Plan.create!(@valid_params)
+    plan.location_days = { "1" => [ @location.uuid ], "2" => [ @location.uuid ] }
+
+    assert_equal [ @location ], plan.locations_for_day(1)
+    assert_equal [ @location ], plan.locations_for_day(2)
+    assert_equal({ "1" => [ @location.uuid ], "2" => [ @location.uuid ] }, plan.location_days)
+    plan.destroy
+  end
+
+  test "location_days= replaces existing standalone locations" do
+    plan = Plan.create!(@valid_params)
+    plan.location_days = { "1" => [ @location.uuid ] }
+    plan.location_days = { "2" => [ @location.uuid ] }
+
+    assert_empty plan.locations_for_day(1)
+    assert_equal [ @location ], plan.locations_for_day(2)
+    plan.destroy
+  end
 end

@@ -1,0 +1,68 @@
+<% content_for :title do %><%= t("events.index.title", default: "Events") %> - Usput.ba<% end %>
+<% content_for :meta_description do %><%= t("events.index.subtitle", default: "Discover upcoming events across Bosnia and Herzegovina.") %><% end %>
+
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300 overflow-x-hidden">
+  <%= render "new_design/header" %>
+
+  <%# Spacer for fixed header %>
+  <div class="h-20"></div>
+
+  <%# Hero %>
+  <div class="relative isolate bg-white dark:bg-gray-900 overflow-hidden">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-10">
+      <span class="inline-block px-3 py-1 bg-rose-100 dark:bg-rose-900/30 rounded-full text-xs font-semibold text-rose-600 dark:text-rose-400 mb-4">
+        <%= t("events.badge", default: "Događaji") %>
+      </span>
+      <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900 dark:text-white">
+        <%= t("events.index.title", default: "Events") %>
+      </h1>
+      <p class="mt-3 text-lg text-gray-600 dark:text-gray-400 max-w-2xl">
+        <%= t("events.index.subtitle", default: "Discover upcoming events across Bosnia and Herzegovina.") %>
+      </p>
+
+      <%# City filter %>
+      <% if @cities.any? %>
+        <div class="mt-6 flex flex-wrap gap-2">
+          <%= link_to t("events.all_cities", default: "All"), events_path,
+              class: "px-3 py-1.5 rounded-full text-sm font-medium #{params[:city].blank? ? 'bg-rose-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}" %>
+          <% @cities.each do |city| %>
+            <%= link_to city, events_path(city: city),
+                class: "px-3 py-1.5 rounded-full text-sm font-medium #{params[:city] == city ? 'bg-rose-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}" %>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-12">
+    <%# Upcoming events %>
+    <section>
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6"><%= t("events.index.upcoming_heading", default: "Upcoming events") %></h2>
+      <% if @upcoming_events.any? %>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <% @upcoming_events.each do |event| %>
+            <%= render "events/event_card", event: event %>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-10 text-center text-gray-500 dark:text-gray-400">
+          <%= t("events.index.no_upcoming", default: "No upcoming events right now. Check back soon!") %>
+        </div>
+      <% end %>
+    </section>
+
+    <%# Past events %>
+    <% if @past_events.any? %>
+      <section>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6"><%= t("events.index.past_heading", default: "Past events") %></h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <% @past_events.each do |event| %>
+            <%= render "events/event_card", event: event %>
+          <% end %>
+        </div>
+      </section>
+    <% end %>
+  </div>
+
+  <%= render "new_design/footer" %>
+</div>

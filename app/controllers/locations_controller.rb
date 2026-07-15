@@ -22,6 +22,19 @@ class LocationsController < ApplicationController
                       .distinct
     @related_plans = plans_scope.order(average_rating: :desc).limit(3)
     @total_plans_count = plans_scope.count
+
+    # Upcoming events at this location, or elsewhere in the same city.
+    # Events tied to THIS exact location are shown first.
+    @upcoming_events =
+      if @location.city.present?
+        Event.upcoming
+             .includes(:location)
+             .where(location: Location.where(city: @location.city))
+             .reorder(Arel.sql("CASE WHEN events.location_id = #{@location.id.to_i} THEN 0 ELSE 1 END ASC"), starts_at: :asc)
+             .limit(4)
+      else
+        @location.events.upcoming.includes(:location).limit(4)
+      end
   end
 
   def audio_tour

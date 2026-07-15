@@ -291,11 +291,12 @@
               <% end %>
             </div>
 
-            <% if day[:experiences].any? %>
+            <% if day[:experiences].any? || day[:locations].any? %>
               <div class="flow-root">
                 <ul role="list" class="-mb-8">
                   <% day[:experiences].each_with_index do |experience, idx| %>
-                    <% is_last = idx == day[:experiences].length - 1 %>
+                    <%# Last only if it's the final experience and no locations follow %>
+                    <% is_last = (idx == day[:experiences].length - 1) && day[:locations].empty? %>
                     <li>
                       <div class="relative pb-8">
                         <%# Connector line - hide for last item %>
@@ -364,6 +365,10 @@
                         </div>
                       </div>
                     </li>
+                  <% end %>
+                  <%# Standalone locations continue the same timeline %>
+                  <% day[:locations].each_with_index do |location, lidx| %>
+                    <%= render "plans/plan_location", location: location, is_last: (lidx == day[:locations].length - 1) %>
                   <% end %>
                 </ul>
               </div>

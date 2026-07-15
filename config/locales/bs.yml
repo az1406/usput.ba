@@ -38,6 +38,7 @@ bs:
     plans: Planovi
     experiences: Iskustva
     locations: Lokacije
+    events: Događaji
     explore: Istražuj
     about: O nama
     contact: Kontakt
@@ -425,6 +426,9 @@ bs:
       day_label: Dan
       drag_hint: Povuci za promjenu redoslijeda
       add_to_plan: Dodaj u plan
+      add_location: Dodaj lokaciju
+      choose_location: Odaberi lokaciju…
+      no_locations_available: Nema lokacija za dodati
       experience_plural: iskustava
       budget_low: Nizak budžet
       budget_medium: Srednji budžet
@@ -757,12 +761,60 @@ bs:
     contact:
       title: Kontakt
       text: 'Za pitanja o ovim uvjetima korištenja, kontaktirajte nas na:'
+  events:
+    badge: Događaj
+    upcoming: Nadolazeći
+    past: Prošli
+    all_cities: Svi
+    not_found: Događaj nije pronađen. Pogledajte druge događaje.
+    back_to_events: Svi događaji
+    index:
+      title: Događaji
+      subtitle: Otkrijte nadolazeće događaje širom Bosne i Hercegovine.
+      upcoming_heading: Nadolazeći događaji
+      past_heading: Prošli događaji
+      no_upcoming: Trenutno nema nadolazećih događaja. Provjerite uskoro!
+    show:
+      about: O događaju
+      info: Dobro je znati
+      details: Detalji
+      starts: Počinje
+      ends: Završava
+      duration: Trajanje
+      location: Lokacija
+      more_here: Više događaja ovdje
   experiences:
     duration:
       hours: "%{count} sat"
       hours_plural: "%{count} sata"
       minutes: "%{count} minuta"
       minutes_plural: "%{count} minuta"
+    cycling:
+      title: Biciklizam
+      distance: Dužina
+      elevation: Uspon
+      difficulty: Težina
+      route_type: Tip rute
+      bike_type: Preporučeni bicikl
+      bike_rentals: Iznajmljivanje bicikala u blizini
+      bike_rental_fallback: Iznajmljivanje bicikala
+      website: Web stranica
+      geoapify_credit: 'Izvor: Geoapify'
+      empty: Detalji o biciklizmu će uskoro biti dostupni.
+      difficulties:
+        easy: Lako
+        moderate: Umjereno
+        hard: Teško
+      route_types:
+        loop: Kružna
+        out_and_back: Tamo i nazad
+        one_way: Jednosmjerna
+      bike_types:
+        any: Bilo koji
+        road: Cestovni
+        mountain: Brdski
+        gravel: Gravel
+        ebike: Električni
     locations_count:
       one: 1 lokacija
       other: "%{count} lokacija"
@@ -827,7 +879,12 @@ bs:
       video: Video
       video_subtitle: Pogledaj video o ovoj lokaciji
       watch_video: Pogledaj video
+      map: Na karti
+      map_fullscreen: Cijeli ekran
       nearby_locations: Lokacije u blizini
+      upcoming_events: Nadolazeći događaji
+      upcoming_events_in: Nadolazeći događaji u %{city}
+      all_events: Svi događaji
       see_all_locations: Pogledaj sve lokacije
       related_experiences: Iskustva s ovom lokacijom
       see_all_experiences: Pogledaj sva iskustva
@@ -924,6 +981,7 @@ bs:
       dashboard: Pregled
       locations: Lokacije
       experiences: Iskustva
+      events: Događaji
       plans: Planovi
       audio_tours: Audio ture
       photo_suggestions: Fotografije
@@ -1057,6 +1115,38 @@ bs:
         add_photo: Dodaj fotografiju
         no_results: Nema pronađenih lokacija
         no_results_hint: Pokušajte prilagoditi filtere
+    events:
+      title: Događaji
+      new: Novi događaj
+      edit: Uredi
+      view: Pregledaj
+      view_in_app: Pogledaj u aplikaciji
+      back_to_list: Nazad na listu
+      back_to_view: Nazad na pregled
+      edit_title: 'Uredi: %{name}'
+      name: Naziv događaja
+      location: Lokacija
+      select_location: Odaberi lokaciju...
+      location_hint: Svaki događaj je vezan za lokaciju.
+      starts_at: Datum i vrijeme
+      duration: Trajanje
+      duration_placeholder: npr. 120
+      duration_hint: Unesi trajanje u minutama
+      description: Opis
+      info: Dodatne informacije
+      info_placeholder: Ulaznice, parking, pravila ulaska, ...
+      no_events: Nema pronađenih događaja
+      count:
+        one: 1 događaj
+        other: "%{count} događaja"
+      created_at: Kreirano
+      updated_at: Ažurirano
+      sections:
+        basic_info: Osnovne informacije
+        metadata: Metapodaci
+      filter:
+        all_cities: Sva mjesta
+        search_placeholder: Pretraži po nazivu...
     experiences:
       title: Iskustva
       new: Novo iskustvo
@@ -1071,6 +1161,14 @@ bs:
       duration: Trajanje
       duration_placeholder: Trajanje u minutama
       duration_hint: Unesi trajanje u minutama
+      cycling:
+        section: Detalji o biciklizmu
+        hint: Informacije o ruti za bicikliste. Iznajmljivanje bicikala u blizini se dodaje automatski s mape.
+        distance: Dužina (km)
+        elevation: Uspon (m)
+        difficulty: Težina
+        route_type: Tip rute
+        bike_type: Preporučeni bicikl
       best_season: Najbolja sezona
       difficulty: Težina
       description: Opis

@@ -8,7 +8,7 @@ class UserPlansController < ApplicationController
   # GET /user/plans
   # Dohvati sve planove korisnika
   def index
-    plans = current_user.plans.includes(plan_experiences: { experience: :locations })
+    plans = current_user.plans.includes(plan_experiences: { experience: :locations }, plan_locations: :location)
                         .order(created_at: :desc)
 
     render json: {
@@ -43,7 +43,7 @@ class UserPlansController < ApplicationController
     existing_local_ids = local_plans.map { |p| p["id"] }.compact
     db_only_plans = current_user.plans.where.not(local_id: existing_local_ids)
                                 .or(current_user.plans.where(local_id: nil))
-                                .includes(plan_experiences: { experience: :locations })
+                                .includes(plan_experiences: { experience: :locations }, plan_locations: :location)
 
     db_only_plans.each do |plan|
       synced_plans << plan.to_local_storage_format
@@ -183,7 +183,11 @@ class UserPlansController < ApplicationController
       :id, :generated_at, :duration_days, :saved, :savedAt, :custom_title, :notes,
       city: [ :id, :name, :display_name ],
       preferences: [ :budget, :meat_lover, :custom_title, interests: [] ],
-      days: [ :day_number, :date, experiences: [ :id, :title, :description, :formatted_duration, locations: [] ] ]
+      days: [
+        :day_number, :date,
+        experiences: [ :id, :title, :description, :formatted_duration, locations: [] ],
+        locations: [ :id, :name, :description, :category, :budget, :lat, :lng, :city ]
+      ]
     )
   end
 

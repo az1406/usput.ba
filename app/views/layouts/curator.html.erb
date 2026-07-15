@@ -40,7 +40,7 @@
                     class: "rounded-md px-3 py-2 text-sm font-medium #{request.path == curator_root_path ? 'bg-emerald-800 dark:bg-gray-900 text-white' : 'text-emerald-100 dark:text-gray-300 hover:bg-emerald-600 dark:hover:bg-gray-700'}" %>
 
                 <%# Content dropdown: Locations, Experiences, Plans %>
-                <% content_active = [curator_locations_path, curator_experiences_path, curator_plans_path].any? { |p| request.path.start_with?(p) } %>
+                <% content_active = [curator_locations_path, curator_experiences_path, curator_events_path, curator_plans_path].any? { |p| request.path.start_with?(p) } %>
                 <div data-controller="dropdown" class="relative">
                   <button data-action="click->dropdown#toggle" type="button"
                       class="inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium <%= content_active ? 'bg-emerald-800 dark:bg-gray-900 text-white' : 'text-emerald-100 dark:text-gray-300 hover:bg-emerald-600 dark:hover:bg-gray-700' %>">
@@ -52,6 +52,8 @@
                         class: "block px-4 py-2 text-sm #{request.path.start_with?(curator_locations_path) ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 font-medium' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}" %>
                     <%= link_to t("curator.nav.experiences"), curator_experiences_path,
                         class: "block px-4 py-2 text-sm #{request.path.start_with?(curator_experiences_path) ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 font-medium' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}" %>
+                    <%= link_to t("curator.nav.events", default: "Events"), curator_events_path,
+                        class: "block px-4 py-2 text-sm #{request.path.start_with?(curator_events_path) ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 font-medium' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}" %>
                     <%= link_to t("curator.nav.plans"), curator_plans_path,
                         class: "block px-4 py-2 text-sm #{request.path.start_with?(curator_plans_path) ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 font-medium' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}" %>
                   </div>
@@ -171,6 +173,8 @@
                   class: "block rounded-md px-3 py-2 text-base font-medium #{request.path.start_with?(curator_locations_path) ? 'bg-emerald-800 dark:bg-gray-900 text-white' : 'text-emerald-100 dark:text-gray-300 hover:bg-emerald-600 dark:hover:bg-gray-700'}" %>
               <%= link_to t("curator.nav.experiences"), curator_experiences_path,
                   class: "block rounded-md px-3 py-2 text-base font-medium #{request.path.start_with?(curator_experiences_path) ? 'bg-emerald-800 dark:bg-gray-900 text-white' : 'text-emerald-100 dark:text-gray-300 hover:bg-emerald-600 dark:hover:bg-gray-700'}" %>
+              <%= link_to t("curator.nav.events", default: "Events"), curator_events_path,
+                  class: "block rounded-md px-3 py-2 text-base font-medium #{request.path.start_with?(curator_events_path) ? 'bg-emerald-800 dark:bg-gray-900 text-white' : 'text-emerald-100 dark:text-gray-300 hover:bg-emerald-600 dark:hover:bg-gray-700'}" %>
               <%= link_to t("curator.nav.plans"), curator_plans_path,
                   class: "block rounded-md px-3 py-2 text-base font-medium #{request.path.start_with?(curator_plans_path) ? 'bg-emerald-800 dark:bg-gray-900 text-white' : 'text-emerald-100 dark:text-gray-300 hover:bg-emerald-600 dark:hover:bg-gray-700'}" %>
             </div>

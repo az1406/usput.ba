@@ -39,6 +39,7 @@ en:
     plans: Plans
     experiences: Experiences
     locations: Locations
+    events: Events
     explore: Explore
     about: About
     contact: Contact
@@ -425,6 +426,9 @@ en:
       day_label: Day
       drag_hint: Drag to reorder
       add_to_plan: Add to plan
+      add_location: Add location
+      choose_location: Choose a location…
+      no_locations_available: No locations to add
       experience_plural: experiences
       budget_low: Low budget
       budget_medium: Medium budget
@@ -462,12 +466,60 @@ en:
       no_results_description: Try a different search term or change your filters
       clear_filters: Clear filters
       create_plan: Create your own plan
+  events:
+    badge: Event
+    upcoming: Upcoming
+    past: Past
+    all_cities: All
+    not_found: Event not found. Explore other events.
+    back_to_events: All events
+    index:
+      title: Events
+      subtitle: Discover upcoming events across Bosnia and Herzegovina.
+      upcoming_heading: Upcoming events
+      past_heading: Past events
+      no_upcoming: No upcoming events right now. Check back soon!
+    show:
+      about: About the event
+      info: Good to know
+      details: Details
+      starts: Starts
+      ends: Ends
+      duration: Duration
+      location: Location
+      more_here: More events here
   experiences:
     duration:
       hours: "%{count} hour"
       hours_plural: "%{count} hours"
       minutes: "%{count} minute"
       minutes_plural: "%{count} minutes"
+    cycling:
+      title: Cycling info
+      distance: Distance
+      elevation: Elevation gain
+      difficulty: Difficulty
+      route_type: Route type
+      bike_type: Recommended bike
+      bike_rentals: Bike rentals nearby
+      bike_rental_fallback: Bike rental
+      website: Website
+      geoapify_credit: 'Source: Geoapify'
+      empty: Cycling details will appear here soon.
+      difficulties:
+        easy: Easy
+        moderate: Moderate
+        hard: Hard
+      route_types:
+        loop: Loop
+        out_and_back: Out and back
+        one_way: One way
+      bike_types:
+        any: Any
+        road: Road
+        mountain: Mountain
+        gravel: Gravel
+        ebike: E-bike
     locations_count:
       one: 1 location
       other: "%{count} locations"
@@ -546,7 +598,12 @@ en:
       video: Video
       video_subtitle: Watch video about this location
       watch_video: Watch video
+      map: On the map
+      map_fullscreen: Fullscreen
       nearby_locations: Nearby Locations
+      upcoming_events: Upcoming events
+      upcoming_events_in: Upcoming events in %{city}
+      all_events: All events
       see_all_locations: See all locations
       related_experiences: Experiences with this location
       see_all_experiences: See all experiences
@@ -976,6 +1033,7 @@ en:
       workflow: Workflow
       locations: Locations
       experiences: Experiences
+      events: Events
       plans: Plans
       audio_tours: Audio Tours
       photo_suggestions: Photos
@@ -1116,6 +1174,38 @@ en:
         add_photo: Add Photo
         no_results: No locations found
         no_results_hint: Try adjusting your filters
+    events:
+      title: Events
+      new: New Event
+      edit: Edit
+      view: View
+      view_in_app: View in App
+      back_to_list: Back to list
+      back_to_view: Back to View
+      edit_title: 'Edit: %{name}'
+      name: Event name
+      location: Location
+      select_location: Select a location...
+      location_hint: Every event is tied to a location.
+      starts_at: Date & time
+      duration: Duration
+      duration_placeholder: e.g. 120
+      duration_hint: Enter duration in minutes
+      description: Description
+      info: Additional info
+      info_placeholder: Tickets, parking, entry rules, ...
+      no_events: No events found
+      count:
+        one: 1 event
+        other: "%{count} events"
+      created_at: Created
+      updated_at: Updated
+      sections:
+        basic_info: Basic Information
+        metadata: Metadata
+      filter:
+        all_cities: All places
+        search_placeholder: Search by name...
     experiences:
       title: Experiences
       new: New Experience
@@ -1130,6 +1220,14 @@ en:
       duration: Duration
       duration_placeholder: Duration in minutes
       duration_hint: Enter duration in minutes
+      cycling:
+        section: Cycling Details
+        hint: Route info shown to cyclists. Nearby bike rentals are added automatically from the map.
+        distance: Distance (km)
+        elevation: Elevation gain (m)
+        difficulty: Difficulty
+        route_type: Route type
+        bike_type: Recommended bike
       best_season: Best Season
       difficulty: Difficulty
       description: Description
@@ -1292,6 +1390,9 @@ en:
       sections:
         basic_info: Basic Information
         experiences: Experiences
+        locations: Locations
+      locations_management_hint: Optionally add standalone locations to visit on each day, alongside the experiences.
+      select_locations: Select locations for this day...
     proposals:
       title: Content Proposals
       subtitle: Review proposals from all curators

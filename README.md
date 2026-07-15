@@ -1,8 +1,8 @@
-# Usput.ba
+# [Usput.ba](http://Usput.ba)
 
 Discover Bosnia and Herzegovina. A tourism platform featuring curated locations, experiences, audio tours, and AI-powered content generation.
 
-**Discord**: https://discord.gg/kKuc5mnYkc
+**Discord**: [https://discord.gg/kKuc5mnYkc](https://discord.gg/kKuc5mnYkc)
 
 ## Tech Stack
 
@@ -84,14 +84,14 @@ config/
 
 ## Core Models
 
-| Model | Description |
-|-------|-------------|
-| `Location` | Points of interest with categories, translations, photos |
-| `Experience` | Curated collections of locations (tours, activities) |
-| `Plan` | Multi-day travel itineraries |
-| `AudioTour` | Narrated audio content for locations |
-| `ContentChange` | Proposal system for curator contributions |
-| `User` | User accounts with curator/admin roles |
+| Model           | Description                                              |
+| --------------- | -------------------------------------------------------- |
+| `Location`      | Points of interest with categories, translations, photos |
+| `Experience`    | Curated collections of locations (tours, activities)     |
+| `Plan`          | Multi-day travel itineraries                             |
+| `AudioTour`     | Narrated audio content for locations                     |
+| `ContentChange` | Proposal system for curator contributions                |
+| `User`          | User accounts with curator/admin roles                   |
 
 ### Relationships
 
@@ -161,10 +161,10 @@ bin/kamal logs            # View logs
 
 Dual-database architecture:
 
-| Database | Purpose |
-|----------|---------|
-| `klosaer_development` | Primary application data |
-| `klosaer_queue_development` | Solid Queue jobs |
+| Database                    | Purpose                  |
+| --------------------------- | ------------------------ |
+| `klosaer_development`       | Primary application data |
+| `klosaer_queue_development` | Solid Queue jobs         |
 
 ```bash
 bin/rails db:migrate                    # Primary database

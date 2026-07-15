@@ -21,6 +21,12 @@ class Plan < ApplicationRecord
   has_many :plan_experiences, -> { order(day_number: :asc, position: :asc) }, dependent: :destroy
   has_many :experiences, through: :plan_experiences
 
+  # Standalone locations a user adds to a specific day (separate from the locations
+  # nested inside experiences). Named :location_items to avoid clashing with the
+  # experience-derived #locations helper further down.
+  has_many :plan_locations, -> { order(day_number: :asc, position: :asc) }, dependent: :destroy
+  has_many :location_items, through: :plan_locations, source: :location
+
   # Setter for experience_days (used by content change proposals)
   # Format: { "1" => ["uuid1", "uuid2"], "2" => ["uuid3"] }
   def experience_days=(days_hash)
@@ -54,6 +60,43 @@ class Plan < ApplicationRecord
     days = {}
     plan_experiences.includes(:experience).group_by(&:day_number).each do |day_num, plan_exps|
       days[day_num.to_s] = plan_exps.sort_by(&:position).map { |pe| pe.experience.uuid }
+    end
+    days
+  end
+
+  # Setter for location_days (used by content change proposals / curator editing)
+  # Format: { "1" => ["uuid1", "uuid2"], "2" => ["uuid3"] }
+  def location_days=(days_hash)
+    return if days_hash.blank?
+
+    transaction do
+      # Clear existing standalone locations
+      plan_locations.destroy_all
+
+      # Add new locations for each day
+      days_hash.each do |day_number, location_uuids|
+        next if location_uuids.blank?
+
+        location_uuids.each_with_index do |uuid, position|
+          next if uuid.blank?
+          location = Location.find_by(uuid: uuid)
+          next unless location
+
+          plan_locations.create!(
+            location: location,
+            day_number: day_number.to_i,
+            position: position
+          )
+        end
+      end
+    end
+  end
+
+  # Getter for location_days
+  def location_days
+    days = {}
+    plan_locations.includes(:location).group_by(&:day_number).each do |day_num, plan_locs|
+      days[day_num.to_s] = plan_locs.sort_by(&:position).map { |pl| pl.location.uuid }
     end
     days
   end
@@ -188,6 +231,24 @@ class Plan < ApplicationRecord
     plan_experiences.find_by(experience: experience)&.destroy
   end
 
+  # Dohvati standalone lokacije za određeni dan
+  def locations_for_day(day_number)
+    plan_locations.where(day_number: day_number).includes(:location).map(&:location)
+  end
+
+  # Dodaj standalone lokaciju u određeni dan
+  def add_location(location, day_number:, position: nil)
+    validate_day_number!(day_number)
+
+    pos = position || next_location_position_for_day(day_number)
+    plan_locations.create(location: location, day_number: day_number, position: pos)
+  end
+
+  # Ukloni standalone lokaciju iz plana
+  def remove_location(location)
+    plan_locations.find_by(location: location)&.destroy
+  end
+
   # Premjesti experience na drugi dan
   def move_experience_to_day(experience, new_day_number, position: nil)
     validate_day_number!(new_day_number)
@@ -267,6 +328,7 @@ class Plan < ApplicationRecord
         day_number: day_num,
         date: date_for_day(day_num),
         experiences: experiences_for_day(day_num),
+        locations: locations_for_day(day_num),
         total_duration: total_duration_for_day(day_num)
       }
     end
@@ -314,11 +376,14 @@ class Plan < ApplicationRecord
   def calculated_duration_days
     return duration_in_days if start_date.present? && end_date.present?
 
-    # First check actual experiences (most accurate)
-    max_day_from_experiences = plan_experiences.maximum(:day_number)
-    return max_day_from_experiences if max_day_from_experiences.present?
+    # First check actual experiences and standalone locations (most accurate)
+    max_day_from_items = [
+      plan_experiences.maximum(:day_number),
+      plan_locations.maximum(:day_number)
+    ].compact.max
+    return max_day_from_items if max_day_from_items.present?
 
-    # Fall back to preferences if no experiences yet
+    # Fall back to preferences if no items yet
     preferences&.dig("duration_days") || 1
   end
 
@@ -335,6 +400,7 @@ class Plan < ApplicationRecord
       notes: notes,
       days: build_days_for_export,
       total_experiences: plan_experiences.count,
+      total_locations: plan_locations.count,
       saved: true,
       savedAt: updated_at.iso8601,
       synced: true,
@@ -398,6 +464,22 @@ class Plan < ApplicationRecord
             position: position
           )
         end
+
+        # Import standalone locations added directly to this day
+        (day_data["locations"] || []).each_with_index do |loc_data, position|
+          location = Location.find_by_public_id(loc_data["id"])
+          unless location
+            skipped_count += 1
+            Rails.logger.warn "Plan import: Location #{loc_data['id']} not found, skipping"
+            next
+          end
+
+          plan.plan_locations.create(
+            location: location,
+            day_number: day_number,
+            position: position
+          )
+        end
       end
 
       if skipped_count > 0
@@ -439,8 +521,9 @@ class Plan < ApplicationRecord
         self.notes = data["notes"].present? ? ActionController::Base.helpers.sanitize(data["notes"].to_s.truncate(2000)) : nil
       end
 
-      # Clear existing experiences and re-import
+      # Clear existing experiences and locations, then re-import
       plan_experiences.delete_all
+      plan_locations.delete_all
 
       (data["days"] || []).each do |day_data|
         day_number = day_data["day_number"] || 1
@@ -455,6 +538,22 @@ class Plan < ApplicationRecord
 
           plan_experiences.create!(
             experience: experience,
+            day_number: day_number,
+            position: position
+          )
+        end
+
+        # Re-import standalone locations added directly to this day
+        (day_data["locations"] || []).each_with_index do |loc_data, position|
+          location = Location.find_by_public_id(loc_data["id"])
+          unless location
+            skipped_count += 1
+            Rails.logger.warn "Plan update: Location #{loc_data['id']} not found, skipping"
+            next
+          end
+
+          plan_locations.create!(
+            location: location,
             day_number: day_number,
             position: position
           )
@@ -479,10 +578,14 @@ class Plan < ApplicationRecord
   private
 
   def build_days_for_export
-    max_day = plan_experiences.maximum(:day_number) || calculated_duration_days
+    max_day = [
+      plan_experiences.maximum(:day_number),
+      plan_locations.maximum(:day_number)
+    ].compact.max || calculated_duration_days
 
     (1..max_day).map do |day_num|
       day_experiences = plan_experiences_for_day(day_num).includes(experience: :locations)
+      day_locations = plan_locations.where(day_number: day_num).order(position: :asc).includes(:location)
 
       {
         day_number: day_num,
@@ -495,22 +598,27 @@ class Plan < ApplicationRecord
             description: exp.description,
             estimated_duration: exp.estimated_duration,
             formatted_duration: exp.formatted_duration,
-            locations: exp.locations.map do |loc|
-              {
-                id: loc.uuid,
-                name: loc.name,
-                description: loc.description,
-                category: loc.category_key,
-                budget: loc.budget,
-                lat: loc.lat,
-                lng: loc.lng,
-                city: loc.city
-              }
-            end
+            locations: exp.locations.map { |loc| location_export_hash(loc) }
           }
-        end
+        end,
+        # Standalone locations added directly to this day (not inside an experience)
+        locations: day_locations.map { |pl| location_export_hash(pl.location) }
       }
     end
+  end
+
+  # Serialized shape of a Location for the localStorage plan format
+  def location_export_hash(loc)
+    {
+      id: loc.uuid,
+      name: loc.name,
+      description: loc.description,
+      category: loc.category_key,
+      budget: loc.budget,
+      lat: loc.lat,
+      lng: loc.lng,
+      city: loc.city
+    }
   end
 
   def end_date_after_start_date
@@ -529,5 +637,9 @@ class Plan < ApplicationRecord
 
   def next_position_for_day(day_number)
     (plan_experiences.where(day_number: day_number).maximum(:position) || 0) + 1
+  end
+
+  def next_location_position_for_day(day_number)
+    (plan_locations.where(day_number: day_number).maximum(:position) || 0) + 1
   end
 end

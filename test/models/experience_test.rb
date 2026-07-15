@@ -344,6 +344,56 @@ class ExperienceTest < ActiveSupport::TestCase
     year_round.destroy
   end
 
+  # === Cycling tests ===
+
+  test "cycling? is true only for the cycling category" do
+    cycling_category = ExperienceCategory.create!(key: "cycling", name: "Cycling")
+    other_category = ExperienceCategory.create!(key: "cultural_heritage_test", name: "Cultural")
+
+    cycling_exp = Experience.create!(@valid_params.merge(experience_category: cycling_category))
+    other_exp = Experience.create!(@valid_params.merge(title: "Other", experience_category: other_category))
+    uncategorized = Experience.create!(@valid_params.merge(title: "None"))
+
+    assert cycling_exp.cycling?
+    assert_not other_exp.cycling?
+    assert_not uncategorized.cycling?
+
+    [ cycling_exp, other_exp, uncategorized ].each(&:destroy)
+    [ cycling_category, other_category ].each(&:destroy)
+  end
+
+  test "has_cycling_info? reflects whether any cycling field is set" do
+    blank = Experience.new(@valid_params)
+    assert_not blank.has_cycling_info?
+
+    filled = Experience.new(@valid_params.merge(cycling_distance_km: 25.5))
+    assert filled.has_cycling_info?
+  end
+
+  test "cycling difficulty must be a known value" do
+    experience = Experience.new(@valid_params.merge(cycling_difficulty: "impossible"))
+    assert_not experience.valid?
+    assert_includes experience.errors[:cycling_difficulty], "is not included in the list"
+
+    experience.cycling_difficulty = "moderate"
+    assert experience.valid?
+  end
+
+  test "cycling_distance_km must be positive when set" do
+    experience = Experience.new(@valid_params.merge(cycling_distance_km: -1))
+    assert_not experience.valid?
+    assert_includes experience.errors[:cycling_distance_km], "must be greater than 0"
+  end
+
+  test "primary_coordinates returns first location coordinates" do
+    experience = Experience.create!(@valid_params)
+    experience.add_location(@location)
+
+    assert_equal [ @location.lat, @location.lng ], experience.primary_coordinates
+
+    experience.destroy
+  end
+
   test "by_city_name scope filters experiences with locations in city" do
     sarajevo_exp = Experience.create!(@valid_params)
     sarajevo_exp.add_location(@location)

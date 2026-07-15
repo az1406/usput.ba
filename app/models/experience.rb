@@ -20,9 +20,22 @@ class Experience < ApplicationRecord
   # Valid seasons
   SEASONS = %w[spring summer fall winter].freeze
 
+  # Category key that unlocks cycling-specific info fields
+  CYCLING_CATEGORY_KEY = "cycling"
+
+  # Allowed values for cycling-specific fields
+  CYCLING_DIFFICULTIES = %w[easy moderate hard].freeze
+  CYCLING_ROUTE_TYPES = %w[loop out_and_back one_way].freeze
+  BIKE_TYPES = %w[any road mountain gravel ebike].freeze
+
   # Validations
   validates :title, presence: true
   validates :estimated_duration, numericality: { greater_than: 0 }, allow_nil: true
+  validates :cycling_distance_km, numericality: { greater_than: 0 }, allow_nil: true
+  validates :cycling_elevation_gain, numericality: { greater_than_or_equal_to: 0, only_integer: true }, allow_nil: true
+  validates :cycling_difficulty, inclusion: { in: CYCLING_DIFFICULTIES }, allow_blank: true
+  validates :cycling_route_type, inclusion: { in: CYCLING_ROUTE_TYPES }, allow_blank: true
+  validates :bike_type, inclusion: { in: BIKE_TYPES }, allow_blank: true
 
   # Scopes
   scope :with_locations, -> { joins(:experience_locations).distinct }
@@ -154,6 +167,26 @@ class Experience < ApplicationRecord
   # Get category key (for programmatic use)
   def category_key
     experience_category&.key
+  end
+
+  # Is this a cycling experience? (unlocks cycling-specific info)
+  def cycling?
+    category_key == CYCLING_CATEGORY_KEY
+  end
+
+  # Whether any cycling-specific detail has been filled in
+  def has_cycling_info?
+    cycling_distance_km.present? ||
+      cycling_elevation_gain.present? ||
+      cycling_difficulty.present? ||
+      cycling_route_type.present? ||
+      bike_type.present?
+  end
+
+  # Coordinates of the first location with lat/lng (for nearby lookups)
+  def primary_coordinates
+    loc = locations.find { |l| l.lat.present? && l.lng.present? }
+    loc && [ loc.lat, loc.lng ]
   end
 
   # Get the city from the first location (for display purposes)

@@ -1,0 +1,154 @@
+<% content_for :title do %><%= @event.title %> - Usput.ba<% end %>
+<% content_for :meta_description do %><%= strip_tags(@event.description.to_s).squish.truncate(160) %><% end %>
+
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300 overflow-x-hidden">
+  <%= render "new_design/header" %>
+
+  <%# Spacer for fixed header %>
+  <div class="h-20"></div>
+
+  <%# Hero %>
+  <div class="relative isolate bg-white dark:bg-gray-900 overflow-hidden">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-12">
+      <%= link_to events_path, class: "inline-flex items-center text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-6 transition-colors" do %>
+        <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+        </svg>
+        <%= t("events.back_to_events", default: "All events") %>
+      <% end %>
+
+      <span class="inline-block px-3 py-1 bg-rose-100 dark:bg-rose-900/30 rounded-full text-xs font-semibold text-rose-600 dark:text-rose-400 mb-4">
+        <%= t("events.badge", default: "Događaj") %>
+      </span>
+      <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900 dark:text-white break-words">
+        <%= @event.title %>
+      </h1>
+
+      <div class="flex flex-wrap items-center gap-x-4 gap-y-2 mt-4 text-gray-600 dark:text-gray-400">
+        <% if @event.starts_at.present? %>
+          <span class="flex items-center">
+            <svg class="w-5 h-5 mr-2 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+            <%= @event.starts_at.strftime("%d.%m.%Y • %H:%M") %>
+          </span>
+        <% end %>
+        <% if @event.formatted_duration %>
+          <span class="flex items-center">
+            <svg class="w-5 h-5 mr-2 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <%= @event.formatted_duration %>
+          </span>
+        <% end %>
+        <% if @event.city.present? %>
+          <span class="flex items-center">
+            <svg class="w-5 h-5 mr-2 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+            </svg>
+            <%= @event.city %>
+          </span>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="grid gap-8 lg:grid-cols-3">
+      <%# Main content %>
+      <div class="lg:col-span-2 space-y-8 min-w-0">
+        <% if @event.description.present? %>
+          <div class="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg">
+            <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4"><%= t("events.show.about", default: "About the event") %></h2>
+            <p class="text-gray-700 dark:text-gray-300 leading-relaxed break-words whitespace-pre-line [overflow-wrap:anywhere]"><%= @event.description %></p>
+          </div>
+        <% end %>
+
+        <% if @event.info.present? %>
+          <div class="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg">
+            <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <svg class="w-5 h-5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <%= t("events.show.info", default: "Good to know") %>
+            </h2>
+            <p class="text-gray-700 dark:text-gray-300 leading-relaxed break-words whitespace-pre-line [overflow-wrap:anywhere]"><%= @event.info %></p>
+          </div>
+        <% end %>
+      </div>
+
+      <%# Sidebar %>
+      <div class="space-y-6 min-w-0 overflow-hidden">
+        <%# When %>
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg">
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4"><%= t("events.show.details", default: "Details") %></h3>
+          <div class="space-y-4">
+            <% if @event.starts_at.present? %>
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-gray-600 dark:text-gray-400"><%= t("events.show.starts", default: "Starts") %></span>
+                <span class="font-medium text-gray-900 dark:text-white text-right"><%= @event.starts_at.strftime("%d.%m.%Y %H:%M") %></span>
+              </div>
+            <% end %>
+            <% if @event.ends_at.present? && @event.duration.present? %>
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-gray-600 dark:text-gray-400"><%= t("events.show.ends", default: "Ends") %></span>
+                <span class="font-medium text-gray-900 dark:text-white text-right"><%= @event.ends_at.strftime("%d.%m.%Y %H:%M") %></span>
+              </div>
+            <% end %>
+            <% if @event.formatted_duration %>
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-gray-600 dark:text-gray-400"><%= t("events.show.duration", default: "Duration") %></span>
+                <span class="font-medium text-gray-900 dark:text-white"><%= @event.formatted_duration %></span>
+              </div>
+            <% end %>
+          </div>
+        </div>
+
+        <%# Location %>
+        <% if @event.location.present? %>
+          <div class="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg overflow-hidden">
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4"><%= t("events.show.location", default: "Location") %></h3>
+            <%= link_to location_path(@event.location), class: "block group" do %>
+              <div class="flex items-start space-x-3 min-w-0 overflow-hidden">
+                <% if @event.location.photos.attached? %>
+                  <%= image_tag @event.location.photos.first.variant(resize_to_fill: [64, 64]), class: "w-16 h-16 rounded-lg object-cover flex-shrink-0", alt: @event.location.name %>
+                <% else %>
+                  <div class="w-16 h-16 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                    </svg>
+                  </div>
+                <% end %>
+                <div class="flex-1 min-w-0 overflow-hidden">
+                  <p class="font-medium text-gray-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors truncate"><%= @event.location.name %></p>
+                  <% if @event.location.city.present? %>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 truncate"><%= @event.location.city %></p>
+                  <% end %>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+
+        <%# Related events at this location %>
+        <% if @related_events.any? %>
+          <div class="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg overflow-hidden">
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4"><%= t("events.show.more_here", default: "More events here") %></h3>
+            <div class="space-y-4">
+              <% @related_events.each do |ev| %>
+                <%= link_to event_path(ev), class: "block group" do %>
+                  <p class="font-medium text-gray-900 dark:text-white group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors truncate"><%= ev.title %></p>
+                  <% if ev.starts_at.present? %>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5"><%= ev.starts_at.strftime("%d.%m.%Y %H:%M") %></p>
+                  <% end %>
+                <% end %>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <%= render "new_design/footer" %>
+</div>
