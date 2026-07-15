@@ -71,17 +71,17 @@
           <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= @experience.formatted_duration || "-" %></dd>
         </div>
         <div>
-          <dt class="text-sm font-medium text-gray-500 dark:text-gray-400"><%= t("curator.experiences.seasons", default: "Best Seasons") %></dt>
+          <dt class="text-sm font-medium text-gray-500 dark:text-gray-400"><%= t("curator.experiences.best_season") %></dt>
           <dd class="mt-1">
             <% if @experience.year_round? %>
               <span class="inline-flex items-center rounded-full bg-blue-100 dark:bg-blue-900/30 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:text-blue-300">
-                <%= t("seasons.year_round", default: "Year-round") %>
+                <%= experience_season_label(nil) %>
               </span>
             <% else %>
               <div class="flex flex-wrap gap-1">
                 <% @experience.seasons.each do |season| %>
                   <span class="inline-flex items-center rounded-full bg-amber-100 dark:bg-amber-900/30 px-2.5 py-0.5 text-xs font-medium text-amber-800 dark:text-amber-300">
-                    <%= t("seasons.#{season}", default: season.titleize) %>
+                    <%= experience_season_label(season) %>
                   </span>
                 <% end %>
               </div>
@@ -112,7 +112,7 @@
                 <div class="flex items-center gap-2">
                   <%= link_to loc.name, curator_location_path(loc), class: "text-sm font-medium text-gray-900 dark:text-white hover:text-emerald-600 dark:hover:text-emerald-400" %>
                   <span class="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-700 px-2 py-0.5 text-xs text-gray-600 dark:text-gray-400">
-                    <%= t("locations.types.#{loc.category_key}", default: loc.category_key&.humanize) %>
+                    <%= location_type_label(loc.category_key) %>
                   </span>
                 </div>
                 <p class="text-xs text-gray-500 dark:text-gray-400"><%= loc.city %></p>

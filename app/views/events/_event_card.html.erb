@@ -1,0 +1,83 @@
+<%# Event Card - public listing (mirrors explore card styling) %>
+<%= link_to event_path(event), class: "group block bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-lg transition-all overflow-hidden", data: { turbo_frame: "_top" } do %>
+  <%# Image (from the connected location) %>
+  <div class="aspect-[4/3] overflow-hidden relative">
+    <% photo = event.location&.photos&.attached? ? event.location.photos.first : nil %>
+    <% if photo&.variable? %>
+      <%= image_tag photo.variant(resize_to_fill: [400, 300]),
+          alt: event.title,
+          loading: "lazy",
+          class: "w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" %>
+    <% elsif photo %>
+      <%= image_tag photo, alt: event.title, loading: "lazy",
+          class: "w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" %>
+    <% else %>
+      <div class="w-full h-full bg-gradient-to-br from-rose-100 to-orange-200 dark:from-rose-900/30 dark:to-orange-800/30 flex items-center justify-center">
+        <svg class="w-12 h-12 text-rose-400 dark:text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+        </svg>
+      </div>
+    <% end %>
+
+    <%# Date badge %>
+    <% if event.starts_at.present? %>
+      <div class="absolute top-2 left-2 flex flex-col items-center justify-center bg-white/90 dark:bg-gray-900/80 backdrop-blur-sm rounded-lg px-2.5 py-1 shadow-sm">
+        <span class="text-xs font-semibold uppercase text-rose-600 dark:text-rose-400"><%= I18n.l(event.starts_at.to_date, format: "%b") rescue event.starts_at.strftime("%b") %></span>
+        <span class="text-lg font-bold leading-none text-gray-900 dark:text-white"><%= event.starts_at.strftime("%d") %></span>
+      </div>
+    <% end %>
+
+    <%# Upcoming / past badge %>
+    <div class="absolute top-2 right-2">
+      <% if event.upcoming? %>
+        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100/90 text-emerald-800 dark:bg-emerald-900/80 dark:text-emerald-200 backdrop-blur-sm">
+          <%= t("events.upcoming", default: "Upcoming") %>
+        </span>
+      <% else %>
+        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100/90 text-gray-700 dark:bg-gray-700/80 dark:text-gray-200 backdrop-blur-sm">
+          <%= t("events.past", default: "Past") %>
+        </span>
+      <% end %>
+    </div>
+  </div>
+
+  <%# Content %>
+  <div class="p-4">
+    <h3 class="font-semibold text-gray-900 dark:text-white group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors line-clamp-1 break-words">
+      <%= event.title %>
+    </h3>
+
+    <% if event.starts_at.present? %>
+      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400 flex items-center">
+        <svg class="w-3.5 h-3.5 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+        </svg>
+        <%= event.starts_at.strftime("%d.%m.%Y • %H:%M") %>
+      </p>
+    <% end %>
+
+    <% if event.city.present? %>
+      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400 flex items-center min-w-0">
+        <svg class="w-3.5 h-3.5 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+        </svg>
+        <span class="truncate min-w-0"><%= event.city %></span>
+      </p>
+    <% end %>
+
+    <% if event.description.present? %>
+      <p class="mt-2 text-sm text-gray-600 dark:text-gray-300 line-clamp-2 break-words">
+        <%= truncate(strip_tags(event.description), length: 100) %>
+      </p>
+    <% end %>
+
+    <% if event.formatted_duration.present? %>
+      <div class="mt-3 flex items-center text-sm text-gray-500 dark:text-gray-400">
+        <svg class="w-4 h-4 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <%= event.formatted_duration %>
+      </div>
+    <% end %>
+  </div>
+<% end %>

@@ -1,4 +1,33 @@
 module ApplicationHelper
+  # Human-readable label for a location category key.
+  #
+  # A blank key must never be interpolated straight into the I18n lookup: a key
+  # like "locations.types." resolves to the *parent* hash and I18n returns the
+  # whole { place: ..., guide: ... } Hash, which then renders as raw text on the
+  # page. Uncategorized locations are places by definition (see Location#place_type?),
+  # so we fall back to the "place" type.
+  # @param category_key [String, nil] The location's category key
+  # @return [String] The translated type label (e.g. "Place" / "Mjesto")
+  def location_type_label(category_key)
+    key = category_key.presence || "place"
+    t("locations.types.#{key}", default: key.to_s.humanize)
+  end
+
+  # Human-readable label for an experience season key.
+  #
+  # Same blank-key hazard as location_type_label: "curator.experiences.seasons."
+  # resolves to the *parent* hash and I18n returns the whole
+  # { all_year: ..., spring: ... } Hash, which renders as raw text on the page.
+  # The seasons array carries a blank from the form's empty-array hidden field,
+  # and an experience with no seasons is available all year by definition (see
+  # Experience#year_round?), so we fall back to the "all_year" key.
+  # @param season [String, nil] A season key from Experience::SEASONS
+  # @return [String] The translated season label (e.g. "Summer" / "Ljeto")
+  def experience_season_label(season)
+    key = season.presence || "all_year"
+    t("curator.experiences.seasons.#{key}", default: key.to_s.humanize)
+  end
+
   # Safely renders an ActiveStorage attachment image, handling missing files gracefully
   # @param attachment [ActiveStorage::Attached, ActiveStorage::Attachment] The attachment to render
   # @param variant_options [Hash] Options to pass to variant() (e.g., resize_to_fill: [400, 300])

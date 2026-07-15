@@ -1,0 +1,35 @@
+<%# Simple map card: this location plus any nearby locations, on OpenStreetMap. %>
+<%# Locals: location (required), nearby_locations (optional, defaults to none). %>
+<% nearby_locations ||= []
+   map_points = [ { lat: location.lat.to_f, lng: location.lng.to_f, name: location.translate(:name, I18n.locale), main: true } ]
+   nearby_locations.each do |nearby|
+     next unless nearby.lat && nearby.lng
+     map_points << { lat: nearby.lat.to_f, lng: nearby.lng.to_f, name: nearby.translate(:name, I18n.locale), url: location_path(nearby) }
+   end %>
+
+<% content_for :head do %>
+  <%= stylesheet_link_tag "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css", "data-turbo-track": "reload" %>
+<% end %>
+
+<div class="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg overflow-hidden"
+     data-controller="map"
+     data-map-lat-value="<%= location.lat %>"
+     data-map-lng-value="<%= location.lng %>"
+     data-map-points-value="<%= map_points.to_json %>">
+  <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4"><%= t("locations.show.map", default: "Na karti") %></h3>
+  <div class="relative h-64 rounded-xl overflow-hidden z-0 bg-gray-100 dark:bg-gray-700" data-map-target="container">
+    <button type="button"
+            data-action="map#toggleFullscreen"
+            data-map-target="fullscreenButton"
+            class="absolute top-2 right-2 z-[1000] p-2 bg-white/90 dark:bg-gray-800/90 hover:bg-white dark:hover:bg-gray-800 rounded-lg shadow text-gray-700 dark:text-gray-200 transition-colors"
+            aria-label="<%= t('locations.show.map_fullscreen', default: 'Cijeli ekran') %>"
+            title="<%= t('locations.show.map_fullscreen', default: 'Cijeli ekran') %>">
+      <svg data-map-target="expandIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+      </svg>
+      <svg data-map-target="collapseIcon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 9L4 4m0 4V4h4m7 5l5-5m-4 0h4v4M9 15l-5 5m4 0H4v-4m11 5l5-5m0 4v-4h-4" />
+      </svg>
+    </button>
+  </div>
+</div>

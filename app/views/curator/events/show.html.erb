@@ -1,0 +1,88 @@
+<div class="space-y-4 sm:space-y-6">
+  <%= render "curator/shared/pending_proposal_banner", pending_proposal: @pending_proposal %>
+
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <h1 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white"><%= @event.title %></h1>
+    <div class="flex flex-col sm:flex-row gap-2">
+      <%= link_to event_path(@event),
+          class: "inline-flex items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500" do %>
+        <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.64 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.64 0-8.573-3.007-9.963-7.178z" />
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+        <%= t("curator.events.view_in_app", default: "View in App") %>
+      <% end %>
+      <% if Flipper.enabled?(:curator_edit_delete) %>
+        <%= link_to edit_curator_event_path(@event),
+            class: "inline-flex items-center justify-center rounded-md bg-emerald-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-500" do %>
+          <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+          </svg>
+          <%= t("curator.events.edit", default: "Edit") %>
+        <% end %>
+      <% end %>
+      <%= link_to curator_events_path,
+          class: "inline-flex items-center justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-white dark:ring-gray-600 dark:hover:bg-gray-700" do %>
+        <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
+        </svg>
+        <%= t("curator.events.back_to_list", default: "Back to list") %>
+      <% end %>
+    </div>
+  </div>
+
+  <%# Basic Information %>
+  <div class="overflow-hidden rounded-lg bg-white dark:bg-gray-800 shadow">
+    <div class="px-4 py-4 sm:py-5 sm:px-6">
+      <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4"><%= t("curator.events.sections.basic_info", default: "Basic Information") %></h3>
+      <dl class="grid grid-cols-1 gap-x-4 gap-y-4 sm:gap-y-6 sm:grid-cols-2">
+        <div>
+          <dt class="text-sm font-medium text-gray-500 dark:text-gray-400"><%= t("curator.events.name", default: "Event name") %></dt>
+          <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= @event.title %></dd>
+        </div>
+        <div>
+          <dt class="text-sm font-medium text-gray-500 dark:text-gray-400"><%= t("curator.events.location", default: "Location") %></dt>
+          <dd class="mt-1 text-sm text-gray-900 dark:text-white">
+            <%= link_to @event.location.name, curator_location_path(@event.location), class: "text-emerald-600 dark:text-emerald-400 hover:underline" %>
+            <span class="text-gray-500 dark:text-gray-400"><%= " · #{@event.city}" if @event.city.present? %></span>
+          </dd>
+        </div>
+        <div>
+          <dt class="text-sm font-medium text-gray-500 dark:text-gray-400"><%= t("curator.events.starts_at", default: "Date & time") %></dt>
+          <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= @event.starts_at&.strftime("%d.%m.%Y %H:%M") || "-" %></dd>
+        </div>
+        <div>
+          <dt class="text-sm font-medium text-gray-500 dark:text-gray-400"><%= t("curator.events.duration", default: "Duration") %></dt>
+          <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= @event.formatted_duration || "-" %></dd>
+        </div>
+        <div class="sm:col-span-2">
+          <dt class="text-sm font-medium text-gray-500 dark:text-gray-400"><%= t("curator.events.description", default: "Description") %></dt>
+          <dd class="mt-1 text-sm text-gray-900 dark:text-white prose prose-sm max-w-none"><%= simple_format(@event.description) if @event.description.present? %></dd>
+        </div>
+        <% if @event.info.present? %>
+          <div class="sm:col-span-2">
+            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400"><%= t("curator.events.info", default: "Additional info") %></dt>
+            <dd class="mt-1 text-sm text-gray-900 dark:text-white prose prose-sm max-w-none"><%= simple_format(@event.info) %></dd>
+          </div>
+        <% end %>
+      </dl>
+    </div>
+  </div>
+
+  <%# Metadata %>
+  <div class="overflow-hidden rounded-lg bg-white dark:bg-gray-800 shadow">
+    <div class="px-4 py-4 sm:py-5 sm:px-6">
+      <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4"><%= t("curator.events.sections.metadata", default: "Metadata") %></h3>
+      <dl class="grid grid-cols-1 gap-x-4 gap-y-4 sm:gap-y-6 sm:grid-cols-2">
+        <div>
+          <dt class="text-sm font-medium text-gray-500 dark:text-gray-400"><%= t("curator.events.created_at", default: "Created") %></dt>
+          <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= @event.created_at.strftime("%d.%m.%Y %H:%M") %></dd>
+        </div>
+        <div>
+          <dt class="text-sm font-medium text-gray-500 dark:text-gray-400"><%= t("curator.events.updated_at", default: "Updated") %></dt>
+          <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= @event.updated_at.strftime("%d.%m.%Y %H:%M") %></dd>
+        </div>
+      </dl>
+    </div>
+  </div>
+</div>

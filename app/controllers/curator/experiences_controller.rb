@@ -101,7 +101,7 @@ module Curator
     end
 
     def editable_attributes
-      %w[title description experience_category_id estimated_duration contact_name contact_email contact_phone contact_website seasons]
+      %w[title description experience_category_id estimated_duration contact_name contact_email contact_phone contact_website seasons cycling_distance_km cycling_elevation_gain cycling_difficulty cycling_route_type bike_type]
     end
 
     def build_original_data
@@ -129,6 +129,8 @@ module Curator
       params.require(:experience).permit(
         :title, :description, :experience_category_id, :estimated_duration,
         :contact_name, :contact_email, :contact_phone, :contact_website,
+        :cycling_distance_km, :cycling_elevation_gain, :cycling_difficulty,
+        :cycling_route_type, :bike_type,
         seasons: []
       )
     end

@@ -1,0 +1,60 @@
+<%= form_with model: [:curator, event], class: "space-y-6", local: true do |f| %>
+  <% if event.errors.any? %>
+    <div class="rounded-md bg-red-50 dark:bg-red-900/30 p-4">
+      <div class="text-sm text-red-700 dark:text-red-300">
+        <ul class="list-disc pl-5 space-y-1">
+          <% event.errors.full_messages.each do |message| %>
+            <li><%= message %></li>
+          <% end %>
+        </ul>
+      </div>
+    </div>
+  <% end %>
+
+  <%# Basic Information %>
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6">
+    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4"><%= t("curator.events.sections.basic_info", default: "Basic Information") %></h3>
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+      <div class="sm:col-span-2">
+        <%= f.label :title, t("curator.events.name", default: "Event name"), class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+        <%= f.text_field :title, class: "mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm" %>
+      </div>
+
+      <div>
+        <%= f.label :location_uuid, t("curator.events.location", default: "Location"), class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+        <%= f.select :location_uuid,
+            options_for_select(locations.map { |l| ["#{l.name}#{l.city.present? ? " (#{l.city})" : ""}", l.uuid] }, event.location_uuid),
+            { prompt: t("curator.events.select_location", default: "Select a location...") },
+            class: "mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm" %>
+        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400"><%= t("curator.events.location_hint", default: "Every event is tied to a location.") %></p>
+      </div>
+
+      <div>
+        <%= f.label :starts_at, t("curator.events.starts_at", default: "Date & time"), class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+        <%= f.datetime_field :starts_at, class: "mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm" %>
+      </div>
+
+      <div>
+        <%= f.label :duration, t("curator.events.duration", default: "Duration (minutes)"), class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+        <%= f.number_field :duration, min: 0, class: "mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm", placeholder: t("curator.events.duration_placeholder", default: "e.g. 120") %>
+        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400"><%= t("curator.events.duration_hint", default: "Enter duration in minutes") %></p>
+      </div>
+
+      <div class="sm:col-span-2">
+        <%= f.label :description, t("curator.events.description", default: "Description"), class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+        <%= f.text_area :description, rows: 5, class: "mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm" %>
+      </div>
+
+      <div class="sm:col-span-2">
+        <%= f.label :info, t("curator.events.info", default: "Additional info"), class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+        <%= f.text_area :info, rows: 4, class: "mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm", placeholder: t("curator.events.info_placeholder", default: "Tickets, parking, entry rules, ...") %>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex justify-end gap-3">
+    <%= link_to t("common.cancel"), curator_events_path,
+        class: "rounded-md bg-white dark:bg-gray-800 px-3 py-2 text-sm font-semibold text-gray-900 dark:text-white shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700" %>
+    <%= f.submit t("common.save"), class: "rounded-md bg-emerald-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-500 cursor-pointer" %>
+  </div>
+<% end %>

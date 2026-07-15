@@ -115,6 +115,37 @@
     </div>
   <% end %>
 
+  <!-- Standalone Locations by Day -->
+  <% if @plan.plan_locations.any? %>
+    <div class="rounded-lg bg-white dark:bg-gray-800 shadow">
+      <div class="px-4 py-5 sm:px-6">
+        <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4"><%= t("curator.plans.sections.locations", default: "Locations") %></h2>
+
+        <% (1..@plan.duration_in_days).each do |day_num| %>
+          <% day_locations = @plan.plan_locations.where(day_number: day_num).order(:position).includes(:location) %>
+          <% if day_locations.any? %>
+            <div class="mb-4 last:mb-0">
+              <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"><%= t("plans.show.day", number: day_num) %></h3>
+              <ul class="space-y-2">
+                <% day_locations.each do |pl| %>
+                  <li class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                    <span class="w-6 h-6 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 flex items-center justify-center text-xs font-medium">
+                      <%= pl.position %>
+                    </span>
+                    <%= link_to pl.location.name, curator_location_path(pl.location), class: "text-emerald-600 dark:text-emerald-400 hover:text-emerald-900 dark:hover:text-emerald-300" %>
+                    <% if pl.location.city.present? %>
+                      <span class="text-gray-400 dark:text-gray-500"><%= pl.location.city %></span>
+                    <% end %>
+                  </li>
+                <% end %>
+              </ul>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
   <% if Flipper.enabled?(:curator_edit_delete) %>
     <div class="flex gap-3">
       <%= link_to edit_curator_plan_path(@plan),
