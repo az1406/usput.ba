@@ -10,5 +10,4 @@ Dokumentacija za Platform je premještena u `.claude/planning/` folder.
 
 ## Arhiva
 
-- **Stara verzija (V1):** [.claude/planning/archive/PLATFORM\_V1.md](.claude/planning/archive/PLATFORM_V1.md)
-
+- **Stara verzija (V1):** [.claude/planning/archive/PLATFORM_V1.md](.claude/planning/archive/PLATFORM_V1.md)
