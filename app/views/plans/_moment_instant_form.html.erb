@@ -1,0 +1,21 @@
+<%# Locals: plan, location. %>
+<%= form_with url: plan_moments_path(plan),
+      method: :post,
+      scope: :moment,
+      data: { controller: "instant-moment", instant_moment_target: "form" } do |form| %>
+  <%= hidden_field_tag "moment[location_id]", location.uuid %>
+
+  <label class="flex flex-col items-center justify-center w-full rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 px-4 py-6 cursor-pointer transition-colors hover:border-emerald-400 hover:bg-gray-50 dark:hover:bg-gray-700/40">
+    <%= form.file_field :photo,
+          accept: "image/jpeg,image/png,image/gif,image/webp",
+          required: true,
+          class: "sr-only",
+          data: { instant_moment_target: "input", action: "change->instant-moment#select" } %>
+
+    <svg class="w-8 h-8 text-gray-400 dark:text-gray-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 16.5V18a2 2 0 002 2h14a2 2 0 002-2v-1.5M12 3v13m0-13l-4 4m4-4l4 4"></path>
+    </svg>
+    <span class="text-sm font-medium text-gray-700 dark:text-gray-200"><%= t("plans.moments.drop_title") %></span>
+    <span class="mt-0.5 text-xs text-gray-500 dark:text-gray-400"><%= t("plans.moments.drop_hint") %></span>
+  </label>
+<% end %>

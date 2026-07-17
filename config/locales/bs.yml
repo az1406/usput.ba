@@ -326,6 +326,53 @@ bs:
       button: Generiši Plan
       generating: Generisanje plana u toku...
   plans:
+    start:
+      cta: Započni plan
+      title: "%{plan} — na putovanju"
+      back: Nazad na plan
+      subtitle: Prevuci mjesto udesno kada ga posjetiš da sačuvaš uspomenu.
+      visited: Posjećeno
+      mark_visited: Bio sam ovdje
+      add_moment_prompt: Želiš li dodati uspomenu?
+      login_to_capture: Prijavi se da sačuvaš uspomene na ovom putovanju.
+      empty: Ovaj plan još nema lokacija.
+    moments:
+      title: Uspomene
+      privacy_note: Tvoje fotografije su privatne — vidiš ih samo ti, na ovom planu.
+      add: Dodaj
+      swipe_hint: prevuci desno
+      add_for_plan: Dodaj uspomene
+      hide_for_plan: Sakrij uspomene
+      empty: Još nema uspomena
+      cancel: Odustani
+      drop_title: Dodaj svoju uspomenu
+      drop_hint: Prevuci fotografiju ovdje ili klikni za odabir
+      delete: Obriši fotografiju
+      confirm_delete: Obrisati ovu uspomenu?
+      note_placeholder: Bilješka o ovom trenutku (opcionalno)
+      count:
+        one: "%{count} fotografija"
+        other: "%{count} fotografija"
+      passport_hint: Odštampaj svoj pasoš →
+      print_passport: Pasoš
+      passport_empty_hint: Prvo dodaj uspomenu na neki plan
+      passport_title: Pasoš
+      passport_title_en: Passport
+      passport_republic: Republika Usput
+      passport_republic_en: Republic of Usput
+      passport_visa: Viza
+      passport_holder: Nosilac
+      passport_number: Broj pasoša
+      passport_issued: Izdato
+      passport_trip: Putovanje
+      passport_trips: Putovanja
+      passport_days: Dana
+      passport_places: Mjesta
+      passport_moments: Uspomena
+      passport_visits: Posjeta
+      passport_badges: Bedževa
+      passport_traveller: Putnik
+      stamp_visited: Posjećeno
     badge: Plan putovanja
     auto_title: "%{city} - %{days} dana"
     day_singular: dan
@@ -466,6 +513,10 @@ bs:
       title_label: Naslov
       notes_label: Bilješke
       city_label: Mjesto
+  flash:
+    moment:
+      created: Uspomena dodana
+      destroyed: Uspomena obrisana
   auth:
     register_title: Registracija - Usput
     register_heading: Kreiraj nalog
@@ -499,6 +550,10 @@ bs:
     admin_required: Potrebne su ti administratorske privilegije da pristupiš ovoj
       stranici.
   profile:
+    my_moments:
+      title: Tvoje uspomene
+      empty: Još nema uspomena
+      empty_hint: Otvori plan i prevuci fotografiju na bilo koju lokaciju.
     title: Moj Profil
     subtitle: Tvoja putovanja na jednom mjestu
     logged_in_subtitle: Profil je trajno sačuvan
@@ -1116,6 +1171,8 @@ bs:
         no_results: Nema pronađenih lokacija
         no_results_hint: Pokušajte prilagoditi filtere
     events:
+      delete: Obriši
+      confirm_delete: Jesi li siguran da želiš obrisati %{name}?
       title: Događaji
       new: Novi događaj
       edit: Uredi

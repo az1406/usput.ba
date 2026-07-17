@@ -1,0 +1,41 @@
+<%# Locals: plan, location. %>
+<%= form_with url: plan_moments_path(plan), method: :post, scope: :moment do |form| %>
+  <%= hidden_field_tag "moment[location_id]", location.uuid %>
+
+  <div data-controller="photo-upload">
+    <label data-photo-upload-target="area"
+           class="flex flex-col items-center justify-center w-full rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 px-4 py-6 cursor-pointer transition-colors hover:border-emerald-400 hover:bg-gray-50 dark:hover:bg-gray-700/40">
+      <%= form.file_field :photo,
+            accept: "image/jpeg,image/png,image/gif,image/webp",
+            required: true,
+            class: "sr-only",
+            data: { photo_upload_target: "input", action: "change->photo-upload#select" } %>
+
+      <div data-photo-upload-target="placeholder" class="flex flex-col items-center text-center">
+        <svg class="w-8 h-8 text-gray-400 dark:text-gray-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 16.5V18a2 2 0 002 2h14a2 2 0 002-2v-1.5M12 3v13m0-13l-4 4m4-4l4 4"></path>
+        </svg>
+        <span class="text-sm font-medium text-gray-700 dark:text-gray-200"><%= t("plans.moments.drop_title") %></span>
+        <span class="mt-0.5 text-xs text-gray-500 dark:text-gray-400"><%= t("plans.moments.drop_hint") %></span>
+      </div>
+
+      <div data-photo-upload-target="preview" class="hidden flex flex-col items-center text-center">
+        <img data-photo-upload-target="previewImage" src="" alt="" class="w-24 h-24 object-cover rounded-lg border border-emerald-200 dark:border-emerald-800">
+        <span data-photo-upload-target="filename" class="mt-2 max-w-[16rem] truncate text-xs text-gray-600 dark:text-gray-300"></span>
+      </div>
+    </label>
+
+    <div class="mt-3 flex flex-col sm:flex-row gap-2">
+      <%= form.text_field :note,
+            placeholder: t("plans.moments.note_placeholder"),
+            maxlength: 1000,
+            class: "input flex-1 text-sm" %>
+      <%= form.submit t("plans.moments.add"), class: "btn-primary text-sm whitespace-nowrap cursor-pointer" %>
+      <button type="button"
+              data-action="photo-upload#clear"
+              class="text-sm px-3 py-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+        <%= t("plans.moments.cancel") %>
+      </button>
+    </div>
+  </div>
+<% end %>

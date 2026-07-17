@@ -252,6 +252,11 @@
     <%# My Plans Section - For all users %>
     <%= render "travel_profiles/my_plans" %>
 
+    <%# Moments are private per viewer, so there is nothing to show a guest %>
+    <% if logged_in? %>
+      <%= render "travel_profiles/my_moments", moments: @moments || [] %>
+    <% end %>
+
     <%# Actions %>
     <div class="mt-8 bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg">
       <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4"><%= t('profile.actions', default: 'Akcije') %></h2>
@@ -271,6 +276,57 @@
           </svg>
           <%= t('profile.export_pdf', default: 'Print / PDF') %>
         </button>
+
+        <%# Passport — prints every moment the traveller has collected, across %>
+        <%# every plan. Only logged-in users have moments to print. %>
+        <% if logged_in? %>
+          <div class="contents"
+               data-controller="passport"
+               data-passport-holder-value="<%= current_user.username %>"
+               data-passport-number-value="<%= current_user.uuid.delete("-").first(9).upcase %>"
+               data-passport-issued-value="<%= l(Date.current, format: :long) %>"
+               data-passport-moments-value="<%= (@moments || []).select(&:displayable?).map { |moment|
+                 {
+                   location: moment.location.name,
+                   city: moment.location.city,
+                   type: location_type_label(moment.location.category_key),
+                   trip: moment.plan.display_title,
+                   note: moment.note,
+                   # Absolute: the passport prints from an about:blank popup,
+                   # which cannot resolve a relative path. Same origin, so the
+                   # session cookie rides along and the photo stays private.
+                   photo: photo_plan_moment_url(moment.plan, moment, size: "square")
+                 }
+               }.to_json %>"
+               data-passport-translations-value="<%= {
+                 passport: t("plans.moments.passport_title"),
+                 passport_en: t("plans.moments.passport_title_en"),
+                 republic: t("plans.moments.passport_republic"),
+                 republic_en: t("plans.moments.passport_republic_en"),
+                 visa: t("plans.moments.passport_visa"),
+                 holder: t("plans.moments.passport_holder"),
+                 passport_number: t("plans.moments.passport_number"),
+                 issued: t("plans.moments.passport_issued"),
+                 trip: t("plans.moments.passport_trip"),
+                 trips: t("plans.moments.passport_trips"),
+                 places: t("plans.moments.passport_places"),
+                 moments: t("plans.moments.passport_moments"),
+                 visits: t("plans.moments.passport_visits"),
+                 visited: t("plans.moments.stamp_visited"),
+                 badges: t("plans.moments.passport_badges"),
+                 traveller: t("plans.moments.passport_traveller")
+               }.to_json %>">
+            <button data-action="click->passport#print"
+                    data-passport-target="printButton"
+                    title="<%= t('plans.moments.passport_empty_hint') %>"
+                    class="flex items-center justify-center px-4 py-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl text-gray-700 dark:text-gray-300 font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
+              </svg>
+              <%= t("plans.moments.print_passport") %>
+            </button>
+          </div>
+        <% end %>
 
         <label class="flex items-center justify-center px-4 py-3 bg-emerald-100 dark:bg-emerald-900/30 hover:bg-emerald-200 dark:hover:bg-emerald-900/50 rounded-xl text-emerald-700 dark:text-emerald-400 font-medium transition-colors cursor-pointer">
           <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

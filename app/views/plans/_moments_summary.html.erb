@@ -1,0 +1,9 @@
+<%# Live count in the section header — replaced by the turbo_stream on every add. %>
+<%# Locals: plan (Plan), count (Integer). %>
+<span id="plan-moments-summary" class="text-sm text-gray-500 dark:text-gray-400">
+  <% if count.zero? %>
+    <%= t("plans.moments.empty") %>
+  <% else %>
+    <%= t("plans.moments.count", count: count) %>
+  <% end %>
+</span>

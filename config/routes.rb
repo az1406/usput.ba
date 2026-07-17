@@ -82,7 +82,22 @@ Rails.application.routes.draw do
   # Plans (index redirects to explore)
   get "plans", to: redirect("/explore"), as: :plans
   resources :plans, only: [ :show ], constraints: { id: /(?!(wizard|find_city|search_cities|generate|view|recommendations)\b)[^\/]+/ } do
+    # Walk the plan as a trip: locations stacked as steps, swipe a visited one
+    # right to capture a moment. See PlansController#start.
+    member do
+      get :start
+    end
+    # Per-user, server-owned "I was here" progress for the walk.
+    resources :visits, only: [ :create, :destroy ], module: :plans
     resources :reviews, only: [ :index, :create ]
+    # Private photos a logged-in traveller attaches to this plan's locations.
+    # The photo is served by our own action rather than Active Storage's route,
+    # which does not check the session — see MomentsController#photo.
+    resources :moments, only: [ :create, :destroy ] do
+      member do
+        get :photo
+      end
+    end
   end
 
   # Curator dashboard - for curators and admins

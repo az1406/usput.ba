@@ -326,6 +326,53 @@ en:
       button: Generate Plan
       generating: Generating your plan...
   plans:
+    start:
+      cta: Start the plan
+      title: "%{plan} — on the trip"
+      back: Back to plan
+      subtitle: Swipe a place right once you've been there to keep a moment.
+      visited: Visited
+      mark_visited: I was here
+      add_moment_prompt: Would you like to add a moment?
+      login_to_capture: Log in to capture moments on this trip.
+      empty: This plan has no locations yet.
+    moments:
+      title: Moments
+      privacy_note: Your photos are private — only you can see them, on this plan.
+      add: Add
+      swipe_hint: swipe right
+      add_for_plan: Add moments
+      hide_for_plan: Hide moments
+      empty: No moments yet
+      cancel: Cancel
+      drop_title: Upload your moment
+      drop_hint: Drop a photo here, or click to choose
+      delete: Delete photo
+      confirm_delete: Delete this moment?
+      note_placeholder: A note about this moment (optional)
+      count:
+        one: "%{count} photo"
+        other: "%{count} photos"
+      passport_hint: Print your passport →
+      print_passport: Passport
+      passport_empty_hint: Add a moment to a plan first
+      passport_title: Passport
+      passport_title_en: Passport
+      passport_republic: Republic of Usput
+      passport_republic_en: Republic of Usput
+      passport_visa: Visa
+      passport_holder: Holder
+      passport_number: Passport No.
+      passport_issued: Issued
+      passport_trip: Trip
+      passport_trips: Trips
+      passport_days: Days
+      passport_places: Places
+      passport_moments: Moments
+      passport_visits: Visits
+      passport_badges: Badges
+      passport_traveller: Traveller
+      stamp_visited: Visited
     badge: Travel plan
     auto_title: "%{city} - %{days} days"
     day_singular: day
@@ -680,6 +727,9 @@ en:
       experience:
         blank_title: Title can't be blank
   flash:
+    moment:
+      created: Moment added
+      destroyed: Moment deleted
     plan:
       created: Plan was successfully created
       updated: Plan was successfully updated
@@ -725,6 +775,10 @@ en:
     curator_required: You need curator privileges to access this page.
     admin_required: You need administrator privileges to access this page.
   profile:
+    my_moments:
+      title: Your Moments
+      empty: No moments yet
+      empty_hint: Open a plan and drop a photo onto any location.
     title: My Profile
     subtitle: Your travels in one place
     logged_in_subtitle: Profile is permanently saved
@@ -1175,6 +1229,8 @@ en:
         no_results: No locations found
         no_results_hint: Try adjusting your filters
     events:
+      delete: Delete
+      confirm_delete: Are you sure you want to delete %{name}?
       title: Events
       new: New Event
       edit: Edit

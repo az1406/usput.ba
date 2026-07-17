@@ -18,6 +18,38 @@ class PlansController < ApplicationController
 
     @reviews = @plan.reviews.recent.limit(10)
     @review = Review.new
+
+    # Only ever the viewer's own moments — a public plan collects a separate
+    # private set per viewer, so these are never the plan owner's.
+    @moments_by_location_id = if logged_in?
+      current_user.moments.where(plan: @plan)
+                  .with_attached_photo
+                  .chronological
+                  .group_by(&:location_id)
+    else
+      {}
+    end
+  end
+
+  # GET /plans/:id/start
+  def start
+    @plan = Plan.find_by_public_id!(params[:id])
+
+    unless @plan.visibility_public_plan? || (logged_in? && @plan.user_id == current_user.id)
+      raise ActiveRecord::RecordNotFound
+    end
+
+    @locations = @plan.all_locations
+    if logged_in?
+      @moments_by_location_id = current_user.moments.where(plan: @plan)
+                                            .with_attached_photo
+                                            .chronological
+                                            .group_by(&:location_id)
+      @visited_location_ids = current_user.plan_visits.where(plan: @plan).pluck(:location_id).to_set
+    else
+      @moments_by_location_id = {}
+      @visited_location_ids = Set.new
+    end
   end
 
   # GET /plans/wizard

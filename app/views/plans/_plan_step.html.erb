@@ -1,0 +1,88 @@
+<%# Locals: plan, location, moments, visited. Optional: alert. %>
+<% location_name = location.translate(:name, I18n.locale) %>
+<div id="<%= dom_id(location, :step) %>"
+     class="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 shadow-sm"
+     <%- if logged_in? && !visited -%>
+     data-controller="location-swipe"
+     <%- end -%>>
+    <div class="flex items-start gap-4">
+      <span class="flex size-9 flex-shrink-0 items-center justify-center rounded-full <%= visited ? "bg-emerald-600" : "bg-emerald-100 dark:bg-emerald-900/30" %>">
+        <svg class="size-5 <%= visited ? "text-white" : "text-emerald-600 dark:text-emerald-400" %>" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <% if visited %>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          <% else %>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+          <% end %>
+        </svg>
+      </span>
+
+      <% if location.display_photos.any? %>
+        <%= image_tag location.display_photos.first.variant(resize_to_fill: [ 64, 64 ]),
+              class: "size-16 flex-shrink-0 rounded-lg object-cover",
+              alt: location_name %>
+      <% end %>
+
+      <div class="min-w-0 flex-1">
+        <div class="flex items-center gap-2">
+          <h2 class="truncate font-semibold text-gray-900 dark:text-white"><%= location_name %></h2>
+          <% if visited %>
+            <span class="inline-flex items-center rounded-full bg-emerald-600 px-2 py-0.5 text-xs font-medium text-white flex-shrink-0">
+              <%= t("plans.start.visited") %>
+            </span>
+          <% end %>
+        </div>
+        <% meta = [ location.city, location_type_label(location.category_key) ].select(&:present?).join(" · ") %>
+        <% if meta.present? %>
+          <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400"><%= meta %></p>
+        <% end %>
+
+        <% if moments.any? %>
+          <div class="mt-3 flex flex-wrap gap-2">
+            <% moments.each do |moment| %>
+              <% if moment.displayable? %>
+                <div class="relative">
+                  <%= image_tag photo_plan_moment_path(plan, moment, size: "thumb"),
+                        class: "size-14 rounded-lg object-cover border border-gray-200 dark:border-gray-700",
+                        alt: moment.note.presence || location.name %>
+                  <%= button_to plan_moment_path(plan, moment),
+                        method: :delete,
+                        class: "absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-600 text-white text-xs leading-none flex items-center justify-center shadow hover:bg-red-700",
+                        aria: { label: t("plans.moments.delete") } do %>
+                    ×
+                  <% end %>
+                </div>
+              <% end %>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <% if local_assigns[:alert].present? %>
+      <p class="mt-4 rounded-lg bg-red-50 dark:bg-red-900/30 px-3 py-2 text-sm text-red-800 dark:text-red-300">
+        <%= alert %>
+      </p>
+    <% end %>
+
+    <% if logged_in? %>
+      <% if visited %>
+        <div class="mt-4">
+          <p class="mb-2 text-sm font-medium text-gray-700 dark:text-gray-200"><%= t("plans.start.add_moment_prompt") %></p>
+          <%= render "plans/moment_instant_form", plan: plan, location: location %>
+        </div>
+      <% else %>
+        <%# The visit is a real POST so it persists; the drag submits this same
+            form, the button submits it on click. %>
+        <%= button_to plan_visits_path(plan),
+              params: { location_id: location.uuid },
+              form: { data: { location_swipe_target: "form" } },
+              class: "mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 cursor-pointer transition-colors hover:border-emerald-400 hover:bg-gray-50 dark:hover:bg-gray-700/40" do %>
+          <span><%= t("plans.start.mark_visited") %></span>
+          <span class="text-xs text-gray-400 dark:text-gray-500 sm:hidden"><%= t("plans.moments.swipe_hint") %></span>
+        <% end %>
+      <% end %>
+    <% else %>
+      <p class="mt-4 text-sm text-gray-500 dark:text-gray-400"><%= t("plans.start.login_to_capture") %></p>
+    <% end %>
+  </div>

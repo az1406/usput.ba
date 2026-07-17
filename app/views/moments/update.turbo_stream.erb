@@ -1,0 +1,33 @@
+<%# Everything showing one location's moments. The walk has the step; the plan
+    panel has the location block, the summary and the flash. Turbo skips the
+    targets the requesting page does not have. %>
+<% moments = current_user.moments.where(plan: @plan, location: location).with_attached_photo.chronological %>
+
+<%= turbo_stream.replace dom_id(location, :step) do %>
+  <%= render "plans/plan_step",
+        plan: @plan,
+        location: location,
+        moments: moments,
+        visited: current_user.plan_visits.exists?(plan_id: @plan.id, location_id: location.id),
+        alert: local_assigns[:alert] %>
+<% end %>
+
+<%= turbo_stream.replace dom_id(location, :moments) do %>
+  <%= render "plans/moment_location", plan: @plan, location: location, moments: moments %>
+<% end %>
+
+<%= turbo_stream.replace "plan-moments-summary" do %>
+  <%= render "plans/moments_summary", plan: @plan, count: current_user.moments.where(plan: @plan).count %>
+<% end %>
+
+<% if local_assigns[:alert].present? %>
+  <%= turbo_stream.replace "moment-flash" do %>
+    <div id="moment-flash" class="mb-4 rounded-lg bg-red-50 dark:bg-red-900/30 px-4 py-3 text-sm text-red-800 dark:text-red-300">
+      <%= alert %>
+    </div>
+  <% end %>
+<% else %>
+  <%= turbo_stream.replace "moment-flash" do %>
+    <div id="moment-flash"></div>
+  <% end %>
+<% end %>

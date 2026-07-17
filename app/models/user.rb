@@ -13,6 +13,8 @@ class User < ApplicationRecord
   has_many :curator_reviews, dependent: :destroy
   has_many :curator_activities, dependent: :destroy
   has_many :photo_suggestions, dependent: :destroy
+  has_many :moments, dependent: :destroy
+  has_many :plan_visits, dependent: :destroy
 
   # Spam protection constants
   MAX_ACTIVITIES_PER_HOUR = 50

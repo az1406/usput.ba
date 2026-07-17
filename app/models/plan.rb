@@ -27,6 +27,11 @@ class Plan < ApplicationRecord
   has_many :plan_locations, -> { order(day_number: :asc, position: :asc) }, dependent: :destroy
   has_many :location_items, through: :plan_locations, source: :location
 
+  # Private per-traveller photos of this plan's locations. Not scoped to the
+  # plan's owner: anyone viewing a public plan collects their own moments on it.
+  has_many :moments, dependent: :destroy
+  has_many :plan_visits, dependent: :destroy
+
   # Setter for experience_days (used by content change proposals)
   # Format: { "1" => ["uuid1", "uuid2"], "2" => ["uuid3"] }
   def experience_days=(days_hash)
@@ -234,6 +239,23 @@ class Plan < ApplicationRecord
   # Dohvati standalone lokacije za određeni dan
   def locations_for_day(day_number)
     plan_locations.where(day_number: day_number).includes(:location).map(&:location)
+  end
+
+  # Deduplicirano: lokacija dostupna iz dva doživljaja je i dalje jedno mjesto.
+  def all_locations
+    @all_locations ||= begin
+      by_day = Hash.new { |hash, day| hash[day] = [] }
+
+      plan_experiences.includes(experience: { locations: { photos_attachments: :blob } }).each do |plan_experience|
+        by_day[plan_experience.day_number].concat(plan_experience.experience.locations)
+      end
+
+      plan_locations.includes(location: { photos_attachments: :blob }).each do |plan_location|
+        by_day[plan_location.day_number] << plan_location.location
+      end
+
+      by_day.keys.sort.flat_map { |day| by_day[day] }.uniq
+    end
   end
 
   # Dodaj standalone lokaciju u određeni dan

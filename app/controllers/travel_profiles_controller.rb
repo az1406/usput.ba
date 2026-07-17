@@ -14,6 +14,12 @@ class TravelProfilesController < ApplicationController
       @plans = current_user.plans.includes(plan_experiences: :experience)
                            .order(created_at: :desc)
                            .page(1).per(PER_PAGE)
+
+      # Every moment the traveller has collected, across every plan — the
+      # passport is the person, not one trip.
+      @moments = current_user.moments.with_attached_photo
+                              .includes(:location, :plan)
+                              .chronological
     end
   end
 

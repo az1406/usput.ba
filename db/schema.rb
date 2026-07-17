@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_14_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_16_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -405,6 +405,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_14_120000) do
     t.index ["uuid"], name: "index_locations_on_uuid", unique: true
   end
 
+  create_table "moments", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "location_id", null: false
+    t.text "note"
+    t.bigint "plan_id", null: false
+    t.datetime "taken_at"
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.string "uuid", limit: 36, null: false
+    t.index ["location_id"], name: "index_moments_on_location_id"
+    t.index ["plan_id"], name: "index_moments_on_plan_id"
+    t.index ["user_id", "plan_id", "location_id"], name: "index_moments_on_user_id_and_plan_id_and_location_id"
+    t.index ["user_id"], name: "index_moments_on_user_id"
+    t.index ["uuid"], name: "index_moments_on_uuid", unique: true
+  end
+
   create_table "photo_suggestions", force: :cascade do |t|
     t.text "admin_notes"
     t.datetime "created_at", null: false
@@ -449,6 +465,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_14_120000) do
     t.index ["plan_id", "day_number"], name: "index_plan_locations_on_plan_id_and_day_number"
     t.index ["plan_id", "location_id", "day_number"], name: "index_plan_locations_unique_per_day", unique: true
     t.index ["plan_id"], name: "index_plan_locations_on_plan_id"
+  end
+
+  create_table "plan_visits", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "location_id", null: false
+    t.bigint "plan_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["location_id"], name: "index_plan_visits_on_location_id"
+    t.index ["plan_id"], name: "index_plan_visits_on_plan_id"
+    t.index ["user_id", "plan_id", "location_id"], name: "index_plan_visits_on_user_id_and_plan_id_and_location_id", unique: true
+    t.index ["user_id"], name: "index_plan_visits_on_user_id"
   end
 
   create_table "plans", force: :cascade do |t|
@@ -566,6 +594,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_14_120000) do
   add_foreign_key "location_category_assignments", "locations"
   add_foreign_key "location_experience_types", "experience_types"
   add_foreign_key "location_experience_types", "locations"
+  add_foreign_key "moments", "locations"
+  add_foreign_key "moments", "plans"
+  add_foreign_key "moments", "users"
   add_foreign_key "photo_suggestions", "locations"
   add_foreign_key "photo_suggestions", "users"
   add_foreign_key "photo_suggestions", "users", column: "reviewed_by_id"
@@ -573,6 +604,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_14_120000) do
   add_foreign_key "plan_experiences", "plans"
   add_foreign_key "plan_locations", "locations"
   add_foreign_key "plan_locations", "plans"
+  add_foreign_key "plan_visits", "locations"
+  add_foreign_key "plan_visits", "plans"
+  add_foreign_key "plan_visits", "users"
   add_foreign_key "plans", "users"
   add_foreign_key "reviews", "users"
 end

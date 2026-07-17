@@ -33,6 +33,8 @@ class Location < ApplicationRecord
   has_many :audio_tours, dependent: :destroy
   has_many :photo_suggestions, dependent: :destroy
   has_many :events, dependent: :destroy
+  has_many :moments, dependent: :destroy
+  has_many :plan_visits, dependent: :destroy
 
   # Location categories (many-to-many - a location can have multiple categories)
   has_many :location_category_assignments, dependent: :destroy
