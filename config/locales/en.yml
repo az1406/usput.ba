@@ -39,6 +39,7 @@ en:
     plans: Plans
     experiences: Experiences
     locations: Locations
+    moments: Moments
     events: Events
     explore: Explore
     about: About
@@ -55,6 +56,9 @@ en:
       location: Locations
       experience: Experiences
       plan: Plans
+      moment: Moments
+    moment_by: by %{user}
+    moments_home_subtitle: Photos travellers shared from their trips
     nearby: Nearby
     more_filters: More filters
     clear_filters: Clear
@@ -99,6 +103,7 @@ en:
       locations: Locations
       experiences: Experiences
       plans: Plans
+      moments: Moments
     empty:
       title: No results
       with_filters: Try changing your filters or searching for something else.
@@ -345,6 +350,11 @@ en:
       privacy_note: Your photos are private — only you can see them, on this plan.
       add: Add
       swipe_hint: swipe right
+      share: Share this moment
+      share_prompt: Would you like to share this moment with other travellers?
+      make_private: Make private
+      public: Public
+      pending: Awaiting review
       add_for_plan: Add moments
       hide_for_plan: Hide moments
       empty: No moments yet
@@ -734,6 +744,8 @@ en:
     moment:
       created: Moment added
       destroyed: Moment deleted
+      published: Moment shared — a curator will review it before it appears publicly
+      unpublished: Moment is private again
     plan:
       created: Plan was successfully created
       updated: Plan was successfully updated
@@ -1097,6 +1109,21 @@ en:
       photo_suggestions: Photos
       reviews: Reviews
       proposals: Proposals
+      moments: Moments
+    moments:
+      title: Shared moments
+      subtitle: Travellers' photos awaiting review before they appear publicly
+      empty: No moments to review.
+      by: by %{user}
+      approve: Approve
+      reject: Reject
+      status:
+        pending: Pending
+        approved: Approved
+        rejected: Rejected
+      flash:
+        approved: Moment approved
+        rejected: Moment rejected
     dashboard:
       welcome: Welcome, %{username}!
       total_locations: Total Locations

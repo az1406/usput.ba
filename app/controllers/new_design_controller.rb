@@ -9,6 +9,13 @@ class NewDesignController < ApplicationController
                               .order(created_at: :desc)
                               .limit(6)
 
+    # A handful of the newest approved public moments for the home strip
+    @recent_moments = Moment.publicly_visible
+                               .with_attached_photo
+                               .includes(:user, :location)
+                               .order(created_at: :desc)
+                               .limit(4)
+
     # Trending locations - minimum 3.5 rating, sorted by most recent review
     @trending_locations = Location.places
                                   .with_attached_photos
@@ -67,14 +74,16 @@ class NewDesignController < ApplicationController
     @locations_page = (params[:locations_page] || 1).to_i
     @experiences_page = (params[:experiences_page] || 1).to_i
     @plans_page = (params[:plans_page] || 1).to_i
+    @moments_page = (params[:moments_page] || 1).to_i
 
     # Initialize empty result sets
     @locations = Location.none.page(1)
     @experiences = Experience.none.page(1)
     @plans = Plan.none.page(1)
+    @moments = Moment.none.page(1)
 
     # Determine which types to search
-    search_types = @types.presence || %w[location experience plan]
+    search_types = @types.presence || %w[location experience plan moment]
 
     # Always use Browse model for consistent search and filtering
     build_browse_queries(search_types)
@@ -102,6 +111,8 @@ class NewDesignController < ApplicationController
       render partial: "new_design/explore/experiences_items", locals: { experiences: @experiences }, layout: false
     when "plans"
       render partial: "new_design/explore/plans_items", locals: { plans: @plans }, layout: false
+    when "moments"
+      render partial: "new_design/explore/moments_items", locals: { moments: @moments }, layout: false
     end
   end
 
@@ -139,6 +150,24 @@ class NewDesignController < ApplicationController
     if search_types.include?("plan")
       @plans = build_plans_from_browse(base_browse)
     end
+
+    if search_types.include?("moment")
+      @moments = build_moments_from_browse(base_browse)
+    end
+  end
+
+  def build_moments_from_browse(base_browse)
+    matching_ids = base_browse.moments.pluck(:browsable_id)
+    return Moment.none.page(1) if matching_ids.empty?
+
+    # Browse only indexes approved public moments; publicly_visible re-asserts it.
+    scope = Moment.publicly_visible
+                  .with_attached_photo
+                  .includes(:user, :location)
+                  .where(id: matching_ids)
+
+    scope = scope.order(Arel.sql(ActiveRecord::Base.sanitize_sql_array([ "array_position(ARRAY[?]::bigint[], moments.id)", matching_ids ])))
+    scope.page(@moments_page).per(PER_PAGE)
   end
 
   # Build queries without Browse (when no search query)

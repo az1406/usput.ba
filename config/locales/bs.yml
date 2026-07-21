@@ -38,6 +38,7 @@ bs:
     plans: Planovi
     experiences: Iskustva
     locations: Lokacije
+    moments: Uspomene
     events: Događaji
     explore: Istražuj
     about: O nama
@@ -54,6 +55,9 @@ bs:
       location: Lokacije
       experience: Iskustva
       plan: Planovi
+      moment: Uspomene
+    moment_by: objavio/la %{user}
+    moments_home_subtitle: Fotografije koje su putnici podijelili sa svojih putovanja
     nearby: U blizini
     more_filters: Više filtera
     clear_filters: Očisti
@@ -98,6 +102,7 @@ bs:
       locations: Lokacije
       experiences: Iskustva
       plans: Planovi
+      moments: Uspomene
     empty:
       title: Nema rezultata
       with_filters: Pokušajte promijeniti filtere ili pretražiti nešto drugo.
@@ -345,6 +350,11 @@ bs:
       privacy_note: Tvoje fotografije su privatne — vidiš ih samo ti, na ovom planu.
       add: Dodaj
       swipe_hint: prevuci desno
+      share: Podijeli ovu uspomenu
+      share_prompt: Želiš li podijeliti ovu uspomenu s drugim putnicima?
+      make_private: Vrati na privatno
+      public: Javno
+      pending: Čeka pregled
       add_for_plan: Dodaj uspomene
       hide_for_plan: Sakrij uspomene
       empty: Još nema uspomena
@@ -521,6 +531,8 @@ bs:
     moment:
       created: Uspomena dodana
       destroyed: Uspomena obrisana
+      published: Uspomena podijeljena — curator će je pregledati prije nego postane javna
+      unpublished: Uspomena je ponovo privatna
   auth:
     register_title: Registracija - Usput
     register_heading: Kreiraj nalog
@@ -1046,6 +1058,21 @@ bs:
       photo_suggestions: Fotografije
       reviews: Recenzije
       proposals: Prijedlozi
+      moments: Uspomene
+    moments:
+      title: Podijeljene uspomene
+      subtitle: Fotografije putnika koje čekaju pregled prije nego postanu javne
+      empty: Nema uspomena za pregled.
+      by: objavio/la %{user}
+      approve: Odobri
+      reject: Odbij
+      status:
+        pending: Na čekanju
+        approved: Odobreno
+        rejected: Odbijeno
+      flash:
+        approved: Uspomena odobrena
+        rejected: Uspomena odbijena
     dashboard:
       welcome: Dobrodošao, %{username}!
       total_locations: Ukupno lokacija

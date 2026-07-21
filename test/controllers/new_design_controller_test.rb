@@ -181,6 +181,39 @@ class NewDesignControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test "explore returns approved public moments under the moment type" do
+    user = User.create!(username: "explorer_sharer", password: "password123")
+    moment = user.moments.build(plan: @plan, location: @location)
+    moment.photo.attach(io: File.open(file_fixture("real_image.jpg")), filename: "m.jpg", content_type: "image/jpeg")
+    moment.save!
+    moment.update!(visibility: :public_moment)
+    moment.update!(moderation_status: :approved)
+
+    get explore_path, params: { types: [ "moment" ] }
+
+    assert_response :success
+    assert_select "a[href=?]", location_path(@location), minimum: 1
+  ensure
+    Moment.destroy_all
+    user&.destroy
+  end
+
+  test "explore does not surface a pending or private moment" do
+    user = User.create!(username: "private_sharer", password: "password123")
+    moment = user.moments.build(plan: @plan, location: @mostar_location)
+    moment.photo.attach(io: File.open(file_fixture("real_image.jpg")), filename: "m.jpg", content_type: "image/jpeg")
+    moment.save!
+    moment.update!(visibility: :public_moment) # pending, not approved
+
+    get explore_path, params: { types: [ "moment" ] }
+
+    assert_response :success
+    assert_select "a[href=?]", location_path(@mostar_location), count: 0
+  ensure
+    Moment.destroy_all
+    user&.destroy
+  end
+
   test "explore filters by multiple types" do
     get explore_path, params: { types: [ "location", "experience" ] }
 

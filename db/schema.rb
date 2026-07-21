@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_16_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_21_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -408,17 +408,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_16_120000) do
   create_table "moments", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.bigint "location_id", null: false
+    t.integer "moderation_status", default: 0, null: false
     t.text "note"
     t.bigint "plan_id", null: false
     t.datetime "taken_at"
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.string "uuid", limit: 36, null: false
+    t.integer "visibility", default: 0, null: false
     t.index ["location_id"], name: "index_moments_on_location_id"
     t.index ["plan_id"], name: "index_moments_on_plan_id"
     t.index ["user_id", "plan_id", "location_id"], name: "index_moments_on_user_id_and_plan_id_and_location_id"
     t.index ["user_id"], name: "index_moments_on_user_id"
     t.index ["uuid"], name: "index_moments_on_uuid", unique: true
+    t.index ["visibility", "moderation_status", "created_at"], name: "idx_on_visibility_moderation_status_created_at_5069876a7d"
   end
 
   create_table "photo_suggestions", force: :cascade do |t|

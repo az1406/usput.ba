@@ -123,6 +123,39 @@ class MomentsControllerTest < ActionDispatch::IntegrationTest
     assert_equal @stranger, Moment.last.user
   end
 
+  test "the owner publishes a moment, which enters moderation" do
+    login_as(@owner)
+    post plan_moments_path(@plan), params: moment_params
+    moment = Moment.last
+
+    patch publish_plan_moment_path(@plan, moment)
+
+    assert moment.reload.visibility_public_moment?
+    assert moment.pending?, "a freshly published moment is pending review"
+  end
+
+  test "the owner unpublishes a moment back to private" do
+    login_as(@owner)
+    post plan_moments_path(@plan), params: moment_params
+    moment = Moment.last
+    moment.update!(visibility: :public_moment)
+
+    patch unpublish_plan_moment_path(@plan, moment)
+
+    assert moment.reload.visibility_private_moment?
+  end
+
+  test "a stranger cannot publish another traveller's moment" do
+    login_as(@owner)
+    post plan_moments_path(@plan), params: moment_params
+    moment = Moment.last
+
+    login_as(@stranger)
+    patch publish_plan_moment_path(@plan, moment)
+
+    assert moment.reload.visibility_private_moment?, "only the owner may publish"
+  end
+
   private
 
   def login_as(user)

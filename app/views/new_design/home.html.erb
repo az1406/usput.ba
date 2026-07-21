@@ -347,6 +347,31 @@
   season_images = Dir.glob("#{season_images_dir}/*.{jpg,jpeg,png,webp}").map { |f| File.basename(f) }.reject { |f| f == ".keep" }.shuffle
 %>
 
+    <%# ==================== MOMENTS STRIP ==================== %>
+    <div class="bg-white pt-24 sm:pt-32 dark:bg-gray-900">
+      <div class="mx-auto max-w-7xl px-6 lg:px-8">
+        <div class="mx-auto max-w-2xl text-center">
+          <h2 class="text-base/7 font-semibold text-blue-600 dark:text-yellow-400"><%= t("explore.sections.moments") %></h2>
+          <p class="mt-2 text-3xl font-semibold tracking-tight text-balance text-gray-900 sm:text-4xl dark:text-white"><%= t("explore.moments_home_subtitle") %></p>
+        </div>
+        <div class="mx-auto mt-10 grid max-w-2xl grid-cols-1 gap-6 sm:max-w-none sm:grid-cols-2 lg:grid-cols-4">
+          <% if @recent_moments.present? %>
+            <%= render partial: "new_design/explore/moment_card", collection: @recent_moments, as: :moment %>
+          <% else %>
+            <% 4.times do %>
+              <div class="aspect-[4/3] rounded-2xl border border-dashed border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50"></div>
+            <% end %>
+          <% end %>
+        </div>
+        <% if @recent_moments.present? %>
+          <div class="mt-8 text-center">
+            <%= link_to t("explore.view_all", default: "View all"), explore_path(types: [ "moment" ]),
+                  class: "text-sm font-semibold text-blue-600 hover:text-blue-700 dark:text-yellow-400" %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
     <%# ==================== REVIEWS SEKCIJA ==================== %>
     <div class="relative isolate bg-white pt-24 pb-32 sm:pt-32 dark:bg-gray-900">
       <div aria-hidden="true" class="absolute inset-x-0 top-1/2 -z-10 -translate-y-1/2 transform-gpu overflow-hidden opacity-30 blur-3xl">

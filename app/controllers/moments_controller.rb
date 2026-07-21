@@ -1,14 +1,7 @@
 # frozen_string_literal: true
 
 class MomentsController < ApplicationController
-  # Looked up here rather than passed through, so a caller cannot make the
-  # server process arbitrary variants on demand.
-  PHOTO_VARIANTS = {
-    "thumb" => { resize_to_fill: [ 200, 200 ] },
-    "square" => { resize_to_fill: [ 600, 600 ] }
-  }.freeze
-
-  DEFAULT_PHOTO_VARIANT = "square"
+  include ServesMomentPhotos
 
   before_action :require_login
   before_action :set_plan
@@ -31,23 +24,19 @@ class MomentsController < ApplicationController
     end
   end
 
-  # Streamed, not served as an Active Storage URL: a signed blob url is a bearer
-  # token — Rails serves it without looking at the session.
   def photo
     moment = current_user.moments.find_by_public_id!(params[:id])
-    return head :not_found unless moment.displayable?
+    stream_moment_photo(moment, public: false)
+  end
 
-    variant = moment.photo.variant(PHOTO_VARIANTS.fetch(params[:size], PHOTO_VARIANTS[DEFAULT_PHOTO_VARIANT])).processed
+  def publish
+    current_user.moments.find_by_public_id!(params[:id]).update!(visibility: :public_moment)
+    redirect_back fallback_location: plan_path(@plan), notice: t("flash.moment.published")
+  end
 
-    # The browser may cache it; shared caches must not.
-    expires_in 1.hour, public: false
-    send_data variant.download,
-              type: moment.photo.blob.content_type,
-              disposition: "inline"
-  rescue Vips::Error, MiniMagick::Error => e
-    # content_type is the uploader's word, so non-image bytes reach the processor.
-    Rails.logger.warn "[Moments] Unprocessable photo for moment #{params[:id]}: #{e.message}"
-    head :unprocessable_entity
+  def unpublish
+    current_user.moments.find_by_public_id!(params[:id]).update!(visibility: :private_moment)
+    redirect_back fallback_location: plan_path(@plan), notice: t("flash.moment.unpublished")
   end
 
   def destroy

@@ -96,6 +96,8 @@ Rails.application.routes.draw do
     resources :moments, only: [ :create, :destroy ] do
       member do
         get :photo
+        patch :publish
+        patch :unpublish
       end
     end
   end
@@ -119,6 +121,13 @@ Rails.application.routes.draw do
       end
     end
     resources :photo_suggestions, only: [ :index, :show ]
+    resources :moments, only: [ :index ] do
+      member do
+        get :photo
+        post :approve
+        post :reject
+      end
+    end
 
     # Admin features for admin users within curator dashboard
     namespace :admin do

@@ -72,6 +72,26 @@ class MomentsWalkTest < ActionDispatch::IntegrationTest
     assert_select "form[action=?]", plan_moments_path(@plan), count: 0
   end
 
+  test "the walk offers to share a private moment" do
+    add_moment(note: "shareable")
+    login_as(@user)
+
+    get start_plan_path(@plan)
+
+    assert_response :success
+    assert_select "form[action=?]", publish_plan_moment_path(@plan, @user.moments.first)
+  end
+
+  test "the walk offers to unshare an already-public moment" do
+    add_moment(note: "shared").update!(visibility: :public_moment)
+    login_as(@user)
+
+    get start_plan_path(@plan)
+
+    assert_response :success
+    assert_select "form[action=?]", unpublish_plan_moment_path(@plan, @user.moments.first)
+  end
+
   test "marking a location visited within 100m records the visit" do
     login_as(@user)
 

@@ -3,6 +3,8 @@
 require "test_helper"
 
 class MomentTest < ActiveSupport::TestCase
+  include ActiveJob::TestHelper
+
   setup do
     @user = User.create!(username: "moment_owner", password: "password123")
     @other_user = User.create!(username: "moment_stranger", password: "password123")
@@ -84,6 +86,93 @@ class MomentTest < ActiveSupport::TestCase
     build_moment.save!
 
     assert_equal 0, @other_user.moments.count
+  end
+
+  test "a new moment is private and pending by default" do
+    moment = build_moment
+    moment.save!
+
+    assert moment.visibility_private_moment?
+    assert moment.pending?
+  end
+
+  test "publicly_visible returns only approved public moments" do
+    build_moment.save! # private
+    build_moment.tap { |m| m.update!(visibility: :public_moment) } # public, pending
+    approved = build_moment.tap do |m|
+      m.update!(visibility: :public_moment)
+      m.update!(moderation_status: :approved)
+    end
+
+    assert_equal [ approved ], Moment.publicly_visible.to_a
+  end
+
+  test "going public re-enters moderation, even after a prior approval" do
+    moment = build_moment
+    moment.update!(visibility: :public_moment)
+    moment.update!(moderation_status: :approved)
+    assert moment.approved?
+
+    moment.update!(visibility: :private_moment)
+    moment.update!(visibility: :public_moment)
+
+    assert moment.pending?, "going public again must require a fresh approval"
+  end
+
+  test "only an approved public moment is indexed in Browse" do
+    private_m = build_moment.tap(&:save!)
+    pending = build_moment.tap { |m| m.update!(visibility: :public_moment) }
+    approved = build_moment.tap do |m|
+      m.update!(visibility: :public_moment)
+      m.update!(moderation_status: :approved)
+    end
+
+    assert Browse.exists?(browsable: approved)
+    assert_not Browse.exists?(browsable: private_m)
+    assert_not Browse.exists?(browsable: pending)
+  end
+
+  test "turning an indexed moment private removes it from Browse" do
+    moment = build_moment
+    moment.update!(visibility: :public_moment)
+    moment.update!(moderation_status: :approved)
+    assert Browse.exists?(browsable: moment)
+
+    moment.update!(visibility: :private_moment)
+
+    assert_not Browse.exists?(browsable: moment), "an unpublished moment must leave the index"
+  end
+
+  test "an approved public moment is found by searching its note" do
+    moment = build_moment
+    moment.note = "sunset kayak"
+    moment.save!
+    moment.update!(visibility: :public_moment)
+    moment.update!(moderation_status: :approved)
+
+    assert Browse.moments.smart_search("kayak").exists?(browsable: moment)
+  end
+
+  test "deleting a moment purges its photo file from storage (S3 in production)" do
+    moment = build_moment
+    moment.save!
+    blob = moment.photo.blob
+    assert blob.service.exist?(blob.key), "the file is in storage before delete"
+
+    perform_enqueued_jobs { moment.destroy }
+
+    assert_not ActiveStorage::Blob.exists?(id: blob.id), "the blob record must be removed"
+    assert_not blob.service.exist?(blob.key), "the file must be deleted from storage"
+  end
+
+  test "deleting a moment via its plan also purges the photo" do
+    moment = build_moment
+    moment.save!
+    blob = moment.photo.blob
+
+    perform_enqueued_jobs { @plan.destroy }
+
+    assert_not blob.service.exist?(blob.key), "cascade delete must still purge the file"
   end
 
   private

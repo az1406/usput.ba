@@ -1,0 +1,42 @@
+<%# Moment Card for Explore — a traveller's shared photo of a place. Links to the place, never the plan. %>
+<%= link_to location_path(moment.location), class: "group block bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-lg transition-all overflow-hidden", data: { turbo_frame: "_top" } do %>
+  <div class="aspect-[4/3] overflow-hidden relative">
+    <% if moment.displayable? %>
+      <%= image_tag moment.photo.variant(resize_to_fill: [ 400, 300 ]),
+          alt: moment.location.name,
+          loading: "lazy",
+          class: "w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" %>
+    <% else %>
+      <div class="w-full h-full bg-gradient-to-br from-emerald-100 to-emerald-200 dark:from-emerald-900/30 dark:to-emerald-800/30"></div>
+    <% end %>
+    <div class="absolute top-2 left-2">
+      <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100/90 text-emerald-800 dark:bg-emerald-900/80 dark:text-emerald-200 backdrop-blur-sm">
+        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+        </svg>
+        <%= t("explore.types.moment") %>
+      </span>
+    </div>
+  </div>
+
+  <div class="p-4">
+    <h3 class="font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-yellow-400 transition-colors line-clamp-1 break-words">
+      <%= moment.location.name %>
+    </h3>
+
+    <% if moment.location.city.present? %>
+      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400 flex items-center min-w-0">
+        <svg class="w-3.5 h-3.5 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+        </svg>
+        <span class="truncate"><%= moment.location.city %></span>
+      </p>
+    <% end %>
+
+    <% if moment.note.present? %>
+      <p class="mt-2 text-sm text-gray-600 dark:text-gray-300 line-clamp-2 break-words"><%= moment.note %></p>
+    <% end %>
+
+    <p class="mt-3 text-xs text-gray-400 dark:text-gray-500"><%= t("explore.moment_by", user: moment.user.username) %></p>
+  </div>
+<% end %>
