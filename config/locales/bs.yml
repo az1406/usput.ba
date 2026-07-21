@@ -337,6 +337,8 @@ bs:
       mark_visited: Bio sam ovdje
       add_moment_prompt: Želiš li dodati uspomenu?
       login_to_capture: Prijavi se da sačuvaš uspomene na ovom putovanju.
+      too_far: "Predaleko si (%{distance}). Priđi na manje od %{max} m da označiš posjetu."
+      need_location: Ne možemo potvrditi tvoju lokaciju. Uključi lokaciju i pokušaj ponovo.
       empty: Ovaj plan još nema lokacija.
     moments:
       title: Uspomene

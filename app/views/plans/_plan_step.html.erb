@@ -77,10 +77,12 @@
         </div>
       <% else %>
         <%# The visit is a real POST so it persists; the drag submits this same
-            form, the button submits it on click. %>
+            form, the button submits it on click. geo-visit fills user_lat/user_lng
+            with the visitor's coordinates before submit so the server can verify
+            they are actually at the place. %>
         <%= button_to plan_visits_path(plan),
-              params: { location_id: location.uuid },
-              form: { data: { location_swipe_target: "form" } },
+              params: { location_id: location.uuid, user_lat: "", user_lng: "" },
+              form: { data: { location_swipe_target: "form", controller: "geo-visit" } },
               class: "mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 cursor-pointer transition-colors hover:border-emerald-400 hover:bg-gray-50 dark:hover:bg-gray-700/40" do %>
           <span><%= t("plans.start.mark_visited") %></span>
           <span class="text-xs text-gray-400 dark:text-gray-500 sm:hidden"><%= t("plans.moments.swipe_hint") %></span>

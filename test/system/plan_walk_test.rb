@@ -45,9 +45,19 @@ class PlanWalkTest < ApplicationSystemTestCase
     assert_no_current_path login_path, wait: 5
   end
 
+  # Put the headless browser at a real position so the geo-visit check passes —
+  # the same override DevTools' Sensors panel applies by hand.
+  def stand_at(location)
+    uri = URI.parse(page.current_url)
+    browser = page.driver.browser
+    browser.execute_cdp("Browser.grantPermissions", origin: "#{uri.scheme}://#{uri.host}:#{uri.port}", permissions: [ "geolocation" ])
+    browser.execute_cdp("Emulation.setGeolocationOverride", latitude: location.lat.to_f, longitude: location.lng.to_f, accuracy: 5)
+  end
+
   test "mark visited then drop a photo, both appear without a reload" do
     login
     visit start_plan_path(@plan)
+    stand_at(@location)
 
     click_button "I was here"
     assert_text "Visited", wait: 5
@@ -60,6 +70,7 @@ class PlanWalkTest < ApplicationSystemTestCase
   test "swiping a step right marks it visited" do
     login
     visit start_plan_path(@plan)
+    stand_at(@location)
 
     assert_no_text "Visited"
     swipe_right_on "##{ActionView::RecordIdentifier.dom_id(@location, :step)}"
@@ -71,6 +82,7 @@ class PlanWalkTest < ApplicationSystemTestCase
   test "swiping a step down does not mark it visited" do
     login
     visit start_plan_path(@plan)
+    stand_at(@location)
 
     swipe_on "##{ActionView::RecordIdentifier.dom_id(@location, :step)}", dx: 0, dy: 120
 
@@ -81,6 +93,7 @@ class PlanWalkTest < ApplicationSystemTestCase
   test "visited progress persists when leaving and returning to the walk" do
     login
     visit start_plan_path(@plan)
+    stand_at(@location)
     click_button "I was here"
     assert_text "Visited", wait: 5
 

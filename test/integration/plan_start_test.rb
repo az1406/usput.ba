@@ -44,7 +44,7 @@ class PlanStartTest < ActionDispatch::IntegrationTest
   test "marking a step visited persists it and reveals the capture" do
     login_as(@user)
 
-    post plan_visits_path(@plan), params: { location_id: @location.uuid }, as: :turbo_stream
+    post plan_visits_path(@plan), params: { location_id: @location.uuid, user_lat: @location.lat, user_lng: @location.lng }, as: :turbo_stream
 
     assert_response :success
     assert @user.plan_visits.exists?(plan: @plan, location: @location), "the visit must be recorded"

@@ -72,6 +72,31 @@ class MomentsWalkTest < ActionDispatch::IntegrationTest
     assert_select "form[action=?]", plan_moments_path(@plan), count: 0
   end
 
+  test "marking a location visited within 100m records the visit" do
+    login_as(@user)
+
+    assert_difference -> { @user.plan_visits.count }, 1 do
+      post plan_visits_path(@plan), params: { location_id: @location.uuid, user_lat: @location.lat, user_lng: @location.lng }
+    end
+  end
+
+  test "marking a location visited from too far away is rejected with an alert" do
+    login_as(@user)
+
+    assert_no_difference -> { @user.plan_visits.count } do
+      post plan_visits_path(@plan), params: { location_id: @location.uuid, user_lat: 43.90, user_lng: 18.50 }
+    end
+    assert flash[:alert].present?, "a too-far visit must surface an alert"
+  end
+
+  test "marking a location visited without coordinates is rejected" do
+    login_as(@user)
+
+    assert_no_difference -> { @user.plan_visits.count } do
+      post plan_visits_path(@plan), params: { location_id: @location.uuid, user_lat: 0, user_lng: 0 }
+    end
+  end
+
   private
 
   def login_as(user)

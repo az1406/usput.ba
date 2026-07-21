@@ -337,6 +337,8 @@ en:
       mark_visited: I was here
       add_moment_prompt: Would you like to add a moment?
       login_to_capture: Log in to capture moments on this trip.
+      too_far: "You're too far away (%{distance}). Get within %{max} m to mark the visit."
+      need_location: We couldn't get your location. Enable location and try again.
       empty: This plan has no locations yet.
     moments:
       title: Moments
