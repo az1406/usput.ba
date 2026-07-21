@@ -40,7 +40,7 @@ class MomentsWalkTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select "img[alt=?]", "Sunset over the bridge", { minimum: 1 }, "the moment photo must render on the profile"
-    assert_select "a[href=?]", plan_path(@plan), { minimum: 1 }, "moments are grouped under their trip"
+    assert_select "a[href=?]", start_plan_path(@plan), { minimum: 1 }, "moments are grouped under their trip, linking into the walk"
   end
 
   test "a plan card links to the plan page where moments live" do

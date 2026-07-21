@@ -326,8 +326,10 @@ bs:
       button: Generiši Plan
       generating: Generisanje plana u toku...
   plans:
+    started: Započet
     start:
       cta: Započni plan
+      continue: Nastavi putovanje
       title: "%{plan} — na putovanju"
       back: Nazad na plan
       subtitle: Prevuci mjesto udesno kada ga posjetiš da sačuvaš uspomenu.

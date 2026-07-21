@@ -22,9 +22,13 @@
           <%# Served by MomentsController#photo, not Active Storage — the blob %>
           <%# url is a bearer token and these photos are private. %>
           <% if moment.displayable? %>
-            <%= image_tag photo_plan_moment_path(plan, moment, size: "thumb"),
-                  class: "w-24 h-24 object-cover rounded-lg border border-gray-200 dark:border-gray-700",
-                  alt: moment.note.presence || location.name %>
+            <button type="button" class="block cursor-zoom-in"
+                    data-action="moment-lightbox#open"
+                    data-moment-lightbox-url="<%= photo_plan_moment_path(plan, moment, size: "square") %>">
+              <%= image_tag photo_plan_moment_path(plan, moment, size: "thumb"),
+                    class: "w-24 h-24 object-cover rounded-lg border border-gray-200 dark:border-gray-700",
+                    alt: moment.note.presence || location.name %>
+            </button>
           <% end %>
           <%= button_to plan_moment_path(plan, moment),
                 method: :delete,

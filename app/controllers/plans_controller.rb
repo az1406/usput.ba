@@ -29,6 +29,9 @@ class PlansController < ApplicationController
     else
       {}
     end
+
+    @plan_started = logged_in? &&
+      (@moments_by_location_id.present? || current_user.plan_visits.where(plan: @plan).exists?)
   end
 
   # GET /plans/:id/start

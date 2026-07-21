@@ -326,8 +326,10 @@ en:
       button: Generate Plan
       generating: Generating your plan...
   plans:
+    started: Started
     start:
       cta: Start the plan
+      continue: Continue the journey
       title: "%{plan} — on the trip"
       back: Back to plan
       subtitle: Swipe a place right once you've been there to keep a moment.

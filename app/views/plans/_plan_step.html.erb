@@ -42,9 +42,13 @@
             <% moments.each do |moment| %>
               <% if moment.displayable? %>
                 <div class="relative">
-                  <%= image_tag photo_plan_moment_path(plan, moment, size: "thumb"),
-                        class: "size-14 rounded-lg object-cover border border-gray-200 dark:border-gray-700",
-                        alt: moment.note.presence || location.name %>
+                  <button type="button" class="block cursor-zoom-in"
+                          data-action="moment-lightbox#open"
+                          data-moment-lightbox-url="<%= photo_plan_moment_path(plan, moment, size: "square") %>">
+                    <%= image_tag photo_plan_moment_path(plan, moment, size: "thumb"),
+                          class: "size-14 rounded-lg object-cover border border-gray-200 dark:border-gray-700",
+                          alt: moment.note.presence || location.name %>
+                  </button>
                   <%= button_to plan_moment_path(plan, moment),
                         method: :delete,
                         class: "absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-600 text-white text-xs leading-none flex items-center justify-center shadow hover:bg-red-700",
