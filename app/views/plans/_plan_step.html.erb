@@ -1,80 +1,50 @@
-<%# Locals: plan, location, moments, visited. Optional: alert. %>
+<%# Locals: plan, location, moments, visited. Optional: alert, context.
+    Moments live in the story carousel, not on the step; the check-in button is
+    the desktop path (mobile checks in by swiping the card). %>
 <% location_name = location.translate(:name, I18n.locale) %>
+<% overlay = local_assigns.fetch(:overlay, false) %>
+<% step_context = local_assigns.fetch(:context, nil) %>
 <div id="<%= dom_id(location, :step) %>"
-     class="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 shadow-sm"
-     <%- if logged_in? && !visited -%>
-     data-controller="location-swipe"
-     <%- end -%>>
+     class="<%= overlay ? "text-white" : "rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 shadow-sm" %>"
+     data-walk-visited="<%= visited %>">
     <div class="flex items-start gap-4">
-      <span class="flex size-9 flex-shrink-0 items-center justify-center rounded-full <%= visited ? "bg-emerald-600" : "bg-emerald-100 dark:bg-emerald-900/30" %>">
-        <svg class="size-5 <%= visited ? "text-white" : "text-emerald-600 dark:text-emerald-400" %>" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <% if visited %>
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-          <% else %>
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-          <% end %>
-        </svg>
-      </span>
+      <% unless overlay %>
+        <span class="flex size-9 flex-shrink-0 items-center justify-center rounded-full <%= visited ? "bg-emerald-600" : "bg-emerald-100 dark:bg-emerald-900/30" %>">
+          <svg class="size-5 <%= visited ? "text-white" : "text-emerald-600 dark:text-emerald-400" %>" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <% if visited %>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            <% else %>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            <% end %>
+          </svg>
+        </span>
+      <% end %>
 
-      <% if location.display_photos.any? %>
+      <% if local_assigns.fetch(:show_photo, true) && location.display_photos.any? %>
         <%= image_tag location.display_photos.first.variant(resize_to_fill: [ 64, 64 ]),
               class: "size-16 flex-shrink-0 rounded-lg object-cover",
-              alt: location_name %>
+              loading: "lazy", alt: location_name %>
       <% end %>
 
       <div class="min-w-0 flex-1">
         <div class="flex items-center gap-2">
-          <h2 class="truncate font-semibold text-gray-900 dark:text-white"><%= location_name %></h2>
+          <% if local_assigns.fetch(:show_name, true) %>
+            <h2 class="truncate font-semibold text-gray-900 dark:text-white"><%= location_name %></h2>
+          <% end %>
           <% if visited %>
             <span class="inline-flex items-center rounded-full bg-emerald-600 px-2 py-0.5 text-xs font-medium text-white flex-shrink-0">
               <%= t("plans.start.visited") %>
             </span>
           <% end %>
         </div>
-        <% meta = [ location.city, location_type_label(location.category_key) ].select(&:present?).join(" · ") %>
-        <% if meta.present? %>
-          <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400"><%= meta %></p>
+        <% if local_assigns.fetch(:show_name, true) %>
+          <% meta = [ location.city, location_type_label(location.category_key) ].select(&:present?).join(" · ") %>
+          <% if meta.present? %>
+            <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400"><%= meta %></p>
+          <% end %>
         <% end %>
 
-        <% if moments.any? %>
-          <div class="mt-3 flex flex-wrap gap-2">
-            <% moments.each do |moment| %>
-              <% if moment.displayable? %>
-                <div class="relative">
-                  <button type="button" class="block cursor-zoom-in"
-                          data-action="moment-lightbox#open"
-                          data-moment-lightbox-url="<%= photo_plan_moment_path(plan, moment, size: "square") %>">
-                    <%= image_tag photo_plan_moment_path(plan, moment, size: "thumb"),
-                          class: "size-24 rounded-lg object-cover border border-gray-200 dark:border-gray-700",
-                          alt: moment.note.presence || location.name %>
-                  </button>
-                  <%= button_to plan_moment_path(plan, moment),
-                        method: :delete,
-                        class: "absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-600 text-white text-xs leading-none flex items-center justify-center shadow hover:bg-red-700",
-                        aria: { label: t("plans.moments.delete") } do %>
-                    ×
-                  <% end %>
-                  <% if moment.visibility_public_moment? %>
-                    <%= button_to unpublish_plan_moment_path(plan, moment), method: :patch,
-                          class: "absolute -bottom-2 -left-2 w-6 h-6 rounded-full #{moment.approved? ? "bg-emerald-600" : "bg-amber-500"} text-white flex items-center justify-center shadow",
-                          aria: { label: t("plans.moments.make_private") },
-                          title: moment.approved? ? t("plans.moments.public") : t("plans.moments.pending") do %>
-                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0zM3.6 9h16.8M3.6 15h16.8M12 3a15 15 0 010 18M12 3a15 15 0 000 18"></path></svg>
-                    <% end %>
-                  <% else %>
-                    <%= button_to publish_plan_moment_path(plan, moment), method: :patch,
-                          class: "absolute -bottom-2 -left-2 w-6 h-6 rounded-full bg-white/90 dark:bg-gray-700 text-gray-500 dark:text-gray-300 border border-gray-200 dark:border-gray-600 flex items-center justify-center shadow",
-                          aria: { label: t("plans.moments.share") },
-                          title: t("plans.moments.share_prompt") do %>
-                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0zM3.6 9h16.8M3.6 15h16.8M12 3a15 15 0 010 18M12 3a15 15 0 000 18"></path></svg>
-                    <% end %>
-                  <% end %>
-                </div>
-              <% end %>
-            <% end %>
-          </div>
-        <% end %>
       </div>
     </div>
 
@@ -86,21 +56,29 @@
 
     <% if logged_in? %>
       <% if visited %>
-        <div class="mt-4">
-          <p class="mb-2 text-sm font-medium text-gray-700 dark:text-gray-200"><%= t("plans.start.add_moment_prompt") %></p>
-          <%= render "plans/moment_instant_form", plan: plan, location: location %>
-        </div>
       <% else %>
-        <%# The visit is a real POST so it persists; the drag submits this same
-            form, the button submits it on click. geo-visit fills user_lat/user_lng
-            with the visitor's coordinates before submit so the server can verify
-            they are actually at the place. %>
-        <%= button_to plan_visits_path(plan),
-              params: { location_id: location.uuid, user_lat: "", user_lng: "" },
-              form: { data: { location_swipe_target: "form", controller: "geo-visit" } },
-              class: "mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 cursor-pointer transition-colors hover:border-emerald-400 hover:bg-gray-50 dark:hover:bg-gray-700/40" do %>
-          <span><%= t("plans.start.mark_visited") %></span>
-          <span class="text-xs text-gray-400 dark:text-gray-500 sm:hidden"><%= t("plans.moments.swipe_hint") %></span>
+        <% check_class = overlay ? "mx-auto inline-flex items-center gap-1 rounded-full bg-emerald-600 px-5 py-2 text-sm font-semibold text-white shadow-lg cursor-pointer hover:bg-emerald-700" : "flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 cursor-pointer transition-colors hover:border-emerald-400 hover:bg-gray-50 dark:hover:bg-gray-700/40" %>
+        <% if geofence_disabled? %>
+          <%# Geofence off (dev/testing): a plain submit, no geolocation, no distance hint. %>
+          <div class="<%= overlay ? "text-center" : "mt-4" %> hidden sm:block">
+            <%= button_to plan_visits_path(plan), params: { location_id: location.uuid, user_lat: 0, user_lng: 0, context: step_context }.compact, class: check_class do %>
+              <span><%= t("plans.start.mark_visited") %></span>
+            <% end %>
+          </div>
+        <% else %>
+          <div class="<%= overlay ? "text-center" : "mt-4" %> hidden sm:block"
+               data-controller="geo-visit"
+               data-geo-visit-lat-value="<%= location.lat %>"
+               data-geo-visit-lng-value="<%= location.lng %>">
+            <%= button_to plan_visits_path(plan),
+                  params: { location_id: location.uuid, user_lat: "", user_lng: "", context: step_context }.compact,
+                  class: check_class do %>
+              <span><%= t("plans.start.mark_visited") %></span>
+            <% end %>
+            <p class="hidden mt-2 inline-block rounded-full bg-black/60 px-3 py-1 text-sm font-semibold text-white"
+               data-geo-visit-target="hint"
+               data-directions="<%= t('plans.start.compass', default: 'N,NE,E,SE,S,SW,W,NW') %>"></p>
+          </div>
         <% end %>
       <% end %>
     <% else %>

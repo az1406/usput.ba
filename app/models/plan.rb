@@ -121,6 +121,20 @@ class Plan < ApplicationRecord
   scope :for_user, ->(user) { where(user: user) }
   scope :public_plans, -> { visibility_public_plan }
   scope :private_plans, -> { visibility_private_plan }
+  scope :without_explore_bosnia, -> { where("preferences IS NULL OR NOT (preferences @> ?)", { explore_bosnia: true }.to_json) }
+
+  # The hidden per-user plan that explore-mode check-ins and moments ride on.
+  # Marked in preferences so no schema change is needed; excluded from plan
+  # listings via .without_explore_bosnia.
+  def self.explore_bosnia_for(user)
+    user.plans.where("preferences @> ?", { explore_bosnia: true }.to_json).first ||
+      user.plans.create!(title: "Explore Bosnia", visibility: :private_plan,
+                         preferences: { explore_bosnia: true })
+  end
+
+  def explore_bosnia?
+    preferences.is_a?(Hash) && preferences["explore_bosnia"] == true
+  end
 
   # Find plans that have locations within given radius (more precise than city-based)
   # This joins through plan_experiences -> experiences -> experience_locations -> locations

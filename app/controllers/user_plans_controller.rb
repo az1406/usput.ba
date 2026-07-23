@@ -8,7 +8,7 @@ class UserPlansController < ApplicationController
   # GET /user/plans
   # Dohvati sve planove korisnika
   def index
-    plans = current_user.plans.includes(plan_experiences: { experience: :locations }, plan_locations: :location)
+    plans = current_user.plans.without_explore_bosnia.includes(plan_experiences: { experience: :locations }, plan_locations: :location)
                         .order(created_at: :desc)
 
     render json: {
@@ -41,8 +41,8 @@ class UserPlansController < ApplicationController
 
     # Also get any plans that exist in DB but not in local
     existing_local_ids = local_plans.map { |p| p["id"] }.compact
-    db_only_plans = current_user.plans.where.not(local_id: existing_local_ids)
-                                .or(current_user.plans.where(local_id: nil))
+    db_only_plans = current_user.plans.without_explore_bosnia.where.not(local_id: existing_local_ids)
+                                .or(current_user.plans.without_explore_bosnia.where(local_id: nil))
                                 .includes(plan_experiences: { experience: :locations }, plan_locations: :location)
 
     db_only_plans.each do |plan|

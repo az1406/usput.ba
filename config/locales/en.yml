@@ -47,6 +47,16 @@ en:
     language: Language
     back_to_site: Back to site
     logout: Sign out
+  explore_bosnia:
+    title: Explore Bosnia
+    eyebrow: Wander by mood
+    subtitle: "No plan needed — pick a category and we deal you the closest place. Visit it, capture a moment, come back for more."
+    deck_subtitle: "The closest place first. Check in when you arrive, then swipe on."
+    deck_empty: "No places in this category yet."
+    empty_grid: "No categories with places yet — check back soon."
+    back: Categories
+    km_away: "%{km} km away"
+    swipe_hint: Swipe right to check you're here
   explore:
     title: Explore
     subtitle: Find the perfect location, experience, or plan for your next adventure.
@@ -333,18 +343,40 @@ en:
   plans:
     started: Started
     start:
+      reviews: Reviews
+      tap_for_info: Tap for more info
+      story_hint: Swipe left for moments
+      story_locked: Check in at the location first to see and share moments
+      story_add_private: Add a private moment
+      story_none: No moments here yet — be the first!
+      story_private: Private
+      story_public: Public
+      story_pending: Awaiting curator
+      story_publish: Publish
+      story_delete: Delete
+      story_delete_confirm: Delete this moment forever? It cannot be brought back.
+      story_upload_note: Your moment stays private until you choose to publish it.
+      no_reviews: No reviews yet.
       cta: Start the plan
       continue: Continue the journey
       title: "%{plan} — on the trip"
       back: Back to plan
       subtitle: Swipe a place right once you've been there to keep a moment.
       visited: Visited
-      mark_visited: I was here
-      add_moment_prompt: Would you like to add a moment?
+      mark_visited: Check if I'm here
+      add_moment_prompt: Would you share your moment with other travellers from this area?
       login_to_capture: Log in to capture moments on this trip.
       too_far: "You're too far away (%{distance}). Get within %{max} m to mark the visit."
       need_location: We couldn't get your location. Enable location and try again.
       empty: This plan has no locations yet.
+      info: Location info
+      map: Map
+      play_audio: Play audio
+      shared_moments: Moments
+      shared_moments_here: Travellers' moments
+      no_shared_moments: Be the first to share a moment here!
+      deck_done: You've seen them all. Nice!
+      compass: N,NE,E,SE,S,SW,W,NW
     moments:
       title: Moments
       privacy_note: Your photos are private — only you can see them, on this plan.

@@ -30,8 +30,12 @@ class MomentsController < ApplicationController
   end
 
   def publish
-    current_user.moments.find_by_public_id!(params[:id]).update!(visibility: :public_moment)
-    redirect_back fallback_location: plan_path(@plan), notice: t("flash.moment.published")
+    moment = current_user.moments.find_by_public_id!(params[:id])
+    moment.update!(visibility: :public_moment)
+    respond_to do |format|
+      format.turbo_stream { render :update, locals: { location: moment.location } } if params[:context].present?
+      format.html { redirect_back fallback_location: plan_path(@plan), notice: t("flash.moment.published") }
+    end
   end
 
   def unpublish

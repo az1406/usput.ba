@@ -27,6 +27,7 @@ class Plans::VisitsController < ApplicationController
   private
 
   def out_of_range_reason(location)
+    return nil if helpers.geofence_disabled? # SKIP_GEOFENCE=true (non-prod) accepts any spot
     return nil unless location.geocoded?
 
     lat = params[:user_lat].to_f

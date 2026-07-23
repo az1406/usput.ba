@@ -11,7 +11,8 @@ module ServesMomentPhotos
   # server process arbitrary variants on demand.
   PHOTO_VARIANTS = {
     "thumb" => { resize_to_fill: [ 200, 200 ] },
-    "square" => { resize_to_fill: [ 600, 600 ] }
+    "square" => { resize_to_fill: [ 600, 600 ] },
+    "story" => { resize_to_limit: [ 1080, 1080 ] }
   }.freeze
 
   DEFAULT_PHOTO_VARIANT = "square"

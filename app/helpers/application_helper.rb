@@ -1,4 +1,10 @@
 module ApplicationHelper
+  def geofence_disabled?
+    return false if Rails.env.production?
+    return ENV["SKIP_GEOFENCE"] == "true" if Rails.env.test? # opt-in only, so geofence tests hold
+    ENV["SKIP_GEOFENCE"] != "false"                          # development: on by default, so check-in just works
+  end
+
   # Human-readable label for a location category key.
   #
   # A blank key must never be interpolated straight into the I18n lookup: a key

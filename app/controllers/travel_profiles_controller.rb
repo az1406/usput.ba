@@ -11,7 +11,7 @@ class TravelProfilesController < ApplicationController
     # Page is accessible to everyone, data comes from localStorage or server
     # Load user plans if logged in (first page for initial render)
     if logged_in?
-      @plans = current_user.plans.includes(plan_experiences: :experience)
+      @plans = current_user.plans.without_explore_bosnia.includes(plan_experiences: :experience)
                            .order(created_at: :desc)
                            .page(1).per(PER_PAGE)
 
@@ -20,13 +20,20 @@ class TravelProfilesController < ApplicationController
       @moments = current_user.moments.with_attached_photo
                               .includes(:location, :plan)
                               .chronological
+
+      # Visited places come from the authoritative check-in (PlanVisit), not the
+      # localStorage travel profile — one place a location becomes "visited".
+      @visited_locations = current_user.plan_visits
+                                       .includes(:location, :plan)
+                                       .order(created_at: :desc)
+                                       .uniq(&:location_id)
     end
   end
 
   # GET /profile/plans - Paginated plans for Turbo Frame
   def my_plans
     if logged_in?
-      @plans = current_user.plans.includes(plan_experiences: :experience)
+      @plans = current_user.plans.without_explore_bosnia.includes(plan_experiences: :experience)
                            .order(created_at: :desc)
                            .page(params[:page]).per(PER_PAGE)
       render partial: "travel_profiles/my_plans_content", locals: { plans: @plans }

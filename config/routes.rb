@@ -17,6 +17,9 @@ Rails.application.routes.draw do
   # New design pages (visual development)
   get "new/home", to: "new_design#home", as: :new_home
   get "explore", to: "new_design#explore", as: :explore
+  get "explore-bosnia", to: "explore_bosnia#show", as: :explore_bosnia
+  get "route", to: "map_routes#show", as: :map_route
+  get "explore-bosnia/:experience_key", to: "explore_bosnia#experience", as: :explore_bosnia_experience
 
   # Authentication routes
   get "register", to: "users#new", as: :register

@@ -19,19 +19,7 @@ class PlansController < ApplicationController
     @reviews = @plan.reviews.recent.limit(10)
     @review = Review.new
 
-    # Only ever the viewer's own moments — a public plan collects a separate
-    # private set per viewer, so these are never the plan owner's.
-    @moments_by_location_id = if logged_in?
-      current_user.moments.where(plan: @plan)
-                  .with_attached_photo
-                  .chronological
-                  .group_by(&:location_id)
-    else
-      {}
-    end
-
-    @plan_started = logged_in? &&
-      (@moments_by_location_id.present? || current_user.plan_visits.where(plan: @plan).exists?)
+    @plan_started = logged_in? && current_user.plan_visits.where(plan: @plan).exists?
   end
 
   # GET /plans/:id/start
@@ -43,9 +31,19 @@ class PlansController < ApplicationController
     end
 
     @locations = @plan.all_locations
+    @reviews_by_location_id = Review.where(reviewable_type: "Location", reviewable_id: @locations.map(&:id))
+                                    .recent
+                                    .group_by(&:reviewable_id)
+    @public_moments_by_location_id = Moment.publicly_visible
+                                           .where(location_id: @locations.map(&:id))
+                                           .with_attached_photo
+                                           .chronological
+                                           .group_by(&:location_id)
     if logged_in?
-      @moments_by_location_id = current_user.moments.where(plan: @plan)
+      @moments_by_location_id = current_user.moments
+                                            .where(location_id: @locations.map(&:id))
                                             .with_attached_photo
+                                            .includes(:plan)
                                             .chronological
                                             .group_by(&:location_id)
       @visited_location_ids = current_user.plan_visits.where(plan: @plan).pluck(:location_id).to_set

@@ -1,5 +1,15 @@
 <% content_for :title, t("plans.start.title", plan: @plan.title) %>
 
+<% content_for :head do %>
+  <%= stylesheet_link_tag "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css", "data-turbo-track": "reload" %>
+<% end %>
+
+<%# Navigation %>
+<%= render "new_design/header" %>
+
+<%# Spacer for fixed header %>
+<div class="h-20"></div>
+
 <div class="max-w-2xl mx-auto px-4 py-8 overflow-x-hidden" data-controller="moment-lightbox">
   <div class="mb-6">
     <%= link_to plan_path(@plan),
@@ -15,17 +25,25 @@
   </div>
 
   <% if @locations.any? %>
-    <ol class="space-y-4">
+    <div id="moment-flash"></div>
+
+    <div class="space-y-4" data-controller="plan-deck">
       <% @locations.each do |location| %>
-        <li>
-          <%= render "plans/plan_step",
-                plan: @plan,
-                location: location,
-                moments: @moments_by_location_id[location.id] || [],
-                visited: @visited_location_ids.include?(location.id) %>
-        </li>
+        <%= render "plans/walk_card",
+              plan: @plan,
+              location: location,
+              moments: @moments_by_location_id[location.id] || [],
+              visited: @visited_location_ids.include?(location.id),
+              public_moments: @public_moments_by_location_id[location.id] || [],
+              reviews: @reviews_by_location_id[location.id] || [],
+              context: "walk" %>
       <% end %>
-    </ol>
+
+      <div class="hidden rounded-2xl border border-dashed border-gray-300 dark:border-gray-600 px-4 py-8 text-center"
+           data-plan-deck-target="done">
+        <p class="text-sm font-medium text-gray-700 dark:text-gray-200"><%= t("plans.start.deck_done", default: "Obišli ste sve. Bravo!") %></p>
+      </div>
+    </div>
   <% else %>
     <p class="rounded-2xl border border-dashed border-gray-300 dark:border-gray-600 px-4 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
       <%= t("plans.start.empty") %>

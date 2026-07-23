@@ -46,6 +46,16 @@ bs:
     language: Jezik
     back_to_site: Nazad na stranicu
     logout: Odjavi se
+  explore_bosnia:
+    title: Istraži Bosnu
+    eyebrow: Istražuj po želji
+    subtitle: "Bez plana — izaberi kategoriju i dijelimo ti najbliže mjesto. Posjeti ga, zabilježi trenutak, pa se vrati po još."
+    deck_subtitle: "Prvo najbliže mjesto. Prijavi se kad stigneš, pa nastavi dalje."
+    deck_empty: "Još nema mjesta u ovoj kategoriji."
+    empty_grid: "Još nema kategorija s mjestima — navratite uskoro."
+    back: Kategorije
+    km_away: "%{km} km od vas"
+    swipe_hint: Povuci udesno da provjeriš jesi li tu
   explore:
     title: Istraži
     subtitle: Pronađi savršenu lokaciju, iskustvo ili plan za svoju sljedeću avanturu.
@@ -333,18 +343,40 @@ bs:
   plans:
     started: Započet
     start:
+      reviews: Recenzije
+      tap_for_info: Dodirni za više informacija
+      story_hint: Povuci ulijevo za trenutke
+      story_locked: Prvo se prijavi na lokaciji da vidiš i podijeliš trenutke
+      story_add_private: Dodaj privatni trenutak
+      story_none: Još nema trenutaka ovdje — budi prvi!
+      story_private: Privatno
+      story_public: Javno
+      story_pending: Čeka odobrenje kustosa
+      story_publish: Objavi
+      story_delete: Izbriši
+      story_delete_confirm: Izbrisati ovaj trenutak zauvijek? Ne može se vratiti.
+      story_upload_note: Tvoj trenutak ostaje privatan dok ga ne odlučiš objaviti.
+      no_reviews: Još nema recenzija.
       cta: Započni plan
       continue: Nastavi putovanje
       title: "%{plan} — na putovanju"
       back: Nazad na plan
       subtitle: Prevuci mjesto udesno kada ga posjetiš da sačuvaš uspomenu.
       visited: Posjećeno
-      mark_visited: Bio sam ovdje
-      add_moment_prompt: Želiš li dodati uspomenu?
+      mark_visited: Provjeri jesam li tu
+      compass: S,SI,I,JI,J,JZ,Z,SZ
+      add_moment_prompt: Želiš li podijeliti svoj momenat s drugim putnicima iz ovog kraja?
       login_to_capture: Prijavi se da sačuvaš uspomene na ovom putovanju.
       too_far: "Predaleko si (%{distance}). Priđi na manje od %{max} m da označiš posjetu."
       need_location: Ne možemo potvrditi tvoju lokaciju. Uključi lokaciju i pokušaj ponovo.
       empty: Ovaj plan još nema lokacija.
+      info: Informacije o lokaciji
+      map: Karta
+      play_audio: Pusti audio
+      shared_moments: Momenti
+      shared_moments_here: Momenti putnika
+      no_shared_moments: Budi prvi koji će podijeliti trenutak ovdje!
+      deck_done: Obišli ste sve. Bravo!
     moments:
       title: Uspomene
       privacy_note: Tvoje fotografije su privatne — vidiš ih samo ti, na ovom planu.

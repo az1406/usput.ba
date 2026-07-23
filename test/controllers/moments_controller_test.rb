@@ -52,12 +52,10 @@ class MomentsControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test "the plan page shows only the viewer's own moments" do
+  test "the plan page no longer renders moments (capture moved to the walk)" do
     login_as(@owner)
     post plan_moments_path(@plan), params: moment_params(note: "Owner's private moment")
-    delete logout_path
 
-    login_as(@stranger)
     get plan_path(@plan)
 
     assert_response :success

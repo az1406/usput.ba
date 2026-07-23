@@ -2,10 +2,8 @@
 
 require "test_helper"
 
-# The moments UI is only reachable if three separate pages agree: the profile
-# carries the passport button, the plan card links to the server-rendered plan
-# page (not the localStorage viewer), and that page renders the upload form.
-# Any one of them drifting makes the feature invisible without failing a unit test.
+# Moments are captured only on the walk; the plan card links to the server-rendered
+# plan page, the profile keeps the passport, and the walk offers publish/unpublish.
 class MomentsWalkTest < ActionDispatch::IntegrationTest
   setup do
     @user = User.create!(username: "walker", password: "password123")
@@ -32,15 +30,26 @@ class MomentsWalkTest < ActionDispatch::IntegrationTest
     assert_select "[data-controller='passport'] button[data-passport-target='printButton']", count: 1
   end
 
-  test "the profile page lists the traveller's moments grouped by trip" do
-    add_moment(note: "Sunset over the bridge")
+  test "the profile shows the traveller's own moments with location and photo" do
+    add_moment(note: "sunset")
     login_as(@user)
 
     get profile_page_path
 
     assert_response :success
-    assert_select "img[alt=?]", "Sunset over the bridge", { minimum: 1 }, "the moment photo must render on the profile"
-    assert_select "a[href=?]", start_plan_path(@plan), { minimum: 1 }, "moments are grouped under their trip, linking into the walk"
+    assert_match @location.name, response.body
+    assert_select "img[src*='/moments/']", { minimum: 1 }, "the moment photo renders on the profile"
+  end
+
+  test "the profile's visited places reflect a walk check-in (PlanVisit)" do
+    @user.plan_visits.create!(plan: @plan, location: @location)
+    login_as(@user)
+
+    get profile_page_path
+
+    assert_response :success
+    assert_select "a[href=?]", location_path(@location), { minimum: 1 }, "the checked-in location appears under Visited places"
+    assert_match @location.name, response.body
   end
 
   test "a plan card links to the plan page where moments live" do
@@ -53,25 +62,6 @@ class MomentsWalkTest < ActionDispatch::IntegrationTest
     assert_select "a[href=?]", plan_path(@plan), count: 1
   end
 
-  test "the plan page renders an upload form for each location on the plan" do
-    login_as(@user)
-
-    get plan_path(@plan)
-
-    assert_response :success
-    assert_select "form[action=?]", plan_moments_path(@plan), count: @plan.all_locations.size
-    assert_select "input[type=file][name=?]", "moment[photo]", count: @plan.all_locations.size
-  end
-
-  test "a guest sees no moments section on a public plan" do
-    @plan.update!(visibility: :public_plan)
-
-    get plan_path(@plan)
-
-    assert_response :success
-    assert_select "form[action=?]", plan_moments_path(@plan), count: 0
-  end
-
   test "the walk offers to share a private moment" do
     add_moment(note: "shareable")
     login_as(@user)
@@ -82,14 +72,30 @@ class MomentsWalkTest < ActionDispatch::IntegrationTest
     assert_select "form[action=?]", publish_plan_moment_path(@plan, @user.moments.first)
   end
 
-  test "the walk offers to unshare an already-public moment" do
+  test "publishing from the walk's stories streams in place, no redirect" do
+    add_moment(note: "to share")
+    login_as(@user)
+
+    patch publish_plan_moment_path(@plan, @user.moments.first),
+          params: { context: "walk" },
+          headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+    assert_response :success
+    assert_select "turbo-stream[action=replace][target=?]",
+                  ActionView::RecordIdentifier.dom_id(@location, :stories), count: 1
+    assert @user.moments.first.visibility_public_moment?
+  end
+
+  test "an already-public moment shows badged in the stories with a delete" do
     add_moment(note: "shared").update!(visibility: :public_moment)
     login_as(@user)
 
     get start_plan_path(@plan)
 
     assert_response :success
-    assert_select "form[action=?]", unpublish_plan_moment_path(@plan, @user.moments.first)
+    # unsharing moved to the profile; the story card offers delete
+    assert_select "form[action=?]", unpublish_plan_moment_path(@plan, @user.moments.first), count: 0
+    assert_select "form[action=?]", plan_moment_path(@plan, @user.moments.first), count: 1
   end
 
   test "marking a location visited within 100m records the visit" do

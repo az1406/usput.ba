@@ -405,11 +405,6 @@
           </div>
         <% end %>
 
-        <%# Moments — private per viewer, so only rendered for logged-in users %>
-        <% if logged_in? && @plan.all_locations.any? %>
-          <%= render "plans/moments", plan: @plan, moments_by_location_id: @moments_by_location_id %>
-        <% end %>
-
         <%# Reviews Section %>
         <div class="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg">
           <%= render "reviews/reviews_section", reviewable: @plan %>

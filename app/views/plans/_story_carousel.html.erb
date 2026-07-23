@@ -1,0 +1,20 @@
+<%# Locals: plan, location, moments, public_moments, context.
+    The story carousel for one location — replaced by moments/update so fresh
+    uploads and publishes appear without a reload. %>
+<div>
+  <dialog class="m-0 h-dvh max-h-none w-screen max-w-none bg-black p-0 backdrop:bg-black" data-story-viewer-target="overlay"
+          data-action="click->story-viewer#closeOnBackground close->story-viewer#onNativeClose">
+    <%# The morph target is INSIDE the dialog: updates rewrite the content but
+        never the dialog element, so its open state survives every stream. %>
+    <div id="<%= dom_id(location, :stories) %>" class="relative h-full w-full">
+      <%= render "plans/story_slides", plan: plan, location: location,
+            moments: moments, public_moments: public_moments, context: context %>
+    </div>
+  </dialog>
+
+  <% if logged_in? %>
+    <div class="hidden" data-story-upload data-action="submit->story-viewer#noteUpload">
+      <%= render "plans/moment_instant_form", plan: plan, location: location, context: context %>
+    </div>
+  <% end %>
+</div>

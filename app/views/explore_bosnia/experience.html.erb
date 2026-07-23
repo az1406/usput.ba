@@ -1,0 +1,65 @@
+<% content_for :title, "#{t('explore_bosnia.title')} — #{@experience_type.translate(:name, I18n.locale)}" %>
+
+<% content_for :head do %>
+  <%= stylesheet_link_tag "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css", "data-turbo-track": "reload" %>
+<% end %>
+
+<%# Navigation %>
+<%= render "new_design/header" %>
+
+<%# The reel owns everything below the fixed header: no page scroll, no
+    scrollbar, exactly one card in view. %>
+<div class="fixed inset-x-0 bottom-0 top-[calc(5rem+env(safe-area-inset-top))] flex flex-col overflow-hidden pb-[env(safe-area-inset-bottom)]" data-controller="moment-lightbox">
+  <div class="flex items-center gap-2 px-4 py-2">
+    <%= link_to explore_bosnia_path,
+          class: "inline-flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors" do %>
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+      </svg>
+      <%= t("explore_bosnia.back") %>
+    <% end %>
+    <span class="text-sm font-semibold text-gray-900 dark:text-white"><%= @experience_type.translate(:name, I18n.locale) %></span>
+  </div>
+
+  <% if @locations.any? %>
+    <div id="moment-flash" class="absolute inset-x-0 top-12 z-30 px-4"></div>
+
+    <div class="flex-1 snap-y snap-mandatory overflow-y-auto overscroll-y-contain scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+         data-controller="plan-deck" data-plan-deck-browse-value="true">
+      <% @locations.each do |location| %>
+        <div class="flex h-full snap-start items-center justify-center px-3 py-2">
+          <%# Width derived from the slot height at 2:3, clamped to the screen —
+              the card always fits and always centers, portrait or landscape. %>
+          <div class="w-[min(100%,calc((100dvh-10rem)*0.62))]">
+            <%= render "plans/walk_card",
+                  plan: @plan,
+                  location: location,
+                  moments: @moments_by_location_id[location.id] || [],
+                  visited: @visited_location_ids.include?(location.id),
+                  public_moments: @public_moments_by_location_id[location.id] || [],
+                  reviews: @reviews_by_location_id[location.id] || [],
+                  distance_km: (location.respond_to?(:distance) ? location.distance : nil),
+                  context: "explore" %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <p class="mx-4 rounded-2xl border border-dashed border-gray-300 dark:border-gray-600 px-4 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+      <%= t("explore_bosnia.deck_empty") %>
+    </p>
+  <% end %>
+
+  <div data-moment-lightbox-target="overlay"
+       data-action="click->moment-lightbox#closeOnBackground"
+       class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+    <button type="button" data-action="moment-lightbox#close"
+            class="absolute top-4 right-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
+            aria-label="<%= t('common.close') %>">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+      </svg>
+    </button>
+    <img data-moment-lightbox-target="image" src="" alt="" class="max-h-[85vh] max-w-full rounded-lg object-contain shadow-2xl">
+  </div>
+</div>
