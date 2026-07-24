@@ -56,28 +56,31 @@ class PlanWalkTest < ApplicationSystemTestCase
     browser.execute_cdp("Emulation.setGeolocationOverride", latitude: location.lat.to_f, longitude: location.lng.to_f, accuracy: 5)
   end
 
-  test "the deck opens on the location closest to me, not plan order" do
-    far = Location.create!(name: "Far Loc", city: "Sarajevo", lat: 43.90, lng: 18.50)
-    @experience.locations << far
+  test "the reel shows every plan stop, in plan order" do
+    second = Location.create!(name: "Second Loc", city: "Sarajevo", lat: 43.90, lng: 18.50)
+    @experience.locations << second
     login
-    stand_at(far)
     visit start_plan_path(@plan)
 
-    assert_selector "##{ActionView::RecordIdentifier.dom_id(far, :step)}", visible: true, wait: 5
-    assert_no_selector "##{ActionView::RecordIdentifier.dom_id(@location, :step)}", visible: true
+    # Browse reel (same as explore): every stop stays in the scroll, none hidden
+    # behind a deal-one deck.
+    assert_selector "##{ActionView::RecordIdentifier.dom_id(@location, :step)}", visible: true, wait: 5
+    assert_selector "##{ActionView::RecordIdentifier.dom_id(second, :step)}", visible: true
   ensure
-    far&.destroy
+    second&.destroy
   end
 
-  test "returning to the walk resumes at the next un-visited stop" do
+  test "a visited stop stays in the reel, stamped, beside un-visited stops" do
     second = Location.create!(name: "Second Loc", city: "Sarajevo", lat: 43.86, lng: 18.42)
     @experience.locations << second
     @user.plan_visits.create!(plan: @plan, location: @location)
     login
     visit start_plan_path(@plan)
 
-    assert_selector "##{ActionView::RecordIdentifier.dom_id(second, :step)}", visible: true, wait: 5
-    assert_no_selector "##{ActionView::RecordIdentifier.dom_id(@location, :step)}", visible: true
+    # Both cards stay in the reel; the visited one is stamped, not hidden away.
+    assert_selector "##{ActionView::RecordIdentifier.dom_id(@location, :step)}", visible: true, wait: 5
+    assert_selector "##{ActionView::RecordIdentifier.dom_id(second, :step)}", visible: true
+    assert_text "Visited"
   ensure
     second&.destroy
   end
@@ -137,7 +140,7 @@ class PlanWalkTest < ApplicationSystemTestCase
     assert_selector step, visible: true # must check in before moving on
   end
 
-  test "after checking in, swiping the card right advances past it" do
+  test "after checking in, a repeat right-swipe leaves the card in the reel" do
     login
     visit start_plan_path(@plan)
     stand_at(@location)
@@ -146,7 +149,9 @@ class PlanWalkTest < ApplicationSystemTestCase
 
     swipe_right_on "##{ActionView::RecordIdentifier.dom_id(@location, :step)}"
 
-    assert_no_selector "##{ActionView::RecordIdentifier.dom_id(@location, :step)}", visible: true, wait: 5
+    # Browse mode: a visited card just snaps back — it stays put, still stamped.
+    assert_selector "##{ActionView::RecordIdentifier.dom_id(@location, :step)}", visible: true, wait: 5
+    assert_text "Visited"
   end
 
   test "visited progress persists when leaving and returning to the walk" do

@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["card", "done", "hint", "storyHint"]
+  static targets = ["card", "done", "hint", "storyHint", "reelHint"]
   static values = { browse: Boolean }
 
   connect() {
@@ -9,6 +9,7 @@ export default class extends Controller {
     if (this.browseValue) {
       // Browse mode (explore): every card stays visible — scroll through them,
       // closest first. Swipe works per card.
+      this.maybeShowReelHint()
     } else {
       this.render()
       // Open on the place closest to where you are right now, not plan order.
@@ -43,6 +44,18 @@ export default class extends Controller {
     event?.stopPropagation()
     localStorage.setItem("usput-swipe-hint-seen", "1")
     this.hintTargets.forEach((hint) => hint.classList.replace("flex", "hidden"))
+  }
+
+  maybeShowReelHint() {
+    if (localStorage.getItem("usput-reel-hint-seen")) return
+    if (this.cardTargets.length <= 1 || !this.hasReelHintTarget) return
+    this.reelHintTarget.classList.replace("hidden", "flex")
+    this.element.addEventListener("scroll", this.dismissReelHint, { once: true, passive: true })
+  }
+
+  dismissReelHint = () => {
+    localStorage.setItem("usput-reel-hint-seen", "1")
+    if (this.hasReelHintTarget) this.reelHintTarget.classList.replace("flex", "hidden")
   }
 
   advance() {

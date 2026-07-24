@@ -34,7 +34,15 @@ export default class extends Controller {
   // the hidden upload form; the morphed-in slide then scrolls into view.
   addMoment(event) {
     event.stopPropagation()
-    this.element.querySelector("[data-story-upload] input[type=file]")?.click()
+    const hint = this.element.querySelector("[data-hint-key-value='usput-add-moment-hint-seen']")
+    if (hint) {
+      localStorage.setItem("usput-add-moment-hint-seen", "1")
+      hint.classList.replace("flex", "hidden")
+    }
+    const input = this.element.querySelector("[data-story-upload] input[type=file]")
+    if (!input) return
+    input.value = "" // let the same photo be picked again for another moment
+    input.click()
   }
 
   noteUpload() {
@@ -45,11 +53,11 @@ export default class extends Controller {
     this.pendingNewSlide = false
   }
 
-  slideTargetConnected(slide) {
+  slideTargetConnected() {
     if (!this.pendingNewSlide) return
     this.pendingNewSlide = false
-    const index = this.slideTargets.indexOf(slide)
-    requestAnimationFrame(() => this.scrollToIndex(index))
+    // newest sorts to index 0; jump there — the morph may insert the node elsewhere
+    requestAnimationFrame(() => this.scrollToIndex(0))
   }
 
   next() {

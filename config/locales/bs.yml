@@ -56,6 +56,7 @@ bs:
     back: Kategorije
     km_away: "%{km} km od vas"
     swipe_hint: Povuci udesno da provjeriš jesi li tu
+    reel_hint: Prevuci gore za sljedeće mjesto
   explore:
     title: Istraži
     subtitle: Pronađi savršenu lokaciju, iskustvo ili plan za svoju sljedeću avanturu.
@@ -346,6 +347,7 @@ bs:
       reviews: Recenzije
       tap_for_info: Dodirni za više informacija
       story_hint: Povuci ulijevo za trenutke
+      reel_hint: Prevuci gore za sljedeće mjesto
       story_locked: Prvo se prijavi na lokaciji da vidiš i podijeliš trenutke
       story_add_private: Dodaj privatni trenutak
       story_none: Još nema trenutaka ovdje — budi prvi!
@@ -356,6 +358,9 @@ bs:
       story_delete: Izbriši
       story_delete_confirm: Izbrisati ovaj trenutak zauvijek? Ne može se vratiti.
       story_upload_note: Tvoj trenutak ostaje privatan dok ga ne odlučiš objaviti.
+      add_moment_note: Tvoji trenuci su privatni — tvoja lična kolekcija. Objavi kasnije da podijeliš.
+      publish_hint: Dodirni Objavi da ovo podijeliš s putnicima u blizini.
+      pending_note: Kustos pregleda javne trenutke prije nego ih drugi vide.
       no_reviews: Još nema recenzija.
       cta: Započni plan
       continue: Nastavi putovanje

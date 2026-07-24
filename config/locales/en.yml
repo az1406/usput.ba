@@ -57,6 +57,7 @@ en:
     back: Categories
     km_away: "%{km} km away"
     swipe_hint: Swipe right to check you're here
+    reel_hint: Swipe up for the next place
   explore:
     title: Explore
     subtitle: Find the perfect location, experience, or plan for your next adventure.
@@ -346,6 +347,7 @@ en:
       reviews: Reviews
       tap_for_info: Tap for more info
       story_hint: Swipe left for moments
+      reel_hint: Swipe up for the next place
       story_locked: Check in at the location first to see and share moments
       story_add_private: Add a private moment
       story_none: No moments here yet — be the first!
@@ -356,6 +358,9 @@ en:
       story_delete: Delete
       story_delete_confirm: Delete this moment forever? It cannot be brought back.
       story_upload_note: Your moment stays private until you choose to publish it.
+      add_moment_note: Your moments are private — your own collection. Publish later to share.
+      publish_hint: Tap Publish to share this with travellers near here.
+      pending_note: A curator reviews public moments before others see them.
       no_reviews: No reviews yet.
       cta: Start the plan
       continue: Continue the journey

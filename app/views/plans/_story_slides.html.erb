@@ -1,6 +1,6 @@
 <%# Locals: plan, location, moments, public_moments, context.
     The inside of the story dialog — the piece moments/update morphs. %>
-  <% own_stories = moments.to_a.select(&:displayable?).sort_by { |own| own.visibility_private_moment? ? 0 : 1 }
+  <% own_stories = moments.to_a.select(&:displayable?).sort_by { |own| [ own.visibility_private_moment? ? 0 : 1, -own.created_at.to_i ] }
      other_stories = public_moments.select(&:displayable?).reject { |shared| logged_in? && shared.user_id == current_user.id }
      %>
     <div class="flex h-full w-full snap-x snap-mandatory overflow-x-auto overscroll-x-contain scroll-smooth pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
@@ -22,6 +22,19 @@
                 <%= t("plans.start.story_pending") %>
               <% end %>
             </span>
+            <% if own.visibility_private_moment? %>
+              <div data-controller="hint" data-hint-key-value="usput-publish-hint-seen"
+                   data-action="click->hint#dismiss"
+                   class="hidden absolute inset-x-6 bottom-[4.5rem] z-20 flex-col items-center gap-1 rounded-2xl bg-sky-400/90 px-4 py-2 text-center text-xs font-semibold text-white shadow-lg animate-pulse sm:bottom-14">
+                <%= t("plans.start.publish_hint") %>
+              </div>
+            <% elsif own.visibility_public_moment? && !own.approved? %>
+              <div data-controller="hint" data-hint-key-value="usput-pending-hint-seen"
+                   data-action="click->hint#dismiss"
+                   class="hidden absolute inset-x-3 top-16 z-20 flex-col items-start gap-1 rounded-2xl bg-sky-400/90 px-3 py-2 text-xs font-semibold text-white shadow-lg sm:top-12">
+                <%= t("plans.start.pending_note") %>
+              </div>
+            <% end %>
             <div class="absolute inset-x-0 bottom-8 z-10 flex items-center justify-center gap-3 px-6 sm:bottom-4">
               <% if own.visibility_private_moment? %>
                 <%= button_to t("plans.start.story_publish"), publish_plan_moment_path(own.plan, own),
@@ -80,9 +93,18 @@
     <button type="button" class="absolute right-3 top-[calc(env(safe-area-inset-top)+0.75rem)] z-30 flex size-11 items-center justify-center rounded-full bg-white/20 text-white" data-action="story-viewer#close" aria-label="<%= t('common.close') %>">✕</button>
 
     <% if logged_in? %>
-      <button type="button" data-action="story-viewer#addMoment"
-              class="absolute bottom-[max(1.25rem,env(safe-area-inset-bottom))] right-4 z-30 flex size-14 items-center justify-center rounded-full bg-white text-gray-900 shadow-xl"
-              aria-label="<%= t('plans.start.story_add_private') %>">
-        <svg class="size-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z"/></svg>
-      </button>
+      <div class="pointer-events-none absolute inset-0 z-30 flex items-center justify-center px-0 pb-[env(safe-area-inset-bottom)] sm:px-16">
+        <div class="relative aspect-[9/16] h-full max-w-full sm:h-[92%]">
+          <button type="button" data-action="story-viewer#addMoment"
+                  class="pointer-events-auto absolute bottom-4 right-3 flex size-14 items-center justify-center rounded-full bg-white text-gray-900 shadow-xl"
+                  aria-label="<%= t('plans.start.story_add_private') %>">
+            <svg class="size-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z"/></svg>
+          </button>
+          <div data-controller="hint" data-hint-key-value="usput-add-moment-hint-seen"
+               data-action="click->hint#dismiss"
+               class="pointer-events-auto hidden absolute bottom-20 right-3 max-w-56 flex-col items-end gap-1 rounded-2xl bg-sky-400/90 px-3 py-2 text-right text-xs font-semibold text-white shadow-lg animate-pulse">
+            <%= t("plans.start.add_moment_note") %>
+          </div>
+        </div>
+      </div>
     <% end %>
