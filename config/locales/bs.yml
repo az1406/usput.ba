@@ -370,6 +370,7 @@ bs:
       visited: Posjećeno
       mark_visited: Provjeri jesam li tu
       compass: S,SI,I,JI,J,JZ,Z,SZ
+      warmth: Ledeno,Hladno,Prohladno,Toplo
       add_moment_prompt: Želiš li podijeliti svoj momenat s drugim putnicima iz ovog kraja?
       login_to_capture: Prijavi se da sačuvaš uspomene na ovom putovanju.
       too_far: "Predaleko si (%{distance}). Priđi na manje od %{max} m da označiš posjetu."

@@ -382,6 +382,7 @@ en:
       no_shared_moments: Be the first to share a moment here!
       deck_done: You've seen them all. Nice!
       compass: N,NE,E,SE,S,SW,W,NW
+      warmth: Freezing,Cold,Cool,Warm
     moments:
       title: Moments
       privacy_note: Your photos are private — only you can see them, on this plan.

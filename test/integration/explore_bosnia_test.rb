@@ -222,6 +222,16 @@ class ExploreBosniaTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Prelijepo mjesto"
   end
 
+  test "the check-in hint carries the localized cold-warm scale and enable-location text" do
+    login_as(@user)
+
+    get explore_bosnia_experience_path(@history.key)
+
+    assert_response :success
+    assert_select "[data-geo-visit-target='hint'][data-warmth=?]", I18n.t("plans.start.warmth"), minimum: 1
+    assert_select "[data-geo-visit-target='hint'][data-enable-location=?]", I18n.t("plans.start.need_location"), minimum: 1
+  end
+
   private
 
   def login_as(user)
