@@ -196,6 +196,32 @@ class ExploreBosniaTest < ActionDispatch::IntegrationTest
     assert_not_includes Plan.without_explore_bosnia.where(user: @user), Plan.explore_bosnia_for(@user)
   end
 
+  test "the reviews panel offers the review form scoped per location" do
+    login_as(@user)
+
+    get explore_bosnia_experience_path(@history.key)
+
+    assert_response :success
+    assert_select "##{ActionView::RecordIdentifier.dom_id(@near, :reviews_section)}", count: 1
+    assert_select "##{ActionView::RecordIdentifier.dom_id(@far, :reviews_section)}", count: 1
+    assert_select "form[action=?]", location_reviews_path(@near), minimum: 1
+    assert_select "form[action=?]", location_reviews_path(@far), minimum: 1
+  end
+
+  test "submitting a review from the explore panel creates it and streams the scoped section back" do
+    login_as(@user)
+
+    assert_difference -> { @near.reviews.count }, 1 do
+      post location_reviews_path(@near),
+           params: { review: { rating: 5, comment: "Prelijepo mjesto", author_name: "Amela" } },
+           headers: { "Accept" => "text/vnd.turbo-stream.html" }
+    end
+
+    assert_response :success
+    assert_match ActionView::RecordIdentifier.dom_id(@near, :reviews_section), response.body
+    assert_includes response.body, "Prelijepo mjesto"
+  end
+
   private
 
   def login_as(user)

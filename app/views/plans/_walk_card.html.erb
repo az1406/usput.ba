@@ -118,13 +118,7 @@
                 class="flex size-9 items-center justify-center rounded-full bg-white text-gray-700 shadow dark:bg-gray-900/80 dark:text-gray-200"
                 aria-label="<%= t('common.close') %>">✕</button>
       </div>
-      <% if reviews.any? %>
-        <div class="space-y-3">
-          <%= render partial: "reviews/review_card", collection: reviews.first(5), as: :review %>
-        </div>
-      <% else %>
-        <p class="rounded-xl border border-dashed border-gray-300 p-4 text-center text-sm text-gray-500 dark:border-gray-600 dark:text-gray-400"><%= t("plans.start.no_reviews") %></p>
-      <% end %>
+      <%= render "reviews/reviews_section", reviewable: location, initial_reviews: reviews %>
     </div>
 
   <button type="button" data-plan-deck-target="hint" data-action="plan-deck#dismissHint"
