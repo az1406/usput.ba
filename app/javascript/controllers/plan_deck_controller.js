@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["card", "done", "hint", "storyHint", "reelHint"]
+  static targets = ["card", "done", "hint", "storyHint", "reelHint", "distanceLabel"]
   static values = { browse: Boolean }
 
   connect() {
@@ -18,6 +18,9 @@ export default class extends Controller {
     this.maybeShowHint()
     this.bindSwipe()
     this.maybeShowStoryHints()
+    // The server printed each card's distance from where you were at page load;
+    // refresh it against where you actually are now (and again after check-in).
+    this.refreshFromLocation()
     // A confirmed check-in arrives as a Turbo Stream; teach the left swipe then.
     this.onStream = () => setTimeout(() => this.maybeShowStoryHints(), 100)
     document.addEventListener("turbo:before-stream-render", this.onStream)
@@ -203,6 +206,28 @@ export default class extends Controller {
   checkIn(card) {
     const form = card.querySelector("form[action*='visits']")
     if (form) form.requestSubmit() // geo-visit intercepts: checks distance, then submits or hints
+    this.refreshFromLocation()
+  }
+
+  // One location read (cached, coarse — no watcher), then rewrite each card's
+  // "X km away" from the current position.
+  refreshFromLocation() {
+    if (!this.hasDistanceLabelTarget || !navigator.geolocation) return
+    navigator.geolocation.getCurrentPosition(
+      (pos) => this.refreshDistances(pos.coords.latitude, pos.coords.longitude),
+      () => {},
+      { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 }
+    )
+  }
+
+  refreshDistances(lat, lng) {
+    this.distanceLabelTargets.forEach((label) => {
+      const card = label.closest("[data-plan-deck-target='card']")
+      const template = label.dataset.kmTemplate
+      if (!card || !template) return
+      const km = this.distance(lat, lng, parseFloat(card.dataset.planDeckLat), parseFloat(card.dataset.planDeckLng))
+      label.textContent = template.replace("{km}", km.toFixed(1))
+    })
   }
 
   flyAway(card) {

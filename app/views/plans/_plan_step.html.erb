@@ -66,15 +66,19 @@
             <% end %>
           </div>
         <% else %>
-          <div class="<%= overlay ? "text-center" : "mt-4" %> hidden sm:block"
+          <div class="<%= overlay ? "text-center" : "mt-4" %>"
                data-controller="geo-visit"
                data-geo-visit-lat-value="<%= location.lat %>"
                data-geo-visit-lng-value="<%= location.lng %>">
-            <%= button_to plan_visits_path(plan),
-                  params: { location_id: location.uuid, user_lat: "", user_lng: "", context: step_context }.compact,
-                  class: check_class do %>
-              <span><%= t("plans.start.mark_visited") %></span>
-            <% end %>
+            <%# Desktop taps the button; mobile checks in by swiping the card,
+                so only the button is desktop-only — the meter shows on both. %>
+            <div class="hidden sm:block">
+              <%= button_to plan_visits_path(plan),
+                    params: { location_id: location.uuid, user_lat: "", user_lng: "", context: step_context }.compact,
+                    class: check_class do %>
+                <span><%= t("plans.start.mark_visited") %></span>
+              <% end %>
+            </div>
             <p class="hidden mt-2 inline-block rounded-full bg-black/60 px-3 py-1 text-sm font-semibold text-white"
                data-geo-visit-target="hint"
                data-directions="<%= t('plans.start.compass', default: 'N,NE,E,SE,S,SW,W,NW') %>"

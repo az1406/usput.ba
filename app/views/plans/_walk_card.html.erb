@@ -26,7 +26,9 @@
   <div class="absolute left-3 right-16 top-3 z-10">
     <h2 class="text-lg font-bold text-white drop-shadow"><%= location_name %></h2>
     <% if distance_km.present? %>
-      <p class="text-xs font-medium text-white/80 drop-shadow"><%= t("explore_bosnia.km_away", km: number_with_precision(distance_km, precision: 1)) %></p>
+      <p class="text-xs font-medium text-white/80 drop-shadow"
+         data-plan-deck-target="distanceLabel"
+         data-km-template="<%= t('explore_bosnia.km_away', km: '{km}') %>"><%= t("explore_bosnia.km_away", km: number_with_precision(distance_km, precision: 1)) %></p>
     <% end %>
   </div>
 
