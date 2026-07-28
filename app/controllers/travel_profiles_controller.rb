@@ -124,17 +124,7 @@ class TravelProfilesController < ApplicationController
     distance_km = location.distance_from(user_lat, user_lng)
 
     if distance_km <= MAX_VISIT_DISTANCE_KM
-      # User is close enough - add to visited
-      visit_data = {
-        "id" => location.uuid,
-        "type" => "location",
-        "name" => location.name,
-        "visitedAt" => Time.current.iso8601,
-        "city" => location.city,
-        "tags" => location.tags
-      }
-
-      add_visit_to_profile(visit_data)
+      record_visit(location)
 
       render json: {
         success: true,
@@ -160,23 +150,22 @@ class TravelProfilesController < ApplicationController
 
   private
 
-  def add_visit_to_profile(visit_data)
+  # A visit outside a plan still needs a plan to hang on; the hidden explore
+  # plan is the same one the deck's check-in writes to, so "visited anywhere
+  # counts" holds across every surface.
+  def record_visit(location)
+    plan = Plan.explore_bosnia_for(current_user)
+    current_user.plan_visits.find_or_create_by!(plan: plan, location: location)
+    touch_visit_stats(location)
+  end
+
+  def touch_visit_stats(location)
     current_data = current_user.travel_profile_data
-    visited = current_data["visited"] || []
-
-    # Check if already visited
-    already_visited = visited.any? { |v| v["id"] == visit_data["id"] && v["type"] == visit_data["type"] }
-    return if already_visited
-
-    # Add to visited
-    visited << visit_data
-
-    # Update stats
     stats = current_data["stats"] || {}
-    stats["totalVisits"] = (stats["totalVisits"] || 0) + 1
+    stats["totalVisits"] = current_user.plan_visits.distinct.count(:location_id)
 
-    if visit_data["city"].present? && !stats["citiesVisited"]&.include?(visit_data["city"])
-      stats["citiesVisited"] = (stats["citiesVisited"] || []) + [ visit_data["city"] ]
+    if location.city.present? && !stats["citiesVisited"]&.include?(location.city)
+      stats["citiesVisited"] = (stats["citiesVisited"] || []) + [ location.city ]
     end
 
     current_season = get_current_season
@@ -184,10 +173,8 @@ class TravelProfilesController < ApplicationController
       stats["seasonsVisited"] = (stats["seasonsVisited"] || []) + [ current_season ]
     end
 
-    # Save updated profile
     current_user.update!(
-      travel_profile_data: current_data.merge(
-        "visited" => visited,
+      travel_profile_data: current_data.except("visited").merge(
         "stats" => stats,
         "updatedAt" => Time.current.iso8601
       )

@@ -1,0 +1,100 @@
+<%# Locals: plan, location, moments, public_moments, context.
+    Moments browse like a location's photos — a thumbnail strip over the shared
+    photo-gallery lightbox. Replaced wholesale by moments/update, so uploads,
+    publishes and deletes land without a reload. %>
+<% own = moments.to_a.select(&:displayable?).sort_by { |moment| [ moment.visibility_private_moment? ? 0 : 1, -moment.created_at.to_i ] }
+   others = public_moments.select(&:displayable?).reject { |shared| logged_in? && shared.user_id == current_user.id }
+   shown = own + others %>
+
+<div data-controller="photo-gallery" data-photo-gallery-index-value="0">
+  <div class="flex items-center justify-between gap-2">
+    <h3 class="text-base font-semibold text-gray-900 dark:text-white">
+      <%= t("plans.start.shared_moments") %>
+      <span class="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400">(<%= shown.size %>)</span>
+    </h3>
+  </div>
+
+  <div class="mt-3 flex gap-3 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    <% if logged_in? %>
+      <div class="shrink-0" data-action="submit->photo-gallery#closeLightbox">
+        <%= render "plans/moment_instant_form", plan: plan, location: location, context: context, compact: true %>
+      </div>
+    <% end %>
+
+    <% shown.each_with_index do |moment, index| %>
+      <% mine = logged_in? && moment.user_id == current_user.id
+         thumb = mine ? photo_plan_moment_path(moment.plan, moment, size: "thumb") : url_for(moment.photo.variant(resize_to_fill: [ 200, 200 ]))
+         full = mine ? photo_plan_moment_path(moment.plan, moment, size: "story") : url_for(moment.photo.variant(resize_to_limit: [ 1080, 1080 ])) %>
+      <div class="shrink-0">
+        <button type="button"
+                data-action="click->photo-gallery#openLightbox"
+                data-index="<%= index %>"
+                data-photo-gallery-target="thumbnail"
+                data-photo-gallery-full-url="<%= full %>"
+                class="relative block size-24 overflow-hidden rounded-lg ring-2 ring-transparent"
+                aria-label="<%= t("plans.start.shared_moments") %> <%= index + 1 %>">
+          <%= image_tag thumb, class: "size-full object-cover", loading: "lazy", alt: "" %>
+          <% if mine %>
+            <span class="absolute inset-x-0 bottom-0 bg-black/60 px-1 py-0.5 text-center text-[10px] font-semibold <%= moment.visibility_private_moment? ? "text-yellow-300" : (moment.approved? ? "text-emerald-300" : "text-orange-300") %>">
+              <%= moment.visibility_private_moment? ? t("plans.start.story_private") : (moment.approved? ? t("plans.start.story_public") : t("plans.start.story_pending")) %>
+            </span>
+          <% end %>
+        </button>
+
+        <% if mine %>
+          <div class="mt-1 flex items-center justify-center gap-1">
+            <% if moment.visibility_private_moment? %>
+              <%= button_to t("plans.start.story_publish"), publish_plan_moment_path(moment.plan, moment),
+                    method: :patch,
+                    params: { context: context }.compact,
+                    class: "rounded-full bg-gray-900/90 px-2 py-0.5 text-[10px] font-semibold text-white dark:bg-white/90 dark:text-gray-900" %>
+            <% end %>
+            <%= button_to t("plans.start.story_delete"), plan_moment_path(moment.plan, moment),
+                  method: :delete,
+                  params: { context: context }.compact,
+                  form: { data: { turbo_confirm: t("plans.start.story_delete_confirm") } },
+                  class: "rounded-full bg-red-600/90 px-2 py-0.5 text-[10px] font-semibold text-white" %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+
+  <% if shown.empty? %>
+    <p class="mt-2 text-sm text-gray-500 dark:text-gray-400"><%= t("plans.start.story_none") %></p>
+    <% if logged_in? %>
+      <p class="mt-1 text-xs text-gray-400 dark:text-gray-500"><%= t("plans.start.story_upload_note") %></p>
+    <% end %>
+  <% end %>
+
+  <% if shown.any? %>
+    <div data-photo-gallery-target="lightbox"
+         data-action="click->photo-gallery#closeLightboxOnBackground"
+         class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4">
+      <button type="button" data-action="photo-gallery#closeLightbox"
+              class="absolute right-4 top-4 z-10 flex size-10 items-center justify-center rounded-full bg-white/15 text-white"
+              aria-label="<%= t('common.close') %>">✕</button>
+
+      <div data-photo-gallery-target="lightboxCounter"
+           class="absolute left-1/2 top-4 z-10 -translate-x-1/2 rounded-full bg-black/60 px-3 py-1 text-xs font-semibold text-white">
+        1 / <%= shown.size %>
+      </div>
+
+      <% if shown.size > 1 %>
+        <button type="button" data-action="photo-gallery#previous"
+                class="absolute left-3 top-1/2 z-10 flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-white"
+                aria-label="<%= t('common.previous') %>">
+          <svg class="size-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+        </button>
+        <button type="button" data-action="photo-gallery#next"
+                class="absolute right-3 top-1/2 z-10 flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-white"
+                aria-label="<%= t('common.next') %>">
+          <svg class="size-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+        </button>
+      <% end %>
+
+      <img data-photo-gallery-target="lightboxImage" src="" alt=""
+           class="max-h-[85vh] max-w-full rounded-lg object-contain shadow-2xl">
+    </div>
+  <% end %>
+</div>

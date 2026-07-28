@@ -165,7 +165,8 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to root_path
 
     user = User.find_by(username: "newuser_profile")
-    assert user.travel_profile_data["visited"].present?
+    assert_equal [ "fav-1" ], user.travel_profile_data["favorites"]
+    assert_empty user.travel_profile_data["visited"], "visited comes from PlanVisit, not the browser"
 
     user.destroy
   end

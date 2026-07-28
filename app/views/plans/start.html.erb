@@ -34,10 +34,7 @@
             <%= render "plans/walk_card",
                   plan: @plan,
                   location: location,
-                  moments: @moments_by_location_id[location.id] || [],
                   visited: @visited_location_ids.include?(location.id),
-                  public_moments: @public_moments_by_location_id[location.id] || [],
-                  reviews: @reviews_by_location_id[location.id] || [],
                   distance_km: (location.respond_to?(:distance) ? location.distance : nil),
                   context: "walk" %>
           </div>

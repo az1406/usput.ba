@@ -111,7 +111,7 @@ class PlanWalkTest < ApplicationSystemTestCase
     ENV.delete("SKIP_GEOFENCE")
   end
 
-  test "mark visited then drop a photo in the stories, it appears without a reload" do
+  test "mark visited then drop a photo in the moments panel, it appears without a reload" do
     login
     visit start_plan_path(@plan)
     stand_at(@location)
@@ -120,11 +120,10 @@ class PlanWalkTest < ApplicationSystemTestCase
     assert_text "Visited", wait: 5
 
     swipe_on "[data-plan-deck-target='card']", dx: -120, dy: 0
-    assert_selector "dialog[open][data-story-viewer-target='overlay']", visible: :all, wait: 5
+    assert_selector "[data-card-menu-target='panel'][data-panel='moments']", visible: true, wait: 5
 
-    # The + button opens a native picker Capybara can't drive; unhide the
-    # upload form it fronts and attach directly.
-    page.execute_script("document.querySelector('[data-story-upload]').classList.remove('hidden')")
+    # The upload tile fronts a native picker Capybara can't drive; attach to the
+    # sr-only field behind it.
     attach_file "moment[photo]", file_fixture("real_image.jpg").to_s, make_visible: true
 
     assert_selector "img[src*='/moments/']", visible: :all, wait: 5

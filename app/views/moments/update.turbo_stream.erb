@@ -13,7 +13,6 @@
   <%= render "plans/plan_step",
         plan: @plan,
         location: location,
-        moments: moments,
         visited: visited,
         show_photo: false,
         show_name: false,
@@ -23,8 +22,8 @@
 <% end %>
 
 <%= turbo_stream.replace dom_id(location, :stories), method: :morph do %>
-  <div id="<%= dom_id(location, :stories) %>" class="relative h-full w-full">
-    <%= render "plans/story_slides",
+  <div id="<%= dom_id(location, :stories) %>">
+    <%= render "plans/moment_gallery",
           plan: @plan,
           location: location,
           moments: moments,

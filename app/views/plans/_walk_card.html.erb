@@ -1,16 +1,15 @@
-<%# Locals: plan, location, moments, visited, public_moments, reviews, context.
+<%# Locals: plan, location, visited, context.
     Optional: distance_km. One card everywhere — explore scrolls it, the walk
     stacks it; context tags server round-trips with the owning surface. %>
-<% reviews = local_assigns.fetch(:reviews, [])
-   distance_km = local_assigns.fetch(:distance_km, nil)
+<% distance_km = local_assigns.fetch(:distance_km, nil)
    context = local_assigns.fetch(:context, nil)
    location_name = location.translate(:name, I18n.locale)
    description = strip_tags(location.translate(:description, I18n.locale).to_s).squish
    tour = location.has_audio_tours? ? location.audio_tour_with_fallback(I18n.locale) : nil %>
 
 <div class="relative mx-auto aspect-[2/3] w-full max-h-full touch-pan-y overflow-hidden rounded-2xl bg-gray-900 shadow-sm sm:max-w-lg"
-     data-controller="story-viewer card-menu"
-     data-action="click->card-menu#open story-viewer:closed->card-menu#reveal"
+     data-controller="card-menu"
+     data-action="click->card-menu#open"
      data-plan-deck-target="card"
      data-plan-deck-lat="<%= location.lat %>"
      data-plan-deck-lng="<%= location.lng %>"
@@ -47,7 +46,7 @@
   </div>
 
   <div class="absolute inset-x-0 bottom-4 z-10 px-4">
-    <%= render "plans/plan_step", plan: plan, location: location, moments: moments, visited: visited,
+    <%= render "plans/plan_step", plan: plan, location: location, visited: visited,
           show_photo: false, show_name: false, overlay: true, context: context %>
   </div>
 
@@ -99,7 +98,7 @@
   </div>
 
   <p class="hidden absolute bottom-24 left-1/2 z-30 w-max max-w-[85%] -translate-x-1/2 rounded-full bg-black/70 px-4 py-2 text-center text-xs font-medium text-white" data-card-menu-target="locked"><%= t("plans.start.story_locked") %></p>
-  <button type="button" class="hidden" data-story-open data-action="story-viewer#open" data-story-index="0" tabindex="-1" aria-hidden="true"></button>
+  <button type="button" class="hidden" data-story-open data-panel="moments" data-action="card-menu#show" tabindex="-1" aria-hidden="true"></button>
 
   <% if description.present? %>
     <div class="hidden absolute inset-0 z-40 overflow-y-auto bg-gray-100 p-4 dark:bg-gray-800" data-card-menu-target="panel" data-panel="info">
@@ -120,7 +119,11 @@
                 class="flex size-9 items-center justify-center rounded-full bg-white text-gray-700 shadow dark:bg-gray-900/80 dark:text-gray-200"
                 aria-label="<%= t('common.close') %>">✕</button>
       </div>
-      <%= render "reviews/reviews_section", reviewable: location, initial_reviews: reviews %>
+      <%# Hidden until card-menu#show reveals it, so the frame fetches on tap
+          rather than shipping every card's reviews with the reel. %>
+      <turbo-frame id="<%= dom_id(location, :reviews_frame) %>"
+                   src="<%= location_reviews_path(location) %>"
+                   loading="lazy"></turbo-frame>
     </div>
 
   <button type="button" data-plan-deck-target="hint" data-action="plan-deck#dismissHint"
@@ -131,8 +134,18 @@
       <span class="max-w-28 text-center text-xs font-semibold leading-snug text-white drop-shadow"><%= t("explore_bosnia.swipe_hint") %></span>
     </button>
 
-  <%= render "plans/story_carousel", plan: plan, location: location,
-        moments: moments, public_moments: public_moments, context: context %>
+  <% if logged_in? %>
+    <div class="hidden absolute inset-0 z-40 overflow-y-auto bg-gray-100 p-4 dark:bg-gray-800" data-card-menu-target="panel" data-panel="moments">
+      <button type="button" data-action="card-menu#back"
+              class="absolute right-3 top-3 flex size-9 items-center justify-center rounded-full bg-white text-gray-700 shadow dark:bg-gray-900/80 dark:text-gray-200"
+              aria-label="<%= t('common.close') %>">✕</button>
+      <%# Hidden until the panel opens, so a reel of any length ships no
+          moments until one is actually asked for. %>
+      <turbo-frame id="<%= dom_id(location, :moments_frame) %>"
+                   src="<%= plan_moments_path(plan, location_id: location.uuid, context: context) %>"
+                   loading="lazy"></turbo-frame>
+    </div>
+  <% end %>
 
   <% if location.geocoded? %>
     <div class="hidden absolute inset-0 z-40 bg-gray-100 dark:bg-gray-700" data-card-menu-target="panel" data-panel="map">

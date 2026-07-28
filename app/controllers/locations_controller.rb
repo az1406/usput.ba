@@ -3,6 +3,7 @@ class LocationsController < ApplicationController
 
   def show
     @location = Location.includes(:reviews).find_by_public_id!(params[:id])
+    @visited = logged_in? && current_user.plan_visits.exists?(location: @location)
     @reviews = @location.reviews.recent.limit(10)
     @review = Review.new
     @nearby_locations = @location.nearby_featured(limit: 3)

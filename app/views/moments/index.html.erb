@@ -1,0 +1,10 @@
+<%= turbo_frame_tag dom_id(@location, :moments_frame) do %>
+  <div id="<%= dom_id(@location, :stories) %>">
+    <%= render "plans/moment_gallery",
+          plan: @plan,
+          location: @location,
+          moments: @moments,
+          public_moments: @public_moments,
+          context: params[:context] %>
+  </div>
+<% end %>

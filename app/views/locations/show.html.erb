@@ -131,22 +131,27 @@
               <span class="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-red-500 transition-colors"><%= t('profile.add_favorite', default: 'Spremi') %></span>
             </button>
 
-            <%# Visited Button %>
+            <%# Visited: a stamp, not a control. A visit cannot be taken back. %>
+            <% if @visited %>
+            <div class="inline-flex items-center space-x-2 px-4 py-2.5 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl">
+              <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span class="text-sm font-medium text-emerald-700 dark:text-emerald-300"><%= t("profile.visited", default: "Visited") %></span>
+            </div>
+            <% else %>
             <button data-action="click->travel-profile#markVisited"
-                    data-travel-profile-target="visitedButton"
                     data-city="<%= @location.city %>"
                     data-tags="<%= @location.suitable_experiences.join(',') %>"
                     class="inline-flex items-center space-x-2 px-4 py-2.5 bg-gray-100 dark:bg-gray-800 rounded-xl hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors group"
                     aria-label="<%= t('profile.mark_visited', default: 'Označi kao posjećeno') %>"
                     title="<%= t('profile.mark_visited', default: 'Označi kao posjećeno') %>">
-              <svg class="w-5 h-5 text-gray-600 dark:text-gray-300 group-hover:text-emerald-500 check-empty transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-5 h-5 text-gray-600 dark:text-gray-300 group-hover:text-emerald-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-              </svg>
-              <svg class="w-5 h-5 text-emerald-500 check-filled hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
               </svg>
               <span class="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-emerald-500 transition-colors"><%= t('profile.mark_visited', default: 'Posjećeno') %></span>
             </button>
+            <% end %>
           </div>
 
           <%# Feedback message area %>

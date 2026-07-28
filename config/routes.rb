@@ -96,7 +96,7 @@ Rails.application.routes.draw do
     # Private photos a logged-in traveller attaches to this plan's locations.
     # The photo is served by our own action rather than Active Storage's route,
     # which does not check the session — see MomentsController#photo.
-    resources :moments, only: [ :create, :destroy ] do
+    resources :moments, only: [ :index, :create, :destroy ] do
       member do
         get :photo
         patch :publish

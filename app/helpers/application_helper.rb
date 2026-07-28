@@ -135,7 +135,6 @@ module ApplicationHelper
     {
       checking_location: t("travel_profile.checking_location"),
       visit_recorded: t("travel_profile.visit_recorded"),
-      removed_from_visited: t("travel_profile.removed_from_visited"),
       removed_from_favorites: t("travel_profile.removed_from_favorites"),
       added_to_favorites: t("travel_profile.added_to_favorites"),
       too_far_from_location: t("travel_profile.too_far_from_location", distance: "%{distance}", max_distance: "%{max_distance}"),

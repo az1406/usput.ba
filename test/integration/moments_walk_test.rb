@@ -66,7 +66,8 @@ class MomentsWalkTest < ActionDispatch::IntegrationTest
     add_moment(note: "shareable")
     login_as(@user)
 
-    get start_plan_path(@plan)
+    get plan_moments_path(@plan, location_id: @location.uuid, context: "walk"),
+        headers: { "Turbo-Frame" => ActionView::RecordIdentifier.dom_id(@location, :moments_frame) }
 
     assert_response :success
     assert_select "form[action=?]", publish_plan_moment_path(@plan, @user.moments.first)
@@ -90,10 +91,11 @@ class MomentsWalkTest < ActionDispatch::IntegrationTest
     add_moment(note: "shared").update!(visibility: :public_moment)
     login_as(@user)
 
-    get start_plan_path(@plan)
+    get plan_moments_path(@plan, location_id: @location.uuid, context: "walk"),
+        headers: { "Turbo-Frame" => ActionView::RecordIdentifier.dom_id(@location, :moments_frame) }
 
     assert_response :success
-    # unsharing moved to the profile; the story card offers delete
+    # unsharing moved to the profile; the moment tile offers delete
     assert_select "form[action=?]", unpublish_plan_moment_path(@plan, @user.moments.first), count: 0
     assert_select "form[action=?]", plan_moment_path(@plan, @user.moments.first), count: 1
   end

@@ -177,7 +177,7 @@ class TravelProfilesControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     body = response.parsed_body
     assert body["success"]
-    assert body["travel_profile_data"]["visited"].present?
+    assert_empty body["travel_profile_data"]["visited"], "visited comes from PlanVisit, not the browser"
   end
 
   test "update accepts JSON string parameter" do

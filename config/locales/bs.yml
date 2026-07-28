@@ -57,6 +57,19 @@ bs:
     km_away: "%{km} km od vas"
     swipe_hint: Povuci udesno da provjeriš jesi li tu
     reel_hint: Prevuci gore za sljedeće mjesto
+    deck_end: "Nema više mjesta u blizini u ovoj kategoriji."
+    deck_all_visited: "Posjetio si sva mjesta u blizini u ovoj kategoriji. Probaj neku drugu."
+    needs_location:
+      title: Trebamo tvoju lokaciju
+      body: "Ovdje dijelimo najbliža mjesta, pa moramo znati gdje si. Dozvoli lokaciju i pokušaj ponovo."
+      retry: Pokušaj ponovo
+    tiles:
+      history: Historija
+      culture: Kultura
+      sport_nature: Sport i priroda
+      food_drinks: Hrana i piće
+      religious: Vjerski objekti
+      relax: Opuštanje
   explore:
     title: Istraži
     subtitle: Pronađi savršenu lokaciju, iskustvo ili plan za svoju sljedeću avanturu.
@@ -1406,7 +1419,6 @@ bs:
   travel_profile:
     checking_location: Provjeravamo vašu lokaciju...
     visit_recorded: Posjeta uspješno zabilježena!
-    removed_from_visited: Uklonjeno iz posjećenih
     removed_from_favorites: Uklonjeno iz omiljenih
     added_to_favorites: Dodano u omiljene!
     too_far_from_location: Predaleko ste od lokacije (%{distance}). Morate biti unutar

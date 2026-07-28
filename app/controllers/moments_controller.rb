@@ -6,6 +6,16 @@ class MomentsController < ApplicationController
   before_action :require_login
   before_action :set_plan
 
+  def index
+    @location = Location.find_by_public_id!(params[:location_id])
+    @moments = current_user.moments.where(location: @location)
+                           .with_attached_photo.includes(:plan).chronological
+    @public_moments = Moment.publicly_visible.where(location: @location)
+                            .with_attached_photo.chronological
+
+    render layout: false
+  end
+
   def create
     @moment = current_user.moments.build(moment_params)
     @moment.plan = @plan

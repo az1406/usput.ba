@@ -58,6 +58,19 @@ en:
     km_away: "%{km} km away"
     swipe_hint: Swipe right to check you're here
     reel_hint: Swipe up for the next place
+    deck_end: "No more places nearby in this category."
+    deck_all_visited: "You have visited every place nearby in this category. Try another one."
+    needs_location:
+      title: We need your location
+      body: "This deals you the closest places, so it needs to know where you are. Allow location and try again."
+      retry: Try again
+    tiles:
+      history: History
+      culture: Culture
+      sport_nature: Sport & Nature
+      food_drinks: Food & Drinks
+      religious: Religious
+      relax: Relax
   explore:
     title: Explore
     subtitle: Find the perfect location, experience, or plan for your next adventure.
@@ -1637,7 +1650,6 @@ en:
   travel_profile:
     checking_location: Checking your location...
     visit_recorded: Visit recorded successfully!
-    removed_from_visited: Removed from visited
     removed_from_favorites: Removed from favorites
     added_to_favorites: Added to favorites!
     too_far_from_location: Too far from location (%{distance}). You must be within

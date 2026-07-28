@@ -130,7 +130,7 @@ export default class extends Controller {
 
     this.element.addEventListener("pointerdown", (event) => {
       if (!event.isPrimary) return
-      if (event.target.closest("[data-story-viewer-target='overlay'], [data-card-menu-target='menu'], [data-card-menu-target='panel']")) return
+      if (event.target.closest("[data-card-menu-target='menu'], [data-card-menu-target='panel']")) return
       startX = event.clientX
       startY = event.clientY
       this.activeCard = this.browseValue

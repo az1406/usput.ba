@@ -157,7 +157,9 @@ class UserTest < ActiveSupport::TestCase
     user.destroy
   end
 
-  test "merge_travel_profile merges visited items" do
+  # A visit is a check-in, not a client preference: the browser can claim
+  # anything, so `visited` comes from PlanVisit and the payload is ignored.
+  test "merge_travel_profile ignores visited sent by the client" do
     user = User.create!(@valid_params)
 
     user.merge_travel_profile({
@@ -166,9 +168,24 @@ class UserTest < ActiveSupport::TestCase
     })
 
     user.reload
-    assert_equal 1, user.travel_profile_data["visited"].length
-    assert_equal "loc1", user.travel_profile_data["visited"].first["id"]
+    assert_empty user.travel_profile_data["visited"]
 
+    user.destroy
+  end
+
+  test "travel_profile_data projects visited from plan visits" do
+    user = User.create!(@valid_params)
+    location = Location.create!(name: "Projected Fort", city: "Sarajevo", lat: 43.85, lng: 18.41)
+    plan = Plan.create!(title: "Trip", visibility: :private_plan, user: user)
+    user.plan_visits.create!(plan: plan, location: location)
+
+    visited = user.reload.travel_profile_data["visited"]
+
+    assert_equal 1, visited.length
+    assert_equal location.uuid, visited.first["id"]
+    assert_equal "Sarajevo", visited.first["city"]
+
+    location.destroy
     user.destroy
   end
 

@@ -70,10 +70,10 @@ class SessionsControllerTest < ActionDispatch::IntegrationTest
     assert_nil session[:user_id]
   end
 
-  test "create merges travel profile from localStorage" do
+  test "create merges travel profile from localStorage but never its visited claims" do
     travel_profile = {
       "visited" => [ { "id" => "test-id" } ],
-      "favorites" => []
+      "favorites" => [ "fav-1" ]
     }.to_json
 
     post login_path, params: {
@@ -84,7 +84,8 @@ class SessionsControllerTest < ActionDispatch::IntegrationTest
 
     assert_redirected_to root_path
     @user.reload
-    assert @user.travel_profile_data["visited"].present?
+    assert_equal [ "fav-1" ], @user.travel_profile_data["favorites"]
+    assert_empty @user.travel_profile_data["visited"], "visited comes from PlanVisit, not the browser"
   end
 
   test "create ignores invalid travel profile JSON" do

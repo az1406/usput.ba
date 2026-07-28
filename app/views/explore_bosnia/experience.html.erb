@@ -1,4 +1,4 @@
-<% content_for :title, "#{t('explore_bosnia.title')} — #{@experience_type.translate(:name, I18n.locale)}" %>
+<% content_for :title, "#{t('explore_bosnia.title')} — #{t("explore_bosnia.tiles.#{@tile_key}")}" %>
 
 <% content_for :head do %>
   <%= stylesheet_link_tag "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css", "data-turbo-track": "reload" %>
@@ -18,31 +18,24 @@
       </svg>
       <%= t("explore_bosnia.back") %>
     <% end %>
-    <span class="text-sm font-semibold text-gray-900 dark:text-white"><%= @experience_type.translate(:name, I18n.locale) %></span>
+    <span class="text-sm font-semibold text-gray-900 dark:text-white"><%= t("explore_bosnia.tiles.#{@tile_key}") %></span>
   </div>
 
-  <% if @locations.any? %>
+  <% if @needs_location %>
+    <div class="mx-4 rounded-2xl border border-dashed border-gray-300 px-4 py-8 text-center dark:border-gray-600">
+      <p class="text-base font-semibold text-gray-900 dark:text-white"><%= t("explore_bosnia.needs_location.title") %></p>
+      <p class="mt-2 text-sm text-gray-500 dark:text-gray-400"><%= t("explore_bosnia.needs_location.body") %></p>
+      <%= link_to t("explore_bosnia.needs_location.retry"), explore_bosnia_path,
+            class: "mt-4 inline-flex rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow" %>
+    </div>
+  <% elsif @locations.any? %>
     <div id="moment-flash" class="absolute inset-x-0 top-12 z-30 px-4"></div>
 
     <div class="flex-1 snap-y snap-mandatory overflow-y-auto overscroll-y-contain scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
          data-controller="plan-deck" data-plan-deck-browse-value="true">
-      <% @locations.each do |location| %>
-        <div class="flex h-full snap-start items-center justify-center px-3 py-2">
-          <%# Width derived from the slot height at 2:3, clamped to the screen —
-              the card always fits and always centers, portrait or landscape. %>
-          <div class="w-[min(100%,calc((100dvh-10rem)*0.62))]">
-            <%= render "plans/walk_card",
-                  plan: @plan,
-                  location: location,
-                  moments: @moments_by_location_id[location.id] || [],
-                  visited: @visited_location_ids.include?(location.id),
-                  public_moments: @public_moments_by_location_id[location.id] || [],
-                  reviews: @reviews_by_location_id[location.id] || [],
-                  distance_km: (location.respond_to?(:distance) ? location.distance : nil),
-                  context: "explore" %>
-          </div>
-        </div>
-      <% end %>
+      <%= render "explore_bosnia/reel_page",
+            plan: @plan, locations: @locations, page: @page, has_more: @has_more,
+            tile_key: @tile_key, lat: @lat, lng: @lng %>
 
       <button type="button" data-plan-deck-target="reelHint" data-action="plan-deck#dismissReelHint"
               class="hidden fixed bottom-6 left-1/2 z-30 -translate-x-1/2 flex-col items-center gap-0.5 rounded-full bg-sky-400/85 px-4 py-2 text-center text-xs font-semibold text-white shadow-lg animate-bounce">
@@ -52,7 +45,7 @@
     </div>
   <% else %>
     <p class="mx-4 rounded-2xl border border-dashed border-gray-300 dark:border-gray-600 px-4 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
-      <%= t("explore_bosnia.deck_empty") %>
+      <%= @all_visited ? t("explore_bosnia.deck_all_visited") : t("explore_bosnia.deck_empty") %>
     </p>
   <% end %>
 

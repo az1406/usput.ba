@@ -31,25 +31,10 @@ class PlansController < ApplicationController
     end
 
     @locations = @plan.all_locations
-    @reviews_by_location_id = Review.where(reviewable_type: "Location", reviewable_id: @locations.map(&:id))
-                                    .recent
-                                    .group_by(&:reviewable_id)
-    @public_moments_by_location_id = Moment.publicly_visible
-                                           .where(location_id: @locations.map(&:id))
-                                           .with_attached_photo
-                                           .chronological
-                                           .group_by(&:location_id)
-    if logged_in?
-      @moments_by_location_id = current_user.moments
-                                            .where(location_id: @locations.map(&:id))
-                                            .with_attached_photo
-                                            .includes(:plan)
-                                            .chronological
-                                            .group_by(&:location_id)
-      @visited_location_ids = current_user.plan_visits.where(plan: @plan).pluck(:location_id).to_set
+    @visited_location_ids = if logged_in?
+      current_user.plan_visits.where(plan: @plan).pluck(:location_id).to_set
     else
-      @moments_by_location_id = {}
-      @visited_location_ids = Set.new
+      Set.new
     end
   end
 

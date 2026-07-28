@@ -9,7 +9,13 @@ class ReviewsController < ApplicationController
     @has_more = (@page * @per_page) < @total_reviews
 
     respond_to do |format|
-      format.html { redirect_to polymorphic_path(@reviewable) }
+      format.html do
+        if turbo_frame_request?
+          render :index, layout: false
+        else
+          redirect_to polymorphic_path(@reviewable)
+        end
+      end
       format.turbo_stream
     end
   end

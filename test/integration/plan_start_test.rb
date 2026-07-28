@@ -38,8 +38,8 @@ class PlanStartTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select "form[action=?]", plan_visits_path(@plan), count: @plan.all_locations.size
-    # one upload form per card — inside the story carousel, never on the step
-    assert_select "form[action=?]", plan_moments_path(@plan), count: @plan.all_locations.size
+    # the upload form arrives with the moments panel — one lazy frame per card
+    assert_select "turbo-frame[id^='moments_frame_'][loading='lazy']", count: @plan.all_locations.size
   end
 
   test "marking a step visited persists it and reveals the capture" do
@@ -63,7 +63,7 @@ class PlanStartTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select "form[action=?]", plan_visits_path(@plan), count: 0, msg: "already visited, so no I-was-here form"
-    assert_select "form[action=?]", plan_moments_path(@plan), count: 1, msg: "the upload form is page furniture, one per card"
+    assert_select "turbo-frame[id^='moments_frame_'][loading='lazy']", count: 1, msg: "one moments frame per card"
   end
 
   test "capturing a photo on the walk adds it and shows it on the step" do
@@ -78,13 +78,15 @@ class PlanStartTest < ActionDispatch::IntegrationTest
 
     assert_equal 1, @user.moments.where(plan: @plan, location: @location).count
 
-    get start_plan_path(@plan)
+    moment = @user.moments.where(plan: @plan).last
+    get plan_moments_path(@plan, location_id: @location.uuid, context: "walk"),
+        headers: { "Turbo-Frame" => ActionView::RecordIdentifier.dom_id(@location, :moments_frame) }
 
     assert_response :success
-    # the photo lives in the story carousel now, served as the story variant
-    assert_select "img[src=?]",
-      photo_plan_moment_path(@plan, @user.moments.where(plan: @plan).last, size: "story"),
-      count: 1
+    # a thumbnail in the panel; the story variant only loads with the lightbox
+    assert_select "img[src=?]", photo_plan_moment_path(@plan, moment, size: "thumb"), count: 1
+    assert_select "[data-photo-gallery-full-url=?]",
+      photo_plan_moment_path(@plan, moment, size: "story"), count: 1
   end
 
   test "a guest walking a public plan is asked to log in, not to capture" do
@@ -95,6 +97,22 @@ class PlanStartTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "form[action=?]", plan_visits_path(@plan), count: 0
     assert_select "form[action=?]", plan_moments_path(@plan), count: 0
+  end
+
+  # Moments are a logged-in surface. A guest gets no panel at all, so nothing
+  # can request an endpoint that would only bounce them to login.
+  test "a guest walking a public plan gets no moments panel and cannot fetch one" do
+    @plan.update!(visibility: :public_plan)
+
+    get start_plan_path(@plan)
+
+    assert_response :success
+    assert_select "turbo-frame[id^='moments_frame_']", count: 0
+
+    get plan_moments_path(@plan, location_id: @location.uuid),
+        headers: { "Turbo-Frame" => ActionView::RecordIdentifier.dom_id(@location, :moments_frame) }
+
+    assert_redirected_to login_path
   end
 
   test "a guest cannot walk a private plan" do

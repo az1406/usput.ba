@@ -94,9 +94,7 @@ export default class extends Controller {
       if (thumb) {
         const img = thumb.querySelector("img")
         if (img) {
-          // Get full size URL (remove variants for ActiveStorage)
-          let fullUrl = img.src
-          this.lightboxImageTarget.src = fullUrl
+          this.lightboxImageTarget.src = this.sourceFor(thumb, img)
           this.lightboxImageTarget.alt = img.alt
         }
       }
@@ -140,13 +138,19 @@ export default class extends Controller {
     if (thumb && this.hasLightboxImageTarget) {
       const img = thumb.querySelector("img")
       if (img) {
-        this.lightboxImageTarget.src = img.src
+        this.lightboxImageTarget.src = this.sourceFor(thumb, img)
         this.lightboxImageTarget.alt = img.alt
       }
     }
     if (this.hasLightboxCounterTarget) {
       this.lightboxCounterTarget.textContent = `${this.indexValue + 1} / ${total}`
     }
+  }
+
+  // Thumbnails may carry a larger source for the lightbox; galleries that
+  // don't keep showing the thumbnail, as before.
+  sourceFor(thumb, img) {
+    return thumb.dataset.photoGalleryFullUrl || img.src
   }
 
   // Close lightbox mode

@@ -1,11 +1,11 @@
 require "application_system_test_case"
 
 # The explore browse deck in a real browser: swipe right checks in, tapping the
-# card opens the menu, and the story carousel gates on the visit.
+# card opens the menu, and the moments panel gates on the visit.
 class ExploreBosniaSystemTest < ApplicationSystemTestCase
   setup do
     @user = User.create!(username: "sys_explorer", password: "password123")
-    @type = ExperienceType.create!(key: "sys-history", name: "Sys History", active: true)
+    @type = ExperienceType.create!(key: "history", name: "Sys History", active: true)
     @location = Location.create!(name: "Sys Fort", city: "Sarajevo", lat: 43.85, lng: 18.41,
                                  suitable_experiences: [ @type.key ])
     @location.photos.attach(io: File.open(Rails.root.join("test/fixtures/files/real_image.jpg")),
@@ -27,6 +27,12 @@ class ExploreBosniaSystemTest < ApplicationSystemTestCase
       click_button
     end
     assert_no_current_path login_path, wait: 5
+  end
+
+  # The deck refuses to deal without coordinates, so they ride the path the way
+  # the grid's tile links supply them.
+  def visit_deck
+    visit explore_bosnia_experience_path("history", lat: @location.lat, lng: @location.lng)
   end
 
   # Same CDP override the walk's system test uses.
@@ -54,7 +60,7 @@ class ExploreBosniaSystemTest < ApplicationSystemTestCase
     login
     visit explore_bosnia_path
     stand_at(@location)
-    visit explore_bosnia_experience_path(@type.key)
+    visit_deck
 
     swipe_card(dx: 120)
 
@@ -62,30 +68,29 @@ class ExploreBosniaSystemTest < ApplicationSystemTestCase
     assert @user.plan_visits.joins(:plan).exists?(location: @location)
   end
 
-  test "tapping the card opens the menu; stories stay locked before a visit" do
+  test "tapping the card opens the menu; moments stay locked before a visit" do
     login
-    visit explore_bosnia_experience_path(@type.key)
+    visit_deck
 
     find("[data-plan-deck-target='card']").click
     assert_selector "[data-card-menu-target='menu']", visible: true, wait: 5
 
     swipe_card(dx: -120)
-    assert_no_selector "[data-story-viewer-target='overlay']", visible: true
+    assert_no_selector "[data-card-menu-target='panel'][data-panel='moments']", visible: true
   end
 
-  test "after a visit, swipe left opens the story carousel with the upload card" do
+  test "after a visit, swipe left opens the moments panel with the upload tile" do
     login
     visit explore_bosnia_path
     stand_at(@location)
-    visit explore_bosnia_experience_path(@type.key)
+    visit_deck
     swipe_card(dx: 120)
     assert_text "Visited", wait: 5
 
     swipe_card(dx: -120)
 
-    # Selenium can't judge top-layer visibility; assert the dialog's own state.
-    assert_selector "dialog[open][data-story-viewer-target='overlay']", visible: :all, wait: 5
+    assert_selector "[data-card-menu-target='panel'][data-panel='moments']", visible: true, wait: 5
     assert_selector "p", text: I18n.t("plans.start.story_none"), visible: :all
-    assert_selector "button[aria-label='#{I18n.t('plans.start.story_add_private')}']", visible: :all
+    assert_selector "label[aria-label='#{I18n.t('plans.moments.add')}']", visible: :all
   end
 end
