@@ -6,13 +6,10 @@ require "net/http"
 # db:prepare seeds a freshly created database automatically, and this data
 # should only ever arrive when someone asks for it.
 namespace :seed do
-  PREFERRED_AUTHORS = %w[user aldin azbra curator].freeze
-  MAX_AUTHORS = 4
-
   desc "Attach demo moments (private + public) to existing locations"
   task :moments, [ :per_location ] => :environment do |_t, args|
     per_location = (args[:per_location] || 2).to_i
-    authors = pick_authors
+    authors = User.order(:id).to_a
     abort "No users in this database — create at least one before seeding moments." if authors.empty?
 
     locations = Location.with_coordinates.order(:id).to_a
@@ -44,15 +41,6 @@ namespace :seed do
 
     puts
     report
-  end
-
-  # The preferred names are local seed accounts and may not exist elsewhere,
-  # so top up from whoever is actually in this database rather than aborting.
-  def self.pick_authors
-    named = User.where(username: PREFERRED_AUTHORS).to_a
-    return named if named.size >= MAX_AUTHORS
-
-    named + User.where.not(id: named.map(&:id)).order(:id).limit(MAX_AUTHORS - named.size).to_a
   end
 
   def self.build_moment(author, location, slot)
