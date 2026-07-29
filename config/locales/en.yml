@@ -128,6 +128,8 @@ en:
       experiences: Experiences
       plans: Plans
       moments: Moments
+      my_moments: Your moments
+      my_moments_all: See all your moments
     empty:
       title: No results
       with_filters: Try changing your filters or searching for something else.
@@ -138,6 +140,11 @@ en:
       title_part2: the Beauty of Bosnia and Herzegovina
       subtitle: Find hidden gems, authentic experiences, and unforgettable places.
         Your adventure starts here.
+    usput_bosnia:
+      title: Usput Bosnia
+      heading: Explore Bosnia on your own, on a whim
+      description: No plan, no schedule. Pick a mood, and we hand you the closest place to it. Go, check in when you arrive, capture the moment — then keep going.
+      cta: Start exploring
     cta:
       start: Start Planning
       explore: Explore Experiences
@@ -356,6 +363,7 @@ en:
       generating: Generating your plan...
   plans:
     started: Started
+    finished: Finished
     start:
       reviews: Reviews
       tap_for_info: Tap for more info

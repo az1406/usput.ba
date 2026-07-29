@@ -1,8 +1,9 @@
 module ApplicationHelper
+  # Admins review the walk without standing at the place. An env-var bypass used
+  # to cover development, but it only ever lifted the distance check — the deck
+  # still needs coordinates to deal from — so it never made a usable dev flow.
   def geofence_disabled?
-    return false if Rails.env.production?
-    return ENV["SKIP_GEOFENCE"] == "true" if Rails.env.test? # opt-in only, so geofence tests hold
-    ENV["SKIP_GEOFENCE"] != "false"                          # development: on by default, so check-in just works
+    current_user_admin?
   end
 
   # Human-readable label for a location category key.
@@ -114,6 +115,33 @@ module ApplicationHelper
   end
 
   public
+
+  # Memoized per request so a grid of cards costs one query, not one each.
+  def visited_location_ids
+    @visited_location_ids ||= if logged_in?
+      current_user.plan_visits.distinct.pluck(:location_id).to_set
+    else
+      Set.new
+    end
+  end
+
+  def visited_location?(location)
+    visited_location_ids.include?(location.id)
+  end
+
+  # One grouped count per request. Plans the traveller never touched short-
+  # circuit before we ask a plan how many locations it holds.
+  def plan_visit_counts
+    @plan_visit_counts ||= logged_in? ? current_user.plan_visits.group(:plan_id).count : {}
+  end
+
+  def plan_progress(plan)
+    visited = plan_visit_counts[plan.id].to_i
+    return :not_started if visited.zero?
+
+    total = plan.all_locations.size
+    total.positive? && visited >= total ? :finished : :started
+  end
 
   # Returns the appropriate back path based on where the user came from
   # If the user came from the homepage, return root_path

@@ -18,8 +18,6 @@ class PlansController < ApplicationController
 
     @reviews = @plan.reviews.recent.limit(10)
     @review = Review.new
-
-    @plan_started = logged_in? && current_user.plan_visits.where(plan: @plan).exists?
   end
 
   # GET /plans/:id/start

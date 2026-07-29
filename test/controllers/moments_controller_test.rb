@@ -72,6 +72,19 @@ class MomentsControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "destroy from the browse band removes just that card" do
+    login_as(@owner)
+    post plan_moments_path(@plan), params: moment_params
+    moment = Moment.last
+
+    delete plan_moment_path(@plan, moment), params: { context: "browse" }, as: :turbo_stream
+
+    assert_response :success
+    assert_match "turbo-stream", response.body
+    assert_match ActionView::RecordIdentifier.dom_id(moment), response.body
+    refute Moment.exists?(moment.id)
+  end
+
   test "destroy cannot reach another user's moment" do
     login_as(@owner)
     post plan_moments_path(@plan), params: moment_params

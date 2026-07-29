@@ -1,10 +1,9 @@
 class TravelProfilesController < ApplicationController
+  include RecordsVisits
+
   before_action :require_login, except: [ :page, :my_plans ]
 
   PER_PAGE = 6
-
-  # Maximum distance in kilometers to validate a visit claim
-  MAX_VISIT_DISTANCE_KM = 0.5 # 500 meters
 
   # GET /profile - Full travel profile page
   def page
@@ -105,7 +104,7 @@ class TravelProfilesController < ApplicationController
       return render json: { success: false, error: "Location ID is required" }, status: :bad_request
     end
 
-    if user_lat.zero? && user_lng.zero?
+    if user_lat.zero? && user_lng.zero? && visit_coordinates_required?
       return render json: { success: false, error: "User coordinates are required" }, status: :bad_request
     end
 
@@ -123,7 +122,7 @@ class TravelProfilesController < ApplicationController
     # Calculate distance between user and location
     distance_km = location.distance_from(user_lat, user_lng)
 
-    if distance_km <= MAX_VISIT_DISTANCE_KM
+    if visit_in_range?(location, user_lat, user_lng)
       record_visit(location)
 
       render json: {
@@ -154,8 +153,7 @@ class TravelProfilesController < ApplicationController
   # plan is the same one the deck's check-in writes to, so "visited anywhere
   # counts" holds across every surface.
   def record_visit(location)
-    plan = Plan.explore_bosnia_for(current_user)
-    current_user.plan_visits.find_or_create_by!(plan: plan, location: location)
+    record_visit_for(Plan.explore_bosnia_for(current_user), location)
     touch_visit_stats(location)
   end
 

@@ -12,6 +12,9 @@ class MomentsController < ApplicationController
                            .with_attached_photo.includes(:plan).chronological
     @public_moments = Moment.publicly_visible.where(location: @location)
                             .with_attached_photo.chronological
+    # Capturing a moment is earned by being there — the same rule the walk's
+    # card menu enforces, kept server-side so every surface agrees.
+    @can_add = current_user.plan_visits.exists?(location: @location)
 
     render layout: false
   end
@@ -56,11 +59,18 @@ class MomentsController < ApplicationController
   def destroy
     moment = current_user.moments.find_by_public_id!(params[:id])
     location = moment.location
+    card = helpers.dom_id(moment)
     moment.destroy
 
     respond_to do |format|
       format.html { redirect_back fallback_location: plan_path(@plan), notice: t("flash.moment.destroyed") }
-      format.turbo_stream { render :update, locals: { location: location } }
+      format.turbo_stream do
+        if params[:context] == "browse"
+          render turbo_stream: turbo_stream.remove(card)
+        else
+          render :update, locals: { location: location }
+        end
+      end
     end
   end
 

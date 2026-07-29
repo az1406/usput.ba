@@ -335,6 +335,49 @@ class TravelProfilesControllerTest < ActionDispatch::IntegrationTest
     assert_equal "User coordinates are required", body["error"]
   end
 
+  test "validate_visit accepts an admin from anywhere" do
+    admin = User.create!(username: "tp_chief", password: "password123", user_type: :admin)
+    login_as(admin)
+
+    post validate_visit_travel_profile_path, params: {
+      location_id: @location.uuid, user_lat: 40.0, user_lng: 10.0
+    }, as: :json
+
+    assert_response :success
+    assert response.parsed_body["success"]
+    assert admin.plan_visits.exists?(location: @location), "the admin bypass must record the visit"
+  ensure
+    admin&.plan_visits&.destroy_all
+    admin&.plans&.destroy_all
+    admin&.destroy
+  end
+
+  test "validate_visit accepts an admin who sent no coordinates" do
+    admin = User.create!(username: "tp_chief_nogps", password: "password123", user_type: :admin)
+    login_as(admin)
+
+    post validate_visit_travel_profile_path, params: { location_id: @location.uuid }, as: :json
+
+    assert_response :success
+    assert admin.plan_visits.exists?(location: @location)
+  ensure
+    admin&.plan_visits&.destroy_all
+    admin&.plans&.destroy_all
+    admin&.destroy
+  end
+
+  test "validate_visit still holds a traveller to the distance check" do
+    login_as(@user)
+
+    post validate_visit_travel_profile_path, params: {
+      location_id: @location.uuid, user_lat: 40.0, user_lng: 10.0
+    }, as: :json
+
+    assert_response :unprocessable_entity
+    assert_not response.parsed_body["success"]
+    refute @user.plan_visits.exists?(location: @location)
+  end
+
   test "validate_visit returns not found for invalid location" do
     login_as(@user)
 
@@ -470,7 +513,7 @@ class TravelProfilesControllerTest < ActionDispatch::IntegrationTest
 
     post validate_visit_travel_profile_path, params: {
       location_id: @location.uuid,
-      user_lat: @location.lat + 0.001, # Slightly off
+      user_lat: @location.lat + 0.0005, # ~55 m off, inside MAX_VISIT_DISTANCE_KM
       user_lng: @location.lng
     }, as: :json
 
@@ -478,6 +521,22 @@ class TravelProfilesControllerTest < ActionDispatch::IntegrationTest
     body = response.parsed_body
     assert body["distance_km"].present?
     assert body["distance_km"].is_a?(Numeric)
+  end
+
+  test "the refusal also carries the distance and the one shared limit" do
+    login_as(@user)
+
+    post validate_visit_travel_profile_path, params: {
+      location_id: @location.uuid,
+      user_lat: @location.lat + 0.001, # ~111 m off, outside the limit
+      user_lng: @location.lng
+    }, as: :json
+
+    assert_response :unprocessable_entity
+    body = response.parsed_body
+    assert body["distance_km"].is_a?(Numeric)
+    assert_equal RecordsVisits::MAX_VISIT_DISTANCE_KM, body["max_distance_km"],
+      "every surface must report the same limit"
   end
 
   # === Authentication redirect tests ===

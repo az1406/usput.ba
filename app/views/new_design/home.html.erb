@@ -66,7 +66,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
                   </svg>
-                  <%= t("explore_bosnia.title") %>
+                  <%= t("home.usput_bosnia.title") %>
                 <% end %>
               </div>
             </div>
@@ -97,6 +97,38 @@
                   <div class="pointer-events-none absolute inset-0 rounded-xl ring-1 ring-gray-900/10 ring-inset dark:ring-white/10"></div>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <%# ==================== USPUT BOSNIA SEKCIJA ==================== %>
+    <div class="px-6 pb-4 lg:px-8">
+      <div class="mx-auto max-w-7xl">
+        <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 to-emerald-800 px-6 py-10 shadow-xl sm:px-12 sm:py-14 dark:from-emerald-700 dark:to-emerald-900">
+          <svg aria-hidden="true" class="pointer-events-none absolute -top-16 -right-16 h-64 w-64 text-white/10" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 2a8 8 0 00-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 00-8-8zm0 11a3 3 0 110-6 3 3 0 010 6z" />
+          </svg>
+
+          <div class="relative lg:flex lg:items-center lg:justify-between lg:gap-10">
+            <div class="max-w-2xl">
+              <p class="text-sm font-semibold tracking-wide text-emerald-100 uppercase"><%= t("home.usput_bosnia.title") %></p>
+              <h2 class="mt-2 text-3xl font-semibold tracking-tight text-balance text-white sm:text-4xl">
+                <%= t("home.usput_bosnia.heading") %>
+              </h2>
+              <p class="mt-4 text-base/7 text-emerald-50">
+                <%= t("home.usput_bosnia.description") %>
+              </p>
+            </div>
+
+            <div class="mt-8 shrink-0 lg:mt-0">
+              <%= link_to explore_bosnia_path, class: "inline-flex items-center justify-center rounded-xl bg-white px-8 py-4 text-lg font-semibold text-emerald-700 shadow-lg transition-all hover:-translate-y-0.5 hover:bg-emerald-50 hover:shadow-xl" do %>
+                <svg class="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                <%= t("home.usput_bosnia.cta") %>
+              <% end %>
             </div>
           </div>
         </div>

@@ -13,7 +13,7 @@
     <p class="mt-3 text-sm text-gray-500 dark:text-gray-400"><%= t("explore_bosnia.subtitle") %></p>
   </div>
 
-  <div class="mt-10 grid grid-cols-2 gap-4 sm:gap-6">
+  <div class="mt-10 grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
     <% @tile_keys.each do |tile_key| %>
       <%= link_to explore_bosnia_experience_path(tile_key),
             data: { explore_geo_target: "tile", action: "click->explore-geo#hold" },

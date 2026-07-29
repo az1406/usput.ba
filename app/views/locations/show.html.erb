@@ -16,6 +16,7 @@
      data-travel-profile-item-type-value="location"
      data-travel-profile-item-name-value="<%= @location.translate(:name, I18n.locale) %>"
      data-travel-profile-logged-in-value="<%= logged_in? %>"
+     data-travel-profile-geofence-disabled-value="<%= geofence_disabled? %>"
      data-travel-profile-translations-value="<%= travel_profile_translations_json %>"
      <% if @location.geocoded? %>
      data-travel-profile-location-lat-value="<%= @location.lat %>"
@@ -206,7 +207,7 @@
       <%# Lightbox Modal %>
       <div data-photo-gallery-target="lightbox"
            data-action="click->photo-gallery#closeLightboxOnBackground"
-           class="hidden fixed inset-0 z-50 bg-black/95 flex items-center justify-center">
+           class="hidden fixed inset-0 z-[70] bg-black/95 flex items-center justify-center">
         <%# Close button %>
         <button data-action="click->photo-gallery#closeLightbox"
                 class="absolute top-4 right-4 p-2 text-white/70 hover:text-white transition-colors z-10"
@@ -422,6 +423,16 @@
             </p>
           <% end %>
         </div>
+
+        <%# Moments — your own plus everyone's public ones. Loads on scroll so
+            the page above it is not held up. %>
+        <% if logged_in? %>
+          <div class="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg mb-6">
+            <turbo-frame id="<%= dom_id(@location, :moments_frame) %>"
+                         src="<%= plan_moments_path(@moments_plan, location_id: @location.uuid, context: "location") %>"
+                         loading="lazy"></turbo-frame>
+          </div>
+        <% end %>
 
         <%# Reviews Section %>
         <div class="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg">

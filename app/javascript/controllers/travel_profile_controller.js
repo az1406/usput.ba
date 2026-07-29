@@ -41,7 +41,8 @@ export default class extends Controller {
     syncUrl: String,
     locationLat: Number,
     locationLng: Number,
-    maxDistanceMeters: { type: Number, default: 500 },
+    maxDistanceMeters: { type: Number, default: 100 },
+    geofenceDisabled: Boolean,
     translations: Object // I18n translations passed from Rails
   }
 
@@ -350,6 +351,10 @@ export default class extends Controller {
 
   // Request geolocation and validate visit
   requestGeolocationForVisit(button) {
+    // The server accepts an admin's visit from anywhere, so don't make them
+    // answer a location prompt that cannot change the outcome.
+    if (this.geofenceDisabledValue) return this.validateVisitOnServer(0, 0, button)
+
     if (!navigator.geolocation) {
       this.showFeedback(this.t('geolocation_not_supported'), "error")
       button.disabled = false

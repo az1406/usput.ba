@@ -120,8 +120,12 @@ export default class extends Controller {
   // Open lightbox mode
   openLightbox(event) {
     if (event) {
-      const index = parseInt(event.currentTarget.dataset.index, 10)
-      if (!isNaN(index)) {
+      // Cards appended by load-more can't carry a server-rendered index, so
+      // fall back to the thumbnail's live position.
+      const index = event.currentTarget.dataset.index
+        ? parseInt(event.currentTarget.dataset.index, 10)
+        : this.thumbnailTargets.indexOf(event.currentTarget)
+      if (!isNaN(index) && index >= 0) {
         this.indexValue = index
       }
     }
@@ -129,7 +133,7 @@ export default class extends Controller {
     if (!this.hasLightboxTarget) return
 
     this.lightboxOpenValue = true
-    this.lightboxTarget.classList.remove("hidden")
+    this.showLightbox()
     document.body.classList.add("overflow-hidden")
 
     // Set initial image
@@ -158,7 +162,33 @@ export default class extends Controller {
     if (!this.hasLightboxTarget) return
 
     this.lightboxOpenValue = false
-    this.lightboxTarget.classList.add("hidden")
+    this.hideLightbox()
+    document.body.classList.remove("overflow-hidden")
+  }
+
+  // Galleries that render inside a card use a <dialog> so the top layer lifts
+  // them out of it; the older ones are plain divs toggled by class.
+  showLightbox() {
+    const el = this.lightboxTarget
+    if (typeof el.showModal === "function") {
+      if (!el.open) el.showModal()
+    } else {
+      el.classList.remove("hidden")
+    }
+  }
+
+  hideLightbox() {
+    const el = this.lightboxTarget
+    if (typeof el.close === "function") {
+      if (el.open) el.close()
+    } else {
+      el.classList.add("hidden")
+    }
+  }
+
+  // Esc and the backdrop close a dialog without going through closeLightbox.
+  onLightboxClosed() {
+    this.lightboxOpenValue = false
     document.body.classList.remove("overflow-hidden")
   }
 

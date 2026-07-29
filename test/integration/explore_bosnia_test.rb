@@ -26,6 +26,8 @@ class ExploreBosniaTest < ActionDispatch::IntegrationTest
     @history&.destroy
     @user&.plans&.destroy_all
     @user&.destroy
+    @admin&.plans&.destroy_all
+    @admin&.destroy
   end
 
   test "the grid shows the six browse tiles" do
@@ -280,7 +282,9 @@ class ExploreBosniaTest < ActionDispatch::IntegrationTest
   end
 
   test "the moments panel offers upload and badges a private moment" do
-    moment = @user.moments.new(plan: Plan.explore_bosnia_for(@user), location: @near, visibility: :private_moment)
+    plan = Plan.explore_bosnia_for(@user)
+    @user.plan_visits.create!(plan: plan, location: @near) # capture is earned by being there
+    moment = @user.moments.new(plan: plan, location: @near, visibility: :private_moment)
     moment.photo.attach(io: File.open(Rails.root.join("test/fixtures/files/real_image.jpg")), filename: "real_image.jpg", content_type: "image/jpeg")
     moment.save!
     login_as(@user)
@@ -292,6 +296,35 @@ class ExploreBosniaTest < ActionDispatch::IntegrationTest
     assert_select "label[aria-label=?]", I18n.t("plans.moments.add"), minimum: 1
     assert_includes response.body, I18n.t("plans.start.story_private")
     assert_select "form[action=?]", publish_plan_moment_path(moment.plan, moment), count: 1
+  end
+
+  test "the moments panel withholds upload until the place is visited" do
+    login_as(@user)
+
+    get plan_moments_path(Plan.explore_bosnia_for(@user), location_id: @near.uuid, context: "explore"),
+        headers: { "Turbo-Frame" => ActionView::RecordIdentifier.dom_id(@near, :moments_frame) }
+
+    assert_response :success
+    assert_select "label[aria-label=?]", I18n.t("plans.moments.add"), count: 0
+  end
+
+  test "the moments panel shows another traveller's approved public moment" do
+    other = User.create!(username: "other_wanderer", password: "password123")
+    moment = other.moments.new(plan: Plan.explore_bosnia_for(other), location: @near, visibility: :public_moment)
+    moment.photo.attach(io: File.open(Rails.root.join("test/fixtures/files/real_image.jpg")), filename: "real_image.jpg", content_type: "image/jpeg")
+    moment.save!
+    moment.update!(moderation_status: :approved)
+    login_as(@user)
+
+    get plan_moments_path(Plan.explore_bosnia_for(@user), location_id: @near.uuid, context: "explore"),
+        headers: { "Turbo-Frame" => ActionView::RecordIdentifier.dom_id(@near, :moments_frame) }
+
+    assert_response :success
+    assert_select "[data-photo-gallery-target='thumbnail']", count: 1
+  ensure
+    other&.moments&.destroy_all
+    other&.plans&.destroy_all
+    other&.destroy
   end
 
   test "an own approved public moment removes the be-first invitation" do
@@ -425,7 +458,52 @@ class ExploreBosniaTest < ActionDispatch::IntegrationTest
     assert_select "[data-geo-visit-target='hint'][data-enable-location=?]", I18n.t("plans.start.need_location"), minimum: 1
   end
 
+  test "an admin is dealt places beyond the radius" do
+    login_as(admin)
+
+    get explore_bosnia_experience_path("history", **SARAJEVO)
+
+    assert_response :success
+    assert_includes response.body, "Far Fort"
+  end
+
+  test "an admin who never answered the location prompt is still dealt the walk" do
+    login_as(admin)
+
+    get explore_bosnia_experience_path("history")
+
+    assert_response :success
+    assert_includes response.body, "Close Fort"
+  end
+
+  test "an admin checks in with a plain submit, not the distance-gated one" do
+    login_as(admin)
+
+    get explore_bosnia_experience_path("history", **SARAJEVO)
+
+    assert_response :success
+    assert_select "[data-controller='geo-visit']", count: 0
+  end
+
+  test "an admin check-in from nowhere near the place records the visit" do
+    admin_user = admin
+    login_as(admin_user)
+    get explore_bosnia_experience_path("history", **SARAJEVO)
+    hidden_plan = Plan.explore_bosnia_for(admin_user)
+
+    post plan_visits_path(hidden_plan),
+         params: { location_id: @near.uuid, user_lat: 0, user_lng: 0 }, as: :turbo_stream
+
+    assert_response :success
+    assert admin_user.plan_visits.exists?(plan: hidden_plan, location: @near),
+           "the admin bypass must record the visit"
+  end
+
   private
+
+  def admin
+    @admin ||= User.create!(username: "chief", password: "password123", user_type: :admin)
+  end
 
   def login_as(user)
     post login_path, params: { username: user.username, password: "password123" }

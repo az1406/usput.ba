@@ -93,22 +93,36 @@ class PlanWalkTest < ApplicationSystemTestCase
     visit profile_page_path
 
     frame = "##{ActionView::RecordIdentifier.dom_id(moment)}"
-    within(frame) { find("button[type=submit]").click }
+    # The card carries a delete button alongside publish, so target the form.
+    within("#{frame} form[action='#{publish_plan_moment_path(@plan, moment)}']") { find("button[type=submit]").click }
 
     assert_selector "#{frame} form[action='#{unpublish_plan_moment_path(@plan, moment)}']", wait: 5
     assert moment.reload.visibility_public_moment?, "the moment must be public after publishing"
   end
 
-  test "with the geofence off, a single click marks the location visited" do
-    ENV["SKIP_GEOFENCE"] = "true"
+  test "deleting a moment from the profile removes its card in place" do
+    moment = @user.moments.build(plan: @plan, location: @location)
+    moment.photo.attach(io: File.open(Rails.root.join("test/fixtures/files/real_image.jpg")), filename: "m.jpg", content_type: "image/jpeg")
+    moment.save!
+    login
+    visit profile_page_path
+
+    frame = "##{ActionView::RecordIdentifier.dom_id(moment)}"
+    assert_selector frame
+    accept_confirm { within("#{frame} form[action='#{plan_moment_path(@plan, moment)}']") { find("button[type=submit]").click } }
+
+    assert_no_selector frame, wait: 5
+    refute Moment.exists?(moment.id), "the moment must be gone from the database"
+  end
+
+  test "an admin marks the location visited in a single click, without standing there" do
+    @user.update!(user_type: :admin)
     login
     visit start_plan_path(@plan)
 
     click_button "Check if I'm here"
 
     assert_text "Visited", wait: 5
-  ensure
-    ENV.delete("SKIP_GEOFENCE")
   end
 
   test "mark visited then drop a photo in the moments panel, it appears without a reload" do
@@ -127,6 +141,27 @@ class PlanWalkTest < ApplicationSystemTestCase
     attach_file "moment[photo]", file_fixture("real_image.jpg").to_s, make_visible: true
 
     assert_selector "img[src*='/moments/']", visible: :all, wait: 5
+  end
+
+  test "the fullscreen moment closes on the X, even sitting over a swipeable card" do
+    moment = @user.moments.build(plan: @plan, location: @location)
+    moment.photo.attach(io: File.open(Rails.root.join("test/fixtures/files/real_image.jpg")), filename: "m.jpg", content_type: "image/jpeg")
+    moment.save!
+    @user.plan_visits.create!(plan: @plan, location: @location)
+    login
+    visit start_plan_path(@plan)
+
+    swipe_on "[data-plan-deck-target='card']", dx: -120, dy: 0
+    assert_selector "[data-card-menu-target='panel'][data-panel='moments']", visible: true, wait: 5
+
+    find("[data-photo-gallery-target='thumbnail']", match: :first).click
+    assert_selector "[data-photo-gallery-target='lightbox']", visible: true, wait: 5
+
+    within("[data-photo-gallery-target='lightbox']") { find("button[aria-label]", match: :first).click }
+
+    assert_no_selector "[data-photo-gallery-target='lightbox']", visible: true, wait: 5
+    refute @user.plan_visits.where(plan: @plan, location: @location).count > 1,
+      "closing the lightbox must not reach the card underneath"
   end
 
   test "an un-visited card cannot be swiped past" do

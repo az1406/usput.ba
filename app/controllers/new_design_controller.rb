@@ -55,6 +55,8 @@ class NewDesignController < ApplicationController
 
   PER_PAGE = 3
 
+  OWN_MOMENTS_LIMIT = 12
+
   def explore
     @query = params[:q]
     @types = Array(params[:types]).reject(&:blank?)
@@ -81,6 +83,7 @@ class NewDesignController < ApplicationController
     @experiences = Experience.none.page(1)
     @plans = Plan.none.page(1)
     @moments = Moment.none.page(1)
+    @my_moments = Moment.none
 
     # Determine which types to search
     search_types = @types.presence || %w[location experience plan moment]
@@ -153,7 +156,19 @@ class NewDesignController < ApplicationController
 
     if search_types.include?("moment")
       @moments = build_moments_from_browse(base_browse)
+      @my_moments = build_own_moments(base_browse)
     end
+  end
+
+  # Browse indexes only public moments, so own ones are read from the
+  # association and kept beside the public results, never merged into them.
+  def build_own_moments(base_browse)
+    return Moment.none unless logged_in?
+
+    scope = current_user.moments.with_attached_photo.includes(:location, :plan)
+    # Moments have no text of their own; Browse matches them via their location.
+    scope = scope.where(location_id: base_browse.locations.select(:browsable_id)) if @query.present?
+    scope.order(created_at: :desc).limit(OWN_MOMENTS_LIMIT)
   end
 
   def build_moments_from_browse(base_browse)

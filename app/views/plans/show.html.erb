@@ -108,7 +108,7 @@
             <%# Start the plan — walk its locations as steps and capture moments %>
             <%= link_to start_plan_path(@plan),
                   class: "inline-flex items-center space-x-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors shadow-sm" do %>
-              <% if @plan_started %>
+              <% if plan_progress(@plan) != :not_started %>
                 <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
@@ -220,7 +220,7 @@
       <%# Lightbox Modal %>
       <div data-photo-gallery-target="lightbox"
            data-action="click->photo-gallery#closeLightboxOnBackground"
-           class="hidden fixed inset-0 z-50 bg-black/95 flex items-center justify-center">
+           class="hidden fixed inset-0 z-[70] bg-black/95 flex items-center justify-center">
         <%# Close button %>
         <button data-action="click->photo-gallery#closeLightbox"
                 class="absolute top-4 right-4 p-2 text-white/70 hover:text-white transition-colors z-10"

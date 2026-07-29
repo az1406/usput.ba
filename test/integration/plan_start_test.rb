@@ -147,16 +147,28 @@ class PlanStartTest < ActionDispatch::IntegrationTest
     stranger&.destroy
   end
 
-  test "SKIP_GEOFENCE accepts a check-in from anywhere (non-prod testing)" do
-    ENV["SKIP_GEOFENCE"] = "true"
+  test "an admin checks in from anywhere, so the walk can be reviewed remotely" do
+    admin = User.create!(username: "chief_walker", password: "password123", user_type: :admin)
+    admin_plan = Plan.create!(title: "Chief Plan", city_name: "Sarajevo", visibility: :private_plan, user: admin)
+    admin_plan.plan_experiences.create!(experience: @experience, day_number: 1)
+    login_as(admin)
+
+    post plan_visits_path(admin_plan), params: { location_id: @location.uuid, user_lat: 40.0, user_lng: 10.0 }, as: :turbo_stream
+
+    assert_response :success
+    assert admin.plan_visits.exists?(plan: admin_plan, location: @location), "the admin bypass must record the visit"
+  ensure
+    admin_plan&.destroy
+    admin&.destroy
+  end
+
+  test "a traveller is still held to the geofence" do
     login_as(@user)
 
     post plan_visits_path(@plan), params: { location_id: @location.uuid, user_lat: 40.0, user_lng: 10.0 }, as: :turbo_stream
 
     assert_response :success
-    assert @user.plan_visits.exists?(plan: @plan, location: @location), "the geofence bypass must record the visit"
-  ensure
-    ENV.delete("SKIP_GEOFENCE")
+    refute @user.plan_visits.exists?(plan: @plan, location: @location), "a check-in from 2000 km away must not count"
   end
 
   private

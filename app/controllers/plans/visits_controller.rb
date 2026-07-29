@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 class Plans::VisitsController < ApplicationController
+  include RecordsVisits
+
   before_action :require_login
   before_action :set_plan
-
-  MAX_VISIT_DISTANCE_KM = 0.1 # 100 meters
 
   def create
     location = Location.find_by_public_id!(params[:location_id])
@@ -13,7 +13,7 @@ class Plans::VisitsController < ApplicationController
       return render_location(location, alert: reason)
     end
 
-    mark_visited(location)
+    record_visit_for(@plan, location)
     render_location(location)
   end
 
@@ -27,28 +27,18 @@ class Plans::VisitsController < ApplicationController
   private
 
   def out_of_range_reason(location)
-    return nil if helpers.geofence_disabled? # SKIP_GEOFENCE=true (non-prod) accepts any spot
     return nil unless location.geocoded?
 
     lat = params[:user_lat].to_f
     lng = params[:user_lng].to_f
-    return t("plans.start.need_location") if lat.zero? && lng.zero?
+    return t("plans.start.need_location") if lat.zero? && lng.zero? && visit_coordinates_required?
+    return nil if visit_in_range?(location, lat, lng)
 
-    distance_km = location.distance_from(lat, lng)
-    return nil if distance_km <= MAX_VISIT_DISTANCE_KM
-
-    t("plans.start.too_far", distance: format_distance(distance_km), max: (MAX_VISIT_DISTANCE_KM * 1000).to_i)
+    t("plans.start.too_far", distance: format_distance(location.distance_from(lat, lng)), max: (MAX_VISIT_DISTANCE_KM * 1000).to_i)
   end
 
   def format_distance(km)
     km >= 1 ? "#{km.round(1)} km" : "#{(km * 1000).round} m"
-  end
-
-  def mark_visited(location)
-    current_user.plan_visits.find_or_create_by!(plan: @plan, location: location)
-  rescue ActiveRecord::RecordNotUnique
-    # A double-tap raced us to the insert; the visit exists either way.
-    nil
   end
 
   def render_location(location, alert: nil)

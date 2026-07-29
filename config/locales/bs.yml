@@ -127,6 +127,8 @@ bs:
       experiences: Iskustva
       plans: Planovi
       moments: Uspomene
+      my_moments: Tvoje uspomene
+      my_moments_all: Pogledaj sve svoje uspomene
     empty:
       title: Nema rezultata
       with_filters: Pokušajte promijeniti filtere ili pretražiti nešto drugo.
@@ -137,6 +139,11 @@ bs:
       title_part2: Ljepote Bosne i Hercegovine
       subtitle: Pronađi skrivene dragulje, autentična iskustva i nezaboravna mjesta.
         Tvoja avantura počinje ovdje.
+    usput_bosnia:
+      title: Usput Bosnia
+      heading: Istraži Bosnu na svoju ruku, spontano
+      description: Bez plana i bez rasporeda. Izaberi raspoloženje, a mi ti dajemo najbliže mjesto uz njega. Kreni, prijavi se kad stigneš, zabilježi trenutak — pa nastavi dalje.
+      cta: Počni istraživati
     cta:
       start: Započni Planiranje
       explore: Istraži Iskustva
@@ -356,6 +363,7 @@ bs:
       generating: Generisanje plana u toku...
   plans:
     started: Započet
+    finished: Završen
     start:
       reviews: Recenzije
       tap_for_info: Dodirni za više informacija

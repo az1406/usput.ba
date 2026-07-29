@@ -1,5 +1,14 @@
 import { Controller } from "@hotwired/stimulus"
 
+// Anything that opens over a card owns its own pointers. Without this the deck
+// reads a tap on the fullscreen close button as a swipe and swallows the click.
+const PANELS = [
+  "[data-card-menu-target='menu']",
+  "[data-card-menu-target='panel']",
+  "[data-photo-gallery-target='lightbox']",
+  "[data-moment-lightbox-target='overlay']"
+].join(", ")
+
 export default class extends Controller {
   static targets = ["card", "done", "hint", "storyHint", "reelHint", "distanceLabel"]
   static values = { browse: Boolean }
@@ -130,7 +139,7 @@ export default class extends Controller {
 
     this.element.addEventListener("pointerdown", (event) => {
       if (!event.isPrimary) return
-      if (event.target.closest("[data-card-menu-target='menu'], [data-card-menu-target='panel']")) return
+      if (event.target.closest(PANELS)) return
       startX = event.clientX
       startY = event.clientY
       this.activeCard = this.browseValue
@@ -159,7 +168,9 @@ export default class extends Controller {
       if (!card) return
       const dx = event.clientX - startX
       const dy = event.clientY - startY
-      this.suppressClick = Math.hypot(dx, dy) > 10
+      // Only a real drag arms the swallow; a scripted gesture produces no
+      // trusted click to consume it, and the flag would eat the user's next tap.
+      this.suppressClick = event.isTrusted && Math.hypot(dx, dy) > 10
       const horizontal = Math.abs(dx) > Math.abs(dy)
       const committed = horizontal && dx > COMMIT
       const committedLeft = horizontal && dx < -COMMIT
