@@ -28,13 +28,13 @@
       <% mine = logged_in? && moment.user_id == current_user.id
          thumb = mine ? photo_plan_moment_path(moment.plan, moment, size: "thumb") : url_for(moment.photo.variant(resize_to_fill: [ 200, 200 ]))
          full = mine ? photo_plan_moment_path(moment.plan, moment, size: "story") : url_for(moment.photo.variant(resize_to_limit: [ 1080, 1080 ])) %>
-      <div class="w-24 shrink-0 text-center">
+      <div class="w-28 shrink-0 text-center">
         <button type="button"
                 data-action="click->photo-gallery#openLightbox"
                 data-index="<%= index %>"
                 data-photo-gallery-target="thumbnail"
                 data-photo-gallery-full-url="<%= full %>"
-                class="relative block size-24 overflow-hidden rounded-full ring-2 ring-offset-2 ring-transparent dark:ring-offset-gray-800"
+                class="relative mx-auto block size-24 overflow-hidden rounded-full"
                 aria-label="<%= t("plans.start.shared_moments") %> <%= index + 1 %>">
           <%= image_tag thumb, class: "size-full object-cover", loading: "lazy", alt: "" %>
         </button>
@@ -44,7 +44,7 @@
             <%= moment.visibility_private_moment? ? t("plans.start.story_private") : (moment.approved? ? t("plans.start.story_public") : t("plans.start.story_pending")) %>
           </p>
 
-          <div class="mt-1 flex items-center justify-center gap-1">
+          <div class="mt-1 flex flex-wrap items-center justify-center gap-1">
             <% if moment.visibility_private_moment? %>
               <%= button_to t("plans.start.story_publish"), publish_plan_moment_path(moment.plan, moment),
                     method: :patch,

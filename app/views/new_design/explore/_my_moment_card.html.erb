@@ -1,6 +1,6 @@
 <%# Locals: moment, index. The photo streams through our own action, never a
     signed blob url, which would serve a private moment without a session. %>
-<%= turbo_frame_tag dom_id(moment), class: "block bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden" do %>
+<%= turbo_frame_tag dom_id(moment), class: "group block bg-white dark:bg-gray-800 rounded-2xl shadow-sm transition-all hover:shadow-lg overflow-hidden" do %>
   <button type="button"
           data-action="click->photo-gallery#openLightbox"
           data-index="<%= index %>"
@@ -19,7 +19,7 @@
 
   <%= render "new_design/explore/moment_card_body", moment: moment, linked: true %>
 
-  <div class="flex items-center gap-2 px-4 pb-4">
+  <div class="flex flex-wrap items-center gap-2 px-4 pb-4">
     <% if moment.visibility_private_moment? %>
       <%= button_to t("plans.start.story_publish"), publish_plan_moment_path(moment.plan, moment),
             method: :patch,

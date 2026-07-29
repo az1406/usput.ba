@@ -163,6 +163,7 @@ export default class extends Controller {
 
     this.lightboxOpenValue = false
     this.hideLightbox()
+    this.clearThumbnailRings()
     document.body.classList.remove("overflow-hidden")
   }
 
@@ -189,7 +190,17 @@ export default class extends Controller {
   // Esc and the backdrop close a dialog without going through closeLightbox.
   onLightboxClosed() {
     this.lightboxOpenValue = false
+    this.clearThumbnailRings()
     document.body.classList.remove("overflow-hidden")
+  }
+
+  // The ring means "this is the one you are looking at". Once the viewer is
+  // shut it means nothing, and a stray green circle reads as a state badge.
+  clearThumbnailRings() {
+    this.thumbnailTargets.forEach((thumb) => {
+      thumb.classList.remove("ring-emerald-500")
+      thumb.classList.add("ring-transparent", "hover:ring-gray-300", "dark:hover:ring-gray-600")
+    })
   }
 
   // Close lightbox on background click
