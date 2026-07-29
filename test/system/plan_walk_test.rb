@@ -10,8 +10,10 @@ class PlanWalkTest < ApplicationSystemTestCase
     @plan.plan_experiences.create!(experience: @experience, day_number: 1)
   end
 
-  def swipe_right_on(selector)
-    swipe_on(selector, dx: 120, dy: 0)
+  # Moments live behind the card menu now that no gesture opens them.
+  def open_moments_panel
+    find("[data-plan-deck-target='card'] button[data-action='card-menu#openFromHandle']", match: :first).click
+    find("button", text: I18n.t("plans.start.shared_moments"), match: :first).click
   end
 
   # Real PointerEvents — Capybara cannot express a drag gesture, and the
@@ -56,13 +58,13 @@ class PlanWalkTest < ApplicationSystemTestCase
     browser.execute_cdp("Emulation.setGeolocationOverride", latitude: location.lat.to_f, longitude: location.lng.to_f, accuracy: 5)
   end
 
-  test "the reel shows every plan stop, in plan order" do
+  test "the deck shows every plan stop, in plan order" do
     second = Location.create!(name: "Second Loc", city: "Sarajevo", lat: 43.90, lng: 18.50)
     @experience.locations << second
     login
     visit start_plan_path(@plan)
 
-    # Browse reel (same as explore): every stop stays in the scroll, none hidden
+    # Browse deck (same as explore): every stop stays in the scroll, none hidden
     # behind a deal-one deck.
     assert_selector "##{ActionView::RecordIdentifier.dom_id(@location, :step)}", visible: true, wait: 5
     assert_selector "##{ActionView::RecordIdentifier.dom_id(second, :step)}", visible: true
@@ -70,14 +72,14 @@ class PlanWalkTest < ApplicationSystemTestCase
     second&.destroy
   end
 
-  test "a visited stop stays in the reel, stamped, beside un-visited stops" do
+  test "a visited stop stays in the deck, stamped, beside un-visited stops" do
     second = Location.create!(name: "Second Loc", city: "Sarajevo", lat: 43.86, lng: 18.42)
     @experience.locations << second
     @user.plan_visits.create!(plan: @plan, location: @location)
     login
     visit start_plan_path(@plan)
 
-    # Both cards stay in the reel; the visited one is stamped, not hidden away.
+    # Both cards stay in the deck; the visited one is stamped, not hidden away.
     assert_selector "##{ActionView::RecordIdentifier.dom_id(@location, :step)}", visible: true, wait: 5
     assert_selector "##{ActionView::RecordIdentifier.dom_id(second, :step)}", visible: true
     assert_text "Visited"
@@ -133,7 +135,7 @@ class PlanWalkTest < ApplicationSystemTestCase
     click_button "Check if I'm here"
     assert_text "Visited", wait: 5
 
-    swipe_on "[data-plan-deck-target='card']", dx: -120, dy: 0
+    open_moments_panel
     assert_selector "[data-card-menu-target='panel'][data-panel='moments']", visible: true, wait: 5
 
     # The upload tile fronts a native picker Capybara can't drive; attach to the
@@ -151,7 +153,7 @@ class PlanWalkTest < ApplicationSystemTestCase
     login
     visit start_plan_path(@plan)
 
-    swipe_on "[data-plan-deck-target='card']", dx: -120, dy: 0
+    open_moments_panel
     assert_selector "[data-card-menu-target='panel'][data-panel='moments']", visible: true, wait: 5
 
     find("[data-photo-gallery-target='thumbnail']", match: :first).click
@@ -162,30 +164,6 @@ class PlanWalkTest < ApplicationSystemTestCase
     assert_no_selector "[data-photo-gallery-target='lightbox']", visible: true, wait: 5
     refute @user.plan_visits.where(plan: @plan, location: @location).count > 1,
       "closing the lightbox must not reach the card underneath"
-  end
-
-  test "an un-visited card cannot be swiped past" do
-    login
-    visit start_plan_path(@plan)
-
-    step = "##{ActionView::RecordIdentifier.dom_id(@location, :step)}"
-    swipe_right_on step
-
-    assert_selector step, visible: true # must check in before moving on
-  end
-
-  test "after checking in, a repeat right-swipe leaves the card in the reel" do
-    login
-    visit start_plan_path(@plan)
-    stand_at(@location)
-    click_button "Check if I'm here"
-    assert_text "Visited", wait: 5
-
-    swipe_right_on "##{ActionView::RecordIdentifier.dom_id(@location, :step)}"
-
-    # Browse mode: a visited card just snaps back — it stays put, still stamped.
-    assert_selector "##{ActionView::RecordIdentifier.dom_id(@location, :step)}", visible: true, wait: 5
-    assert_text "Visited"
   end
 
   test "visited progress persists when leaving and returning to the walk" do

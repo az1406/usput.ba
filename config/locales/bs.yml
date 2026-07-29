@@ -51,14 +51,30 @@ bs:
     eyebrow: Istražuj po želji
     subtitle: "Bez plana — izaberi kategoriju i dijelimo ti najbliže mjesto. Posjeti ga, zabilježi trenutak, pa se vrati po još."
     deck_subtitle: "Prvo najbliže mjesto. Prijavi se kad stigneš, pa nastavi dalje."
-    deck_empty: "Još nema mjesta u ovoj kategoriji."
+    deck_empty: "Još nema mjesta u blizini."
     empty_grid: "Još nema kategorija s mjestima — navratite uskoro."
     back: Kategorije
+    filters:
+      title: Filteri
+      category: Kategorija
+      season: Godišnje doba
+      budget: Budžet
+      min_rating: Najmanja ocjena
+      all_categories: Sve kategorije
+      clear: Poništi filtere
+      seasons:
+        spring: Proljeće
+        summer: Ljeto
+        fall: Jesen
+        winter: Zima
+      budgets:
+        low: $ Nisko
+        medium: $$ Srednje
+        high: $$$ Visoko
     km_away: "%{km} km od vas"
-    swipe_hint: Povuci udesno da provjeriš jesi li tu
-    reel_hint: Prevuci gore za sljedeće mjesto
-    deck_end: "Nema više mjesta u blizini u ovoj kategoriji."
-    deck_all_visited: "Posjetio si sva mjesta u blizini u ovoj kategoriji. Probaj neku drugu."
+    deck_hint: Skrolaj dolje za sljedeće mjesto
+    deck_end: "Nema više mjesta u blizini."
+    deck_all_visited: "Posjetio si sva mjesta u blizini. Probaj drugi filter."
     needs_location:
       title: Trebamo tvoju lokaciju
       body: "Ovdje dijelimo najbliža mjesta, pa moramo znati gdje si. Dozvoli lokaciju i pokušaj ponovo."
@@ -367,9 +383,7 @@ bs:
     start:
       reviews: Recenzije
       tap_for_info: Dodirni za više informacija
-      story_hint: Povuci ulijevo za trenutke
-      reel_hint: Prevuci gore za sljedeće mjesto
-      story_locked: Prvo se prijavi na lokaciji da vidiš i podijeliš trenutke
+      deck_hint: Skrolaj dolje za sljedeće mjesto
       story_add_private: Dodaj privatni trenutak
       story_none: Još nema trenutaka ovdje — budi prvi!
       story_private: Privatno
@@ -408,7 +422,6 @@ bs:
       title: Uspomene
       privacy_note: Tvoje fotografije su privatne — vidiš ih samo ti, na ovom planu.
       add: Dodaj
-      swipe_hint: prevuci desno
       share: Podijeli ovu uspomenu
       share_prompt: Želiš li podijeliti ovu uspomenu s drugim putnicima?
       make_private: Vrati na privatno

@@ -172,6 +172,15 @@ class Location < ApplicationRecord
   # Valid seasons constant
   SEASONS = %w[spring summer fall winter].freeze
 
+  def self.current_season
+    case Time.current.month
+    when 3..5 then "spring"
+    when 6..8 then "summer"
+    when 9..11 then "fall"
+    else "winter"
+    end
+  end
+
   # Get supported experiences dynamically from database
   def self.supported_experiences
     ExperienceType.active_keys

@@ -8,18 +8,29 @@ class ResponsiveTest < ApplicationSystemTestCase
   PHONE = [ 390, 844 ].freeze  # iPhone 14
   TABLET = [ 768, 1024 ].freeze
 
+  # The browser window is shared across the whole system suite, so it has to go
+  # back or later tests find `hidden sm:block` controls invisible.
+  teardown do
+    resize_to(1400, 1400)
+  end
+
   setup do
     @location = Location.create!(name: "Resp Loc", city: "Sarajevo", lat: 43.85, lng: 18.41,
                                  description: "A place for the responsive sweep.")
     @experience = Experience.create!(title: "Resp Exp", description: "desc")
     @experience.locations << @location
     @event = Event.create!(title: "Resp Event", description: "desc", starts_at: 2.days.from_now, location: @location)
+    @user = User.create!(username: "resp_walker", password: "password123")
+    @plan = Plan.create!(title: "Resp Plan", city_name: "Sarajevo", visibility: :private_plan, user: @user)
+    @plan.plan_experiences.create!(experience: @experience, day_number: 1)
   end
 
   teardown do
     @event&.destroy
     @experience&.destroy
     @location&.destroy
+    @user&.plans&.destroy_all
+    @user&.destroy
   end
 
   test "no public page scrolls sideways on a phone" do
@@ -71,7 +82,69 @@ class ResponsiveTest < ApplicationSystemTestCase
     end
   end
 
+  test "no signed-in page scrolls sideways on a phone" do
+    login
+    resize_to(*PHONE)
+
+    each_signed_in_page { |path| assert_no_horizontal_scroll(path) }
+  end
+
+  test "no signed-in page scrolls sideways on a tablet" do
+    login
+    resize_to(*TABLET)
+
+    each_signed_in_page { |path| assert_no_horizontal_scroll(path) }
+  end
+
+  # With the filter rail beside the deck, the middle of the screen is not the
+  # middle of the card, and the hint has to follow the card.
+  test "the deck hint centres on the card, not on the screen" do
+    login
+    resize_to(1400, 1000)
+    visit explore_bosnia_experience_path("all", lat: @location.lat, lng: @location.lng)
+
+    offsets = page.evaluate_script(<<~JS)
+      (() => {
+        const hint = document.querySelector("[data-deck-hint]")
+        const card = document.querySelector("[data-plan-deck-target='card']")
+        if (!hint || !card) return null
+        const h = hint.getBoundingClientRect(), c = card.getBoundingClientRect()
+        return {
+          fromCard: Math.round(Math.abs((h.left + h.width / 2) - (c.left + c.width / 2))),
+          fromScreen: Math.round(Math.abs((h.left + h.width / 2) - window.innerWidth / 2))
+        }
+      })()
+    JS
+
+    refute_nil offsets, "could not find the deck hint and a card"
+    assert_operator offsets["fromCard"], :<=, 2,
+      "the hint sits #{offsets["fromCard"]}px off the card's centre"
+    assert_operator offsets["fromScreen"], :>, 2,
+      "the rail should push the card off screen-centre, so the hint should be off it too"
+  end
+
   private
+
+  def login
+    visit login_path
+    within "form" do
+      fill_in "username", with: @user.username
+      fill_in "password", with: "password123"
+      click_button
+    end
+    assert_no_current_path login_path, wait: 5
+  end
+
+  def each_signed_in_page
+    [
+      explore_bosnia_experience_path("all", lat: @location.lat, lng: @location.lng),
+      explore_bosnia_experience_path("history", lat: @location.lat, lng: @location.lng),
+      start_plan_path(@plan),
+      plan_path(@plan),
+      profile_page_path,
+      profile_plans_path
+    ].each { |path| yield path }
+  end
 
   def each_public_page
     [

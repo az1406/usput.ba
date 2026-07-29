@@ -39,12 +39,194 @@ class ExploreBosniaTest < ActionDispatch::IntegrationTest
     assert_select "a[href=?]", explore_bosnia_experience_path("relax"), count: 1
   end
 
-  test "an unknown tile falls back to the grid" do
+  test "entry with a position lands in the deck of every category" do
+    login_as(@user)
+
+    get explore_bosnia_path, params: SARAJEVO
+
+    assert_redirected_to explore_bosnia_experience_path("all", **SARAJEVO)
+  end
+
+  test "the all-categories deck deals places from every category" do
+    art = ExperienceType.create!(key: "art", name: "Art", active: true)
+    gallery = Location.create!(name: "Near Gallery", city: "Sarajevo", lat: 43.851, lng: 18.411,
+                               suitable_experiences: [ art.key ])
+    untagged = Location.create!(name: "Untagged Spot", city: "Sarajevo", lat: 43.853, lng: 18.413)
+    login_as(@user)
+
+    get explore_bosnia_experience_path("all", **SARAJEVO)
+
+    assert_response :success
+    assert_includes response.body, "Close Fort"
+    assert_includes response.body, "Near Gallery"
+    assert_includes response.body, "Untagged Spot"
+    assert_select "aside input[type=checkbox][name='categories[]'][checked]", count: 0
+  ensure
+    [ gallery, untagged ].each { |location| location&.destroy }
+    art&.destroy
+  end
+
+  test "entry without a position still asks for one instead of guessing" do
+    login_as(@user)
+
+    get explore_bosnia_path
+
+    assert_response :success
+    assert_select "[data-explore-geo-target='tile']", minimum: 1
+  end
+
+  test "a budget filter narrows the deck and keeps closest first" do
+    @near.update!(budget: :low)
+    @mid.update!(budget: :high)
+    login_as(@user)
+
+    get explore_bosnia_experience_path("history", **SARAJEVO, budget: "low")
+
+    assert_response :success
+    assert_includes response.body, "Close Fort"
+    refute_includes response.body, "Middle Fort"
+  end
+
+  test "entry opens on the season the traveller is standing in" do
+    login_as(@user)
+
+    get explore_bosnia_experience_path("history", **SARAJEVO)
+
+    assert_response :success
+    assert_select "aside input[type=radio][name=season][value=?][checked]", Location.current_season, count: 1
+  end
+
+  test "entry opens on the widest budget, and it hides nothing" do
+    @near.update!(budget: :low)
+    @mid.update!(budget: :high)
+    login_as(@user)
+
+    get explore_bosnia_experience_path("history", **SARAJEVO)
+
+    assert_response :success
+    assert_select "aside input[type=radio][name=budget][value=high][checked]", count: 1
+    assert_includes response.body, "Close Fort"
+    assert_includes response.body, "Middle Fort"
+  end
+
+  test "a place with no budget at all still shows under the widest budget" do
+    @near.update!(budget: nil)
+    login_as(@user)
+
+    get explore_bosnia_experience_path("history", **SARAJEVO)
+
+    assert_response :success
+    assert_includes response.body, "Close Fort"
+  end
+
+  test "clearing the season keeps it cleared instead of falling back to today" do
+    @near.update!(seasons: [ "winter" ])
+    @mid.update!(seasons: [ "summer" ])
+    login_as(@user)
+
+    # The empty value is what turning the last pill of the group off submits.
+    get explore_bosnia_experience_path("history", **SARAJEVO, season: "")
+
+    assert_response :success
+    assert_select "aside input[type=radio][name=season][checked]", count: 0
+    assert_includes response.body, "Close Fort"
+    assert_includes response.body, "Middle Fort"
+  end
+
+  test "the deck has no origin filter" do
+    login_as(@user)
+
+    get explore_bosnia_experience_path("history", **SARAJEVO)
+
+    assert_response :success
+    assert_select "aside input[name=origin]", count: 0
+    refute_includes response.body, "AI Generated"
+  end
+
+  test "a rating filter drops places below the threshold" do
+    @near.update!(average_rating: 4.8)
+    @mid.update!(average_rating: 3.1)
+    login_as(@user)
+
+    get explore_bosnia_experience_path("history", **SARAJEVO, min_rating: "4.0")
+
+    assert_response :success
+    assert_includes response.body, "Close Fort"
+    refute_includes response.body, "Middle Fort"
+  end
+
+  test "filters survive paging and category switching" do
+    login_as(@user)
+
+    get explore_bosnia_experience_path("history", **SARAJEVO, budget: "low")
+
+    assert_response :success
+    assert_select "aside input[type=radio][name=budget][value=low][checked]", count: 1
+  end
+
+  test "several categories at once deal one combined deck, closest first" do
+    art = ExperienceType.create!(key: "art", name: "Art", active: true)
+    gallery = Location.create!(name: "Near Gallery", city: "Sarajevo", lat: 43.851, lng: 18.411,
+                               suitable_experiences: [ art.key ])
+    login_as(@user)
+
+    get explore_bosnia_experience_path("history", **SARAJEVO, categories: %w[history culture])
+
+    assert_response :success
+    assert_includes response.body, "Close Fort"
+    assert_includes response.body, "Near Gallery"
+    assert_operator response.body.index("Close Fort"), :<, response.body.index("Near Gallery")
+  ensure
+    gallery&.destroy
+    art&.destroy
+  end
+
+  test "a place tagged in two selected categories is dealt only once" do
+    art = ExperienceType.create!(key: "art", name: "Art", active: true)
+    both = Location.create!(name: "Double Tagged", city: "Sarajevo", lat: 43.852, lng: 18.412,
+                            suitable_experiences: [ @history.key, art.key ])
+    login_as(@user)
+
+    get explore_bosnia_experience_path("history", **SARAJEVO, categories: %w[history culture])
+
+    assert_response :success
+    # @near, @mid and the double-tagged place — three cards, not four.
+    assert_select "[data-plan-deck-target='card'][data-plan-deck-lat]", count: 3
+  ensure
+    both&.destroy
+    art&.destroy
+  end
+
+  test "the desktop filter rail is inside a controller scope so it can submit" do
+    login_as(@user)
+
+    get explore_bosnia_experience_path("history", **SARAJEVO)
+
+    assert_response :success
+    assert_select "aside[data-controller='deck-filters']", count: 1
+    assert_select "aside[data-controller='deck-filters'] form[method=get]", count: 1
+    assert_select "aside input[type=checkbox][name='categories[]']", count: 6
+  end
+
+  test "a slice with nothing left in it ends the deck instead of spinning" do
+    login_as(@user)
+
+    # A tail that comes back as itself is a deck that loads for ever.
+    get explore_bosnia_experience_path("history", **SARAJEVO, after_distance: 9_999, after_id: 0),
+        headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+    assert_response :success
+    assert_includes response.body, I18n.t("explore_bosnia.deck_end")
+    refute_includes response.body, "deck-pagination"
+  end
+
+  test "an unknown category is dropped rather than refused" do
     login_as(@user)
 
     get explore_bosnia_experience_path("not-a-tile", **SARAJEVO)
 
-    assert_redirected_to explore_bosnia_path
+    assert_response :success
+    assert_includes response.body, "Close Fort"
   end
 
   test "the experience deck requires login" do
@@ -60,17 +242,20 @@ class ExploreBosniaTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_includes response.body, I18n.t("explore_bosnia.needs_location.title")
-    assert_select "[data-plan-deck-target='card']", count: 0
+    assert_select "[data-plan-deck-target='card'][data-plan-deck-lat]", count: 0
   end
 
-  test "the deck renders scrollable cards with the swipe hint" do
+  test "the deck renders scrollable cards with a permanent menu handle" do
     login_as(@user)
 
     get explore_bosnia_experience_path("history", **SARAJEVO)
 
     assert_response :success
-    assert_select "[data-plan-deck-target='card']", count: 2
-    assert_select "[data-plan-deck-target='hint']", count: 2
+    assert_select "[data-plan-deck-target='card'][data-plan-deck-lat]", count: 2
+    # No swipe anywhere, and no pulsing hints — the menu handle is permanent.
+    assert_select "[data-plan-deck-target='hint']", count: 0
+    assert_select "[data-card-menu-target='hint']", count: 0
+    assert_select "button[data-action='card-menu#openFromHandle']", count: 2
   end
 
   test "the cards are closest first with a distance" do
@@ -98,7 +283,7 @@ class ExploreBosniaTest < ActionDispatch::IntegrationTest
     get explore_bosnia_experience_path("history", lat: 52.52, lng: 13.40)
 
     assert_response :success
-    assert_select "[data-plan-deck-target='card']", count: 0
+    assert_select "[data-plan-deck-target='card'][data-plan-deck-lat]", count: 0
     assert_includes response.body, I18n.t("explore_bosnia.deck_empty")
   end
 
@@ -131,7 +316,7 @@ class ExploreBosniaTest < ActionDispatch::IntegrationTest
     get explore_bosnia_experience_path("culture", **SARAJEVO)
 
     assert_response :success
-    assert_select "[data-plan-deck-target='card']", count: 1
+    assert_select "[data-plan-deck-target='card'][data-plan-deck-lat]", count: 1
   ensure
     both&.destroy
     [ art, culture ].each { |type| type&.destroy }
@@ -147,49 +332,90 @@ class ExploreBosniaTest < ActionDispatch::IntegrationTest
     get explore_bosnia_experience_path("history", **SARAJEVO)
 
     assert_response :success
-    assert_select "[data-plan-deck-target='card']", count: ExploreBosniaController::PAGE_SIZE
+    assert_select "[data-plan-deck-target='card'][data-plan-deck-lat]", count: ExploreBosniaController::PAGE_SIZE
   ensure
     Location.where("name LIKE 'Spot %'").destroy_all
   end
 
-  test "a full page offers the next one as a lazy frame" do
-    12.times do |i|
-      Location.create!(name: "Spot #{i}", city: "Sarajevo", lat: 43.8 + i * 0.001, lng: 18.4,
-                       suitable_experiences: [ @history.key ])
-    end
+  test "a full page offers a tail that asks for what follows its last place" do
+    seed_places(12)
     login_as(@user)
 
     get explore_bosnia_experience_path("history", **SARAJEVO)
 
     assert_response :success
-    assert_select "turbo-frame#explore_page_2[loading='lazy']", count: 1
+    assert_select "#explore_deck_tail[data-controller='deck-pagination']", count: 1
+    assert_includes tail_url(response.body), "after_id="
   ensure
-    Location.where("name LIKE 'Spot %'").destroy_all
+    destroy_seeded_places
   end
 
-  test "the last page ends the reel instead of offering another" do
+  test "the last page ends the deck instead of offering another" do
     login_as(@user)
 
     get explore_bosnia_experience_path("history", **SARAJEVO)
 
     assert_response :success
-    assert_select "turbo-frame#explore_page_2", count: 0
+    assert_select "[data-deck-pagination-url-value]", count: 0
     assert_includes response.body, I18n.t("explore_bosnia.deck_end")
   end
 
-  test "the second page deals the places the first one did not" do
-    12.times do |i|
-      Location.create!(name: "Spot #{i}", city: "Sarajevo", lat: 43.8 + i * 0.001, lng: 18.4,
-                       suitable_experiences: [ @history.key ])
+  test "following the tail deals the places the first slice did not" do
+    seed_places(12)
+    login_as(@user)
+
+    dealt, requests = walk_the_deck
+
+    assert_equal 14, dealt.size, "12 seeded places plus the 2 fixtures in range"
+    assert_equal dealt.uniq, dealt, "the deck dealt the same place twice"
+    assert_equal 2, requests
+  ensure
+    destroy_seeded_places
+  end
+
+  # A count that divides by PAGE_SIZE must not buy an extra, empty slice.
+  [ 3, 10, 20, 100 ].each do |count|
+    test "the deck deals all #{count} places and then ends" do
+      seed_places(count - 3) # the fixtures already put 3 history places in range
+      login_as(@user)
+
+      dealt, requests = walk_the_deck
+
+      assert_equal count - 1, dealt.size, "Far Fort sits outside the radius and is not dealt"
+      assert_equal dealt.uniq, dealt, "the deck dealt the same place twice"
+      assert_includes response.body, I18n.t("explore_bosnia.deck_end")
+      assert_equal ((count - 1) / ExploreBosniaController::PAGE_SIZE.to_f).ceil, requests
+    ensure
+      destroy_seeded_places
+    end
+  end
+
+  test "every category pages the same way" do
+    types = ExploreBosniaController::BROWSE_TILES.transform_values do |keys|
+      ExperienceType.find_or_create_by!(key: keys.first) do |type|
+        type.name = keys.first.titleize
+        type.active = true
+      end
     end
     login_as(@user)
 
-    get explore_bosnia_experience_path("history", **SARAJEVO, page: 2)
+    ExploreBosniaController::BROWSE_TILES.each_key do |tile|
+      begin
+        seed_places(12, type_key: types[tile].key)
 
-    assert_response :success
-    assert_select "[data-plan-deck-target='card']", count: 4
+        dealt, requests = walk_the_deck(tile)
+
+        assert_operator dealt.size, :>=, 12, "#{tile} dealt only #{dealt.size} places"
+        assert_equal dealt.uniq, dealt, "#{tile} dealt the same place twice"
+        assert_equal (dealt.size / ExploreBosniaController::PAGE_SIZE.to_f).ceil, requests,
+          "#{tile} took #{requests} requests for #{dealt.size} places"
+        assert_includes response.body, I18n.t("explore_bosnia.deck_end")
+      ensure
+        destroy_seeded_places
+      end
+    end
   ensure
-    Location.where("name LIKE 'Spot %'").destroy_all
+    (types.values - [ @history ]).each { |type| type.destroy if type.persisted? }
   end
 
   # Bullet is blind to find_by-on-a-loaded-association, which is how the
@@ -207,7 +433,7 @@ class ExploreBosniaTest < ActionDispatch::IntegrationTest
 
     ten_cards = count_queries { get explore_bosnia_experience_path("history", **SARAJEVO) }
 
-    assert_select "[data-plan-deck-target='card']", count: 10
+    assert_select "[data-plan-deck-target='card'][data-plan-deck-lat]", count: 10
     marginal = (ten_cards - two_cards) / 8.0
     # ~4 is the known translate/primary_category cost; Translatable is inherited
     # code we work around rather than edit, and paging bounds it to one page.
@@ -218,7 +444,7 @@ class ExploreBosniaTest < ActionDispatch::IntegrationTest
     Location.where("name LIKE 'Spot %'").destroy_all
   end
 
-  test "the reel ships no moments until a panel is opened" do
+  test "the deck ships no moments until a panel is opened" do
     moment = @user.moments.new(plan: Plan.explore_bosnia_for(@user), location: @near, visibility: :private_moment)
     moment.photo.attach(io: File.open(Rails.root.join("test/fixtures/files/real_image.jpg")), filename: "real_image.jpg", content_type: "image/jpeg")
     moment.save!
@@ -246,6 +472,29 @@ class ExploreBosniaTest < ActionDispatch::IntegrationTest
     assert_select "[data-photo-gallery-full-url=?]",
                   photo_plan_moment_path(moment.plan, moment, size: "story"), count: 1
     assert_select "form[action=?]", publish_plan_moment_path(moment.plan, moment), count: 1
+  end
+
+  test "the gallery shows every moment in rows of three, not a sideways strip" do
+    plan = Plan.explore_bosnia_for(@user)
+    moments = 5.times.map do
+      moment = @user.moments.new(plan: plan, location: @near, visibility: :private_moment)
+      moment.photo.attach(io: File.open(Rails.root.join("test/fixtures/files/real_image.jpg")),
+                          filename: "real_image.jpg", content_type: "image/jpeg")
+      moment.save!
+      moment
+    end
+    login_as(@user)
+
+    get plan_moments_path(plan, location_id: @near.uuid, context: "explore"),
+        headers: { "Turbo-Frame" => ActionView::RecordIdentifier.dom_id(@near, :moments_frame) }
+
+    assert_response :success
+    assert_select "[data-photo-gallery-target='thumbnail']", count: 5
+    assert_select "div.grid.grid-cols-3", count: 1
+    assert_select "div.overflow-x-auto", count: 0
+    moments.each do |moment|
+      assert_select "img[src=?]", photo_plan_moment_path(plan, moment, size: "thumb"), count: 1
+    end
   end
 
   test "a tile whose places are all visited says so, not that it is empty" do
@@ -298,14 +547,14 @@ class ExploreBosniaTest < ActionDispatch::IntegrationTest
     assert_select "form[action=?]", publish_plan_moment_path(moment.plan, moment), count: 1
   end
 
-  test "the moments panel withholds upload until the place is visited" do
+  test "the moments panel offers the upload tile without a visit" do
     login_as(@user)
 
     get plan_moments_path(Plan.explore_bosnia_for(@user), location_id: @near.uuid, context: "explore"),
         headers: { "Turbo-Frame" => ActionView::RecordIdentifier.dom_id(@near, :moments_frame) }
 
     assert_response :success
-    assert_select "label[aria-label=?]", I18n.t("plans.moments.add"), count: 0
+    assert_select "label[aria-label=?]", I18n.t("plans.moments.add"), count: 1
   end
 
   test "the moments panel shows another traveller's approved public moment" do
@@ -507,6 +756,48 @@ class ExploreBosniaTest < ActionDispatch::IntegrationTest
 
   def login_as(user)
     post login_path, params: { username: user.username, password: "password123" }
+  end
+
+  def seed_places(count, type_key: @history.key)
+    count.times do |i|
+      Location.create!(name: "Spot #{i}", city: "Sarajevo", lat: 43.8 + i * 0.001, lng: 18.4,
+                       suitable_experiences: [ type_key ])
+    end
+  end
+
+  def destroy_seeded_places
+    Location.where("name LIKE 'Spot %'").destroy_all
+  end
+
+  # Walks the deck the way the browser does, following each tail's url. Places are
+  # keyed by coordinate so a repeat is visible.
+  def walk_the_deck(category = "history", **params)
+    get explore_bosnia_experience_path(category, **SARAJEVO, **params)
+    assert_response :success
+
+    dealt = dealt_keys(response.body)
+    url = tail_url(response.body)
+    requests = 1
+
+    while url
+      get url, headers: { "Accept" => "text/vnd.turbo-stream.html" }
+      assert_response :success
+      dealt += dealt_keys(response.body)
+      url = tail_url(response.body)
+      requests += 1
+      flunk "the deck is still asking for more after #{requests} requests" if requests > 200
+    end
+
+    [ dealt, requests ]
+  end
+
+  def dealt_keys(body)
+    body.scan(/data-plan-deck-lat="([^"]+)"[^>]*?data-plan-deck-lng="([^"]+)"/m).map { |pair| pair.join(",") }
+  end
+
+  def tail_url(body)
+    match = body.match(/data-deck-pagination-url-value="([^"]+)"/)
+    match && CGI.unescapeHTML(match[1])
   end
 
   def count_queries

@@ -1,29 +1,16 @@
 import { Controller } from "@hotwired/stimulus"
 
 // Tap the card photo to open its actions menu; each action shows one
-// in-card panel (info / map / reviews). Moments go to the story viewer.
-// A pulsing "tap for more" dot teaches the tap until the first open.
+// in-card panel (info / map / reviews / moments).
 export default class extends Controller {
-  static targets = ["menu", "panel", "hint", "locked"]
-
-  connect() {
-    if (this.hasHintTarget && !localStorage.getItem("usput-card-menu-hint-seen")) {
-      this.hintTarget.classList.replace("hidden", "flex")
-    }
-    this.onSeen = () => this.hasHintTarget && this.hintTarget.classList.replace("flex", "hidden")
-    window.addEventListener("card-menu:seen", this.onSeen)
-  }
-
-  disconnect() {
-    window.removeEventListener("card-menu:seen", this.onSeen)
-  }
+  static targets = ["menu", "panel"]
 
   open(event) {
     if (event.target.closest("button, a, form, input, textarea, label")) return
     this.reveal()
   }
 
-  openFromHint(event) {
+  openFromHandle(event) {
     event.stopPropagation()
     this.reveal()
   }
@@ -42,22 +29,12 @@ export default class extends Controller {
     window.dispatchEvent(new Event("resize"))
   }
 
-  // Moments are earned: no seeing or sharing until the location is visited.
+  // Anyone may look at a place's moments; only capturing one is earned by
+  // being there, and that is enforced server-side.
   moments(event) {
     event.stopPropagation()
-    if (this.visited()) {
-      this.close()
-      this.element.querySelector("[data-story-open]")?.click()
-      return
-    }
-    if (!this.hasLockedTarget) return
-    this.lockedTarget.classList.remove("hidden")
-    setTimeout(() => this.lockedTarget.classList.add("hidden"), 2500)
-  }
-
-  visited() {
-    return this.element.dataset.planDeckVisited === "true" ||
-      this.element.querySelector("[data-walk-visited='true']") !== null
+    this.close()
+    this.element.querySelector("[data-story-open]")?.click()
   }
 
   // Panel ✕ goes back to the menu, not straight out.
@@ -68,8 +45,6 @@ export default class extends Controller {
   }
 
   reveal() {
-    localStorage.setItem("usput-card-menu-hint-seen", "1")
-    window.dispatchEvent(new CustomEvent("card-menu:seen"))
     this.menuTarget.classList.replace("hidden", "flex")
   }
 }

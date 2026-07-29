@@ -9,8 +9,10 @@ namespace :seed do
   desc "Attach demo moments (private + public) to existing locations"
   task :moments, [ :per_location ] => :environment do |_t, args|
     per_location = (args[:per_location] || 2).to_i
-    authors = User.order(:id).to_a
-    abort "No users in this database — create at least one before seeding moments." if authors.empty?
+    # Admins are how the product gets tested; seeded moments on their account
+    # muddle what is real and what is demo data.
+    authors = User.where.not(user_type: :admin).order(:id).to_a
+    abort "No non-admin users to author moments." if authors.empty?
 
     locations = Location.with_coordinates.order(:id).to_a
     abort "No locations to attach moments to" if locations.empty?

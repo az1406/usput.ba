@@ -3,18 +3,18 @@
 class MomentsController < ApplicationController
   include ServesMomentPhotos
 
-  before_action :require_login
+  before_action :require_login, except: :index
   before_action :set_plan
 
   def index
     @location = Location.find_by_public_id!(params[:location_id])
-    @moments = current_user.moments.where(location: @location)
-                           .with_attached_photo.includes(:plan).chronological
+    @moments = if logged_in?
+      current_user.moments.where(location: @location).with_attached_photo.includes(:plan).chronological
+    else
+      Moment.none
+    end
     @public_moments = Moment.publicly_visible.where(location: @location)
                             .with_attached_photo.chronological
-    # Capturing a moment is earned by being there — the same rule the walk's
-    # card menu enforces, kept server-side so every surface agrees.
-    @can_add = current_user.plan_visits.exists?(location: @location)
 
     render layout: false
   end
@@ -79,7 +79,7 @@ class MomentsController < ApplicationController
   def set_plan
     @plan = Plan.find_by_public_id!(params[:plan_id])
 
-    unless @plan.visibility_public_plan? || @plan.user_id == current_user.id
+    unless @plan.visibility_public_plan? || @plan.user_id == current_user&.id
       raise ActiveRecord::RecordNotFound
     end
   end

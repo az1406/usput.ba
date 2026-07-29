@@ -19,7 +19,8 @@ Rails.application.routes.draw do
   get "explore", to: "new_design#explore", as: :explore
   get "explore-bosnia", to: "explore_bosnia#show", as: :explore_bosnia
   get "route", to: "map_routes#show", as: :map_route
-  get "explore-bosnia/:experience_key", to: "explore_bosnia#experience", as: :explore_bosnia_experience
+  # "all" is the unfiltered entry; several at once ride in the query string.
+  get "explore-bosnia/:category", to: "explore_bosnia#experience", as: :explore_bosnia_experience
 
   # Authentication routes
   get "register", to: "users#new", as: :register

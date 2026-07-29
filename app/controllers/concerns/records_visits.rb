@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# One rule for "I was here", whatever surface asks. The walk, the explore reel
+# One rule for "I was here", whatever surface asks. The walk, the explore deck
 # and the location page each used to carry their own distance check, which let
 # the same act be accepted at 400 m on one screen and refused at 150 m on
 # another. Surfaces still own their own response shape; the decision lives here.

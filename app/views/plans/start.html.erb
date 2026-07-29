@@ -7,7 +7,7 @@
 <%# Navigation %>
 <%= render "new_design/header" %>
 
-<%# The reel owns everything below the fixed header: no page scroll, no
+<%# The deck owns everything below the fixed header: no page scroll, no
     scrollbar, exactly one card in view. %>
 <div class="fixed inset-x-0 bottom-0 top-[calc(5rem+env(safe-area-inset-top))] flex flex-col overflow-hidden pb-[env(safe-area-inset-bottom)]" data-controller="moment-lightbox">
   <div class="flex items-center gap-2 px-4 py-2">
@@ -24,28 +24,28 @@
   <% if @locations.any? %>
     <div id="moment-flash" class="absolute inset-x-0 top-12 z-30 px-4"></div>
 
-    <div class="flex-1 snap-y snap-mandatory overflow-y-auto overscroll-y-contain scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-         data-controller="plan-deck" data-plan-deck-browse-value="true">
-      <% @locations.each do |location| %>
-        <div class="flex h-full snap-start items-center justify-center px-3 py-2">
-          <%# Width derived from the slot height at 2:3, clamped to the screen —
-              the card always fits and always centers, portrait or landscape. %>
-          <div class="w-[min(100%,calc((100dvh-10rem)*0.62))]">
-            <%= render "plans/walk_card",
-                  plan: @plan,
-                  location: location,
-                  visited: @visited_location_ids.include?(location.id),
-                  distance_km: (location.respond_to?(:distance) ? location.distance : nil),
-                  context: "walk" %>
+    <%# Same wrapper as explore: the hint centres on the deck column, not the screen. %>
+    <div class="relative flex min-h-0 flex-1 flex-col">
+      <div class="flex-1 snap-y snap-mandatory overflow-y-auto overscroll-y-contain scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+           data-controller="plan-deck" data-plan-deck-browse-value="true"
+           data-plan-deck-swipe-actions-value="true">
+        <% @locations.each do |location| %>
+          <div class="flex h-full snap-start items-center justify-center px-3 py-2">
+            <%# Width derived from the slot height at 2:3, clamped to the screen —
+                the card always fits and always centers, portrait or landscape. %>
+            <div class="w-[min(100%,calc((100dvh-10rem)*0.62))]">
+              <%= render "plans/walk_card",
+                    plan: @plan,
+                    location: location,
+                    visited: @visited_location_ids.include?(location.id),
+                    distance_km: (location.respond_to?(:distance) ? location.distance : nil),
+                    context: "walk" %>
+            </div>
           </div>
-        </div>
-      <% end %>
+        <% end %>
+      </div>
 
-      <button type="button" data-plan-deck-target="reelHint" data-action="plan-deck#dismissReelHint"
-              class="hidden fixed bottom-6 left-1/2 z-30 -translate-x-1/2 flex-col items-center gap-0.5 rounded-full bg-sky-400/85 px-4 py-2 text-center text-xs font-semibold text-white shadow-lg animate-bounce">
-        <svg class="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
-        <%= t("plans.start.reel_hint") %>
-      </button>
+      <%= render "plans/deck_hints", scroll_hint: t("plans.start.deck_hint") %>
     </div>
   <% else %>
     <p class="mx-4 rounded-2xl border border-dashed border-gray-300 dark:border-gray-600 px-4 py-8 text-center text-sm text-gray-500 dark:text-gray-400">

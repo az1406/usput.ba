@@ -60,7 +60,7 @@
         <% check_class = overlay ? "mx-auto inline-flex items-center gap-1 rounded-full bg-emerald-600 px-5 py-2 text-sm font-semibold text-white shadow-lg cursor-pointer hover:bg-emerald-700" : "flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 cursor-pointer transition-colors hover:border-emerald-400 hover:bg-gray-50 dark:hover:bg-gray-700/40" %>
         <% if geofence_disabled? %>
           <%# Geofence off (dev/testing): a plain submit, no geolocation, no distance hint. %>
-          <div class="<%= overlay ? "text-center" : "mt-4" %> hidden sm:block">
+          <div class="<%= overlay ? "text-center" : "mt-4" %>">
             <%= button_to plan_visits_path(plan), params: { location_id: location.uuid, user_lat: 0, user_lng: 0, context: step_context }.compact, class: check_class do %>
               <span><%= t("plans.start.mark_visited") %></span>
             <% end %>
@@ -70,9 +70,9 @@
                data-controller="geo-visit"
                data-geo-visit-lat-value="<%= location.lat %>"
                data-geo-visit-lng-value="<%= location.lng %>">
-            <%# Desktop taps the button; mobile checks in by swiping the card,
-                so only the button is desktop-only — the meter shows on both. %>
-            <div class="hidden sm:block">
+            <%# One button on every screen: swiping used to stand in for it on
+                mobile, and there is no swipe left to stand in. %>
+            <div>
               <%= button_to plan_visits_path(plan),
                     params: { location_id: location.uuid, user_lat: "", user_lng: "", context: step_context }.compact,
                     class: check_class do %>

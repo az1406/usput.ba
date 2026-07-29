@@ -6,7 +6,7 @@
     <%= t("reviews.form.title", default: "Ostavi recenziju") %>
   </h3>
 
-  <%# namespace scopes the generated field ids per reviewable — the explore reel %>
+  <%# namespace scopes the generated field ids per reviewable — the explore deck %>
   <%# renders this form for every card at once, so unscoped ids would collide. %>
   <%= form_with model: [reviewable, review], namespace: dom_id(reviewable), local: true, class: "space-y-4" do |f| %>
     <% if review.errors.any? %>

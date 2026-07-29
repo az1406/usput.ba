@@ -28,6 +28,7 @@ export default class extends Controller {
         this.applyCoords(position.coords)
         this.located = true
         this.release()
+        this.handOff(position.coords)
       },
       () => this.release(),
       // Ordering by distance doesn't need a GPS lock, and maximumAge reuses a
@@ -36,11 +37,23 @@ export default class extends Controller {
     )
   }
 
+  // Entry has no category to pick any more — once we know where the traveller
+  // is, the server decides which deck is closest and sends them there.
+  handOff({ latitude, longitude }) {
+    const url = new URL(window.location.href)
+    if (url.searchParams.has("lat")) return
+    url.searchParams.set("lat", latitude)
+    url.searchParams.set("lng", longitude)
+    window.location.replace(url.toString())
+  }
+
   applyStored() {
     const stored = localStorage.getItem(STORAGE_KEY)
     if (!stored) return false
     try {
-      this.applyCoords(JSON.parse(stored))
+      const coords = JSON.parse(stored)
+      this.applyCoords(coords)
+      this.handOff(coords)
       return true
     } catch {
       localStorage.removeItem(STORAGE_KEY)

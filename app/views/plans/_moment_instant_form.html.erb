@@ -1,4 +1,13 @@
-<%# Locals: plan, location. Optional: compact (small "+" tile), overlay (on a photo). %>
+<%# Locals: plan, location. Optional: compact (small "+" tile), overlay (on a photo).
+    Signed out, the tile is a link to sign in that comes back to this page. %>
+<% tile = "flex aspect-square w-full items-center justify-center rounded-full border-2 border-dashed cursor-pointer transition-colors #{local_assigns[:overlay] ? "border-white/60 text-white hover:border-white" : "border-gray-300 dark:border-gray-600 text-gray-400 hover:border-emerald-400 hover:text-emerald-500"}" %>
+
+<% if !logged_in? %>
+  <%= link_to login_path(return_to: sign_in_return_path), class: tile,
+        "aria-label": t("plans.moments.add"), data: { turbo_frame: "_top" } do %>
+    <svg class="size-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+  <% end %>
+<% else %>
 <%= form_with url: plan_moments_path(plan),
       method: :post,
       scope: :moment,
@@ -22,8 +31,7 @@
       <span class="text-sm text-white/70"><%= t("plans.moments.drop_title") %></span>
     </label>
   <% elsif local_assigns[:compact] %>
-    <label class="flex size-24 items-center justify-center rounded-full border-2 border-dashed cursor-pointer transition-colors <%= local_assigns[:overlay] ? "border-white/60 text-white hover:border-white" : "border-gray-300 dark:border-gray-600 text-gray-400 hover:border-emerald-400 hover:text-emerald-500" %>"
-           aria-label="<%= t("plans.moments.add") %>">
+    <label class="<%= tile %>" aria-label="<%= t("plans.moments.add") %>">
       <%= form.file_field :photo,
             accept: "image/jpeg,image/png,image/gif,image/webp",
             required: true,
@@ -44,4 +52,5 @@
       <span class="text-sm font-medium <%= local_assigns[:overlay] ? "text-white" : "text-gray-700 dark:text-gray-200" %>"><%= t("plans.moments.drop_title") %></span>
     </label>
   <% end %>
+<% end %>
 <% end %>

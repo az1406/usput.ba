@@ -99,20 +99,39 @@ class PlanStartTest < ActionDispatch::IntegrationTest
     assert_select "form[action=?]", plan_moments_path(@plan), count: 0
   end
 
-  # Moments are a logged-in surface. A guest gets no panel at all, so nothing
-  # can request an endpoint that would only bounce them to login.
-  test "a guest walking a public plan gets no moments panel and cannot fetch one" do
+  # A guest may look at a place's moments; capturing one is what needs an account,
+  # so the tile signs them in and brings them back to the walk.
+  test "a guest walking a public plan is offered sign-in from the moments panel" do
     @plan.update!(visibility: :public_plan)
 
     get start_plan_path(@plan)
 
     assert_response :success
-    assert_select "turbo-frame[id^='moments_frame_']", count: 0
+    assert_select "turbo-frame[id^='moments_frame_']", count: 1
 
     get plan_moments_path(@plan, location_id: @location.uuid),
-        headers: { "Turbo-Frame" => ActionView::RecordIdentifier.dom_id(@location, :moments_frame) }
+        headers: { "Turbo-Frame" => ActionView::RecordIdentifier.dom_id(@location, :moments_frame),
+                   "Referer" => start_plan_url(@plan) }
 
-    assert_redirected_to login_path
+    assert_response :success
+    assert_select "a[href=?][aria-label=?]",
+                  login_path(return_to: start_plan_path(@plan)), I18n.t("plans.moments.add"), count: 1
+  end
+
+  test "signing in from a walk comes back to the walk" do
+    @plan.update!(visibility: :public_plan)
+
+    get login_path(return_to: start_plan_path(@plan))
+    post login_path, params: { username: @user.username, password: "password123" }
+
+    assert_redirected_to start_plan_path(@plan)
+  end
+
+  test "a return path pointing off the site is refused" do
+    get login_path(return_to: "//evil.example.com")
+    post login_path, params: { username: @user.username, password: "password123" }
+
+    assert_redirected_to root_path
   end
 
   test "a guest cannot walk a private plan" do

@@ -6,6 +6,20 @@ module ApplicationHelper
     current_user_admin?
   end
 
+  # Where signing in should land the visitor. A frame is fetched at its own url,
+  # so for those the page to come back to is the one that asked for the frame.
+  def sign_in_return_path
+    path = if request.headers["Turbo-Frame"].present?
+      URI.parse(request.referer.to_s).path
+    else
+      request.fullpath
+    end
+
+    path.to_s.match?(%r{\A/(?!/)}) ? path : root_path
+  rescue URI::InvalidURIError
+    root_path
+  end
+
   # Human-readable label for a location category key.
   #
   # A blank key must never be interpolated straight into the I18n lookup: a key

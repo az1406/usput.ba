@@ -10,7 +10,7 @@ class ExploreBosniaController < ApplicationController
   RADIUS_KM = 50
 
   # An admin is demoing the walk, not taking it: deal the whole country so the
-  # reel is never empty, and eat the full sort — it is one signed-in reviewer.
+  # deck is never empty, and eat the full sort — it is one signed-in reviewer.
   ADMIN_RADIUS_KM = 20_000
 
   # Where to deal from for an admin who never answered the location prompt.
@@ -25,25 +25,46 @@ class ExploreBosniaController < ApplicationController
     "relax" => %w[wellness nightlife]
   }.freeze
 
+  ALL_CATEGORIES = "all"
+
   def show
     @tile_keys = BROWSE_TILES.keys
+    lat, lng = origin
+    return if lat.nil?
+
+    redirect_to explore_bosnia_experience_path(ALL_CATEGORIES, lat: lat, lng: lng)
   end
 
   def experience
-    @tile_key = params[:experience_key]
-    @type_keys = BROWSE_TILES[@tile_key] or raise ActiveRecord::RecordNotFound
+    @category = params[:category]
+    # ALL_CATEGORIES, and anything unrecognised, deals every category.
+    @selected_tiles = Array(params[:categories]).select { |key| BROWSE_TILES.key?(key) }.presence ||
+                      Array(BROWSE_TILES.key?(@category) ? @category : nil)
+    @type_keys = @selected_tiles.flat_map { |key| BROWSE_TILES[key] }.uniq
+    @tile_keys = BROWSE_TILES.keys
 
     @lat, @lng = origin
     @needs_location = @lat.nil?
     return if @needs_location
 
+    # An absent filter is a first visit and takes the default; an empty one is a
+    # pill the traveller turned off, and must stay off.
+    @season = params.key?(:season) ? params[:season].presence : Location.current_season
+    @budget = params.key?(:budget) ? params[:budget].presence : Location.budgets.keys.last
+    @min_rating = params[:min_rating].presence
+
     @plan = Plan.explore_bosnia_for(current_user)
-    @page = [ params[:page].to_i, 1 ].max
-    @locations = dealt_locations
-    @has_more = @locations.size == PAGE_SIZE
+    from = cursor
+    @locations, @has_more = dealt_locations(cursor: from)
+    @next_cursor = @has_more ? [ @locations.last.distance, @locations.last.id ] : nil
     # "nothing here" and "you have been to all of it" read identically to a
     # traveller otherwise, and the second is the common one.
-    @all_visited = @locations.empty? && @page == 1 && dealt_locations(skip_visited: false).any?
+    @all_visited = @locations.empty? && from.nil? && dealt_locations(skip_visited: false).first.any?
+
+    respond_to do |format|
+      format.html
+      format.turbo_stream
+    end
   end
 
   private
@@ -57,19 +78,74 @@ class ExploreBosniaController < ApplicationController
     current_user_admin? ? DEFAULT_ORIGIN : [ nil, nil ]
   end
 
+  def apply_filters(scope)
+    scope = scope.by_season(@season) if @season
+    # by_budget drops places that carry no budget, and the widest choice is the
+    # same set as no filter at all, so it stays a no-op.
+    scope = scope.by_budget(@budget) if @budget && @budget != Location.budgets.keys.last
+    scope = scope.by_min_rating(@min_rating) if @min_rating
+    scope
+  end
+
+  def filter_params
+    base = { season: @season, budget: @budget, min_rating: @min_rating }.compact
+    return base if @selected_tiles.blank? || @selected_tiles == [ @category ]
+
+    base.merge(categories: @selected_tiles)
+  end
+  helper_method :filter_params
+
+  # Season and budget always carry a value, so counting them would badge a page
+  # nobody has filtered.
+  def chosen_filter_count
+    filter_params.count do |name, value|
+      case name
+      when :season then value != Location.current_season
+      when :budget then value != Location.budgets.keys.last
+      else true
+      end
+    end
+  end
+  helper_method :chosen_filter_count
+
+  def next_page_params
+    distance, id = @next_cursor
+    filter_params.merge(lat: @lat, lng: @lng, after_distance: distance, after_id: id)
+  end
+  helper_method :next_page_params
+
+  def cursor
+    distance = params[:after_distance].presence
+    id = params[:after_id].presence
+    return nil unless distance && id
+
+    [ distance.to_f, id.to_i ]
+  end
+
   def radius_km
     current_user_admin? ? ADMIN_RADIUS_KM : RADIUS_KM
   end
 
-  def dealt_locations(skip_visited: true)
-    scope = Location.with_coordinates.where(id: tile_location_ids)
+  # Keyset, not offset: visiting a place drops it out of the set, and an offset
+  # skips a place every time one does. The row comparison is the ORDER BY read as
+  # a cursor. One row past the page is fetched and dropped, so "is there more"
+  # comes from a place that exists rather than from this page being full.
+  def dealt_locations(skip_visited: true, cursor: nil)
+    scope = Location.with_coordinates
+    scope = scope.where(id: tile_location_ids) if @type_keys.any?
     scope = scope.where.not(id: current_user.plan_visits.select(:location_id)) if skip_visited
+    scope = apply_filters(scope)
+    scope = scope.includes(photos_attachments: :blob)
+                 .near([ @lat, @lng ], radius_km, units: :km)
+                 .order(:id)
 
-    scope.includes(photos_attachments: :blob)
-         .near([ @lat, @lng ], radius_km, units: :km)
-         .offset((@page - 1) * PAGE_SIZE)
-         .limit(PAGE_SIZE)
-         .to_a
+    if cursor
+      distance_sql = Location.distance_from_sql([ @lat, @lng ], units: :km)
+      scope = scope.where("(#{distance_sql}, locations.id) > (?, ?)", *cursor)
+    end
+
+    rows = scope.limit(PAGE_SIZE + 1).to_a
+    [ rows.first(PAGE_SIZE), rows.size > PAGE_SIZE ]
   end
 
   # Ids, not a join: a tile spans several types, and SELECT DISTINCT can't be

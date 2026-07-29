@@ -180,12 +180,6 @@ class TravelProfilesController < ApplicationController
   end
 
   def get_current_season
-    month = Time.current.month
-    case month
-    when 3..5 then "spring"
-    when 6..8 then "summer"
-    when 9..11 then "autumn"
-    else "winter"
-    end
+    Location.current_season
   end
 end
