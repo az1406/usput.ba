@@ -147,7 +147,6 @@ en:
       plans: Plans
       moments: Moments
       my_moments: Your moments
-      my_moments_all: See all your moments
     empty:
       title: No results
       with_filters: Try changing your filters or searching for something else.

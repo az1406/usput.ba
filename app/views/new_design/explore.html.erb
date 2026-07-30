@@ -637,14 +637,6 @@
                 <% end %>
               </div>
 
-              <% if @my_moments.size >= NewDesignController::OWN_MOMENTS_LIMIT %>
-                <p class="mt-4 text-sm text-gray-500 dark:text-gray-400">
-                  <%# profile_page_path, not travel_profile_path: the latter is the
-                      JSON endpoint and renders the profile payload as text. %>
-                  <%= link_to t("explore.sections.my_moments_all"), profile_page_path, class: "font-medium text-blue-600 hover:underline dark:text-yellow-400" %>
-                </p>
-              <% end %>
-
               <%= render "shared/photo_lightbox", count: @my_moments.size %>
             </div>
           <% end %>

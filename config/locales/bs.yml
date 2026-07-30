@@ -145,7 +145,6 @@ bs:
       plans: Planovi
       moments: Uspomene
       my_moments: Tvoje uspomene
-      my_moments_all: Pogledaj sve svoje uspomene
     empty:
       title: Nema rezultata
       with_filters: Pokušajte promijeniti filtere ili pretražiti nešto drugo.
