@@ -231,6 +231,23 @@ class NewDesignControllerTest < ActionDispatch::IntegrationTest
     user&.destroy
   end
 
+  # travel_profile_path is the JSON endpoint: linking there printed the raw
+  # profile payload on screen instead of opening the profile.
+  test "see-all-your-moments goes to the profile page, not the JSON endpoint" do
+    user = User.create!(username: "band_all_link", password: "password123")
+    NewDesignController::OWN_MOMENTS_LIMIT.times { own_moment_for(user, @location) }
+    login_as(user)
+
+    get explore_path, params: { types: [ "moment" ] }
+
+    assert_response :success
+    assert_select "a[href=?]", profile_page_path, minimum: 1
+    assert_select "a[href=?]", "/travel_profile", count: 0
+  ensure
+    Moment.destroy_all
+    user&.destroy
+  end
+
   test "the band card links through to the moment's location" do
     user = User.create!(username: "band_linker", password: "password123")
     own_moment_for(user, @location)
