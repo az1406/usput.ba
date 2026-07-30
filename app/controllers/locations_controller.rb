@@ -3,6 +3,15 @@ class LocationsController < ApplicationController
 
   def show
     @location = Location.includes(:reviews).find_by_public_id!(params[:id])
+
+    if logged_in?
+      visit = current_user.plan_visits.find_by(location: @location)
+      @visited = visit.present?
+      # Moments hang off a plan. Reuse the one the visit happened on rather
+      # than minting anything; only a traveller who has never checked in
+      # anywhere falls through to the ambient explore plan.
+      @moments_plan = visit&.plan || Plan.explore_bosnia_for(current_user)
+    end
     @reviews = @location.reviews.recent.limit(10)
     @review = Review.new
     @nearby_locations = @location.nearby_featured(limit: 3)

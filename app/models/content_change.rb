@@ -282,7 +282,7 @@ class ContentChange < ApplicationRecord
     when "Experience"
       %w[title description experience_category_id estimated_duration contact_name contact_email contact_phone contact_website seasons location_uuids]
     when "Plan"
-      %w[title notes city_name visibility start_date end_date user_id preferences experience_days]
+      %w[title notes city_name visibility start_date end_date user_id preferences experience_days location_days]
     when "AudioTour"
       %w[location_id locale script word_count duration]
     when "Review"

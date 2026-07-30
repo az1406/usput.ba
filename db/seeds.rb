@@ -535,6 +535,49 @@ locations_data = [
 ]
 
 mine_skipped = []
+# Seed Location Categories
+# These are required BEFORE assigning categories to locations below, otherwise
+# `location.add_category` silently skips (its guard checks the category exists).
+# Kept in sync with db/migrate/20260203142741_migrate_location_type_to_categories.rb
+# so they survive a schema:load (migration data does not).
+puts "Seeding location categories..."
+
+location_categories_data = [
+  { key: "place", name: "Place", icon: "map-pin", position: 1 },
+  { key: "attraction", name: "Attraction", icon: "map-pin", position: 2 },
+  { key: "restaurant", name: "Restaurant & Café", icon: "utensils", position: 3 },
+  { key: "accommodation", name: "Accommodation", icon: "bed", position: 4 },
+  { key: "guide", name: "Local Guide", icon: "user", position: 5 },
+  { key: "business", name: "Local Business", icon: "briefcase", position: 6 },
+  { key: "artisan", name: "Artisan & Craftsman", icon: "hammer", position: 7 },
+  { key: "museum", name: "Museum & Gallery", icon: "landmark", position: 8 },
+  { key: "nature", name: "Nature & Park", icon: "trees", position: 9 },
+  { key: "religious", name: "Religious Site", icon: "church", position: 10 },
+  { key: "historical", name: "Historical Site", icon: "scroll", position: 11 },
+  { key: "entertainment", name: "Entertainment", icon: "ticket", position: 12 },
+  { key: "shopping", name: "Shopping", icon: "shopping-bag", position: 13 },
+  { key: "transport", name: "Transport Hub", icon: "bus", position: 14 },
+  { key: "viewpoint", name: "Viewpoint", icon: "eye", position: 15 },
+  { key: "beach", name: "Beach", icon: "umbrella-beach", position: 16 },
+  { key: "sports", name: "Sports & Recreation", icon: "dumbbell", position: 17 },
+  { key: "wellness", name: "Wellness & Spa", icon: "spa", position: 18 },
+  { key: "nightlife", name: "Nightlife", icon: "moon", position: 19 },
+  { key: "market", name: "Market & Bazaar", icon: "store", position: 20 },
+  { key: "cultural", name: "Cultural Site", icon: "theater-masks", position: 21 },
+  { key: "other", name: "Other", icon: "circle", position: 100 }
+]
+
+location_categories_data.each do |cat_data|
+  LocationCategory.find_or_create_by!(key: cat_data[:key]) do |category|
+    category.name = cat_data[:name]
+    category.icon = cat_data[:icon]
+    category.position = cat_data[:position]
+    category.active = true
+  end
+end
+
+puts "Created #{LocationCategory.count} location categories"
+
 locations_data.each do |loc_data|
   begin
   location = Location.find_or_create_by!(name: loc_data[:name]) do |loc|
@@ -942,6 +985,64 @@ Plan.all.each do |plan|
 end
 
 puts "Created #{Review.count} reviews"
+
+# Seed Demo Moments
+# Photos come from picsum.photos, so a machine without network gets the rest of
+# the seeds and no moments rather than a failed run.
+puts "Seeding moments..."
+
+demo_image = lambda do |seed|
+  uri = URI.parse("https://picsum.photos/seed/#{seed}/800/600")
+  response = Net::HTTP.get_response(uri)
+  response = Net::HTTP.get_response(URI.parse(response["location"])) if response.is_a?(Net::HTTPRedirection)
+  next nil unless response.is_a?(Net::HTTPSuccess)
+
+  sleep 0.3
+  { io: StringIO.new(response.body), filename: "#{seed}.jpg", content_type: "image/jpeg" }
+rescue StandardError => e
+  warn "  image download failed (#{seed}): #{e.message}"
+  nil
+end
+
+# Admins are how the product gets tested; seeded moments on their account muddle
+# what is real and what is demo data.
+moment_authors = User.where.not(user_type: :admin).order(:id).to_a
+moment_locations = Location.with_coordinates.order(:id).to_a
+
+if moment_authors.any? && moment_locations.any?
+  moment_locations.each_with_index do |location, index|
+    # Vary the count so the surfaces get exercised against thin and busy
+    # locations alike, not a uniform grid.
+    wanted = [ 2 + (location.id % 3), 2, moment_authors.size ].min
+    wanted.times do |slot|
+      author = moment_authors[(index + slot) % moment_authors.size]
+      next if author.moments.exists?(location: location)
+
+      image = demo_image.call("moment_#{location.id}_#{slot}")
+      next unless image
+
+      moment = author.moments.build(plan: Plan.explore_bosnia_for(author), location: location)
+      moment.photo.attach(image)
+      moment.save!
+
+      # A visit is what earns the right to capture, so seeded moments carry one
+      # or the surfaces disagree about whether the author was there.
+      author.plan_visits.find_or_create_by!(plan: moment.plan, location: location)
+
+      # Publishing re-enters moderation (Moment#require_moderation_when_published),
+      # so approval has to be a second write or nothing reaches Browse.
+      if (index + slot).odd?
+        moment.update!(visibility: :public_moment)
+        moment.update!(moderation_status: :approved)
+      end
+    end
+  end
+end
+
+puts "Created #{Moment.count} moments " \
+     "(private #{Moment.visibility_private_moment.count}, " \
+     "public #{Moment.visibility_public_moment.count}, " \
+     "approved #{Moment.approved.count})"
 
 puts "Seeding complete!"
 puts ""
