@@ -1,6 +1,8 @@
 class SessionsController < ApplicationController
   def new
-    redirect_to root_path if logged_in?
+    return redirect_to root_path if logged_in?
+
+    remember_where_we_were(params[:return_to]) if params[:return_to].present?
   end
 
   def create
@@ -20,7 +22,7 @@ class SessionsController < ApplicationController
       end
 
       respond_to do |format|
-        format.html { redirect_to root_path, notice: t("auth.login_success") }
+        format.html { redirect_to session.delete(:return_to) || root_path, notice: t("auth.login_success") }
         format.json { render json: { success: true, user: user_json(user) } }
       end
     else

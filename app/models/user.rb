@@ -13,6 +13,8 @@ class User < ApplicationRecord
   has_many :curator_reviews, dependent: :destroy
   has_many :curator_activities, dependent: :destroy
   has_many :photo_suggestions, dependent: :destroy
+  has_many :moments, dependent: :destroy
+  has_many :plan_visits, dependent: :destroy
 
   # Spam protection constants
   MAX_ACTIVITIES_PER_HOUR = 50
@@ -105,14 +107,29 @@ class User < ApplicationRecord
     update!(activity_count_today: 0)
   end
 
-  # Default travel profile structure
+  # Default travel profile structure. `visited` is always projected from
+  # PlanVisit — the browser holds a copy, never the truth, because a native
+  # app and a second device have to see the same visits.
   def travel_profile_data
-    super.presence || default_travel_profile
+    (super.presence || default_travel_profile).merge("visited" => visited_profile_entries)
   end
 
-  # Merge incoming profile data with existing
-  # For favorites and visited, client is authoritative (to support removals)
-  # For badges, savedPlans, and recentlyViewed, we merge to avoid losing data
+  def visited_profile_entries
+    plan_visits.includes(:location).order(created_at: :desc).uniq(&:location_id).map do |visit|
+      {
+        "id" => visit.location.uuid,
+        "type" => "location",
+        "name" => visit.location.name,
+        "visitedAt" => visit.created_at.iso8601,
+        "city" => visit.location.city,
+        "tags" => visit.location.tags
+      }
+    end
+  end
+
+  # Merge incoming profile data with existing. `visited` is not merged — it is
+  # derived from PlanVisit, so whatever the client sends is discarded.
+  # For badges, savedPlans, and recentlyViewed, we merge to avoid losing data.
   def merge_travel_profile(incoming_data)
     return if incoming_data.blank?
 
@@ -120,8 +137,6 @@ class User < ApplicationRecord
     merged = {
       "createdAt" => [ current_data["createdAt"], incoming_data["createdAt"] ].compact.min,
       "updatedAt" => Time.current.iso8601,
-      # Client is authoritative for favorites and visited (supports removals)
-      "visited" => incoming_data["visited"] || current_data["visited"] || [],
       "favorites" => incoming_data["favorites"] || current_data["favorites"] || [],
       "recentlyViewed" => (current_data["recentlyViewed"].to_a + incoming_data["recentlyViewed"].to_a)
                            .uniq { |item| item["id"] }

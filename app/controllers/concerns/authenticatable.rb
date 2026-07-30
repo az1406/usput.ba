@@ -17,11 +17,20 @@ module Authenticatable
 
   def require_login
     unless logged_in?
+      remember_where_we_were
       respond_to do |format|
         format.html { redirect_to login_path, alert: t("auth.login_required") }
         format.json { render json: { error: "Unauthorized" }, status: :unauthorized }
       end
     end
+  end
+
+  def remember_where_we_were(path = request.fullpath)
+    session[:return_to] = path if request.get? && internal_path?(path)
+  end
+
+  def internal_path?(path)
+    path.to_s.match?(%r{\A/(?!/)})
   end
 
   def log_in(user)

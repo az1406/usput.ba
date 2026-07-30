@@ -16,7 +16,6 @@ export default class extends Controller {
     "favoritesCount",
     "badgesCount",
     "favoriteButton",
-    "visitedButton",
     "badgesList",
     "recentlyViewed",
     "syncStatus",
@@ -42,7 +41,8 @@ export default class extends Controller {
     syncUrl: String,
     locationLat: Number,
     locationLng: Number,
-    maxDistanceMeters: { type: Number, default: 500 },
+    maxDistanceMeters: { type: Number, default: 100 },
+    geofenceDisabled: Boolean,
     translations: Object // I18n translations passed from Rails
   }
 
@@ -114,7 +114,6 @@ export default class extends Controller {
     const fallbacks = {
       checking_location: "Provjeravamo vašu lokaciju...",
       visit_recorded: "Posjeta uspješno zabilježena!",
-      removed_from_visited: "Uklonjeno iz posjećenih",
       removed_from_favorites: "Uklonjeno iz omiljenih",
       added_to_favorites: "Dodano u omiljene!",
       too_far_from_location: `Predaleko ste od lokacije (${replacements.distance || ''}). Morate biti unutar ${replacements.max_distance || '500'}m.`,
@@ -342,22 +341,8 @@ export default class extends Controller {
 
     const button = event.currentTarget
 
-    // Check if already visited - allow removal without geolocation
-    const existingIndex = this.profile.visited.findIndex(
-      v => String(v.id) === String(this.itemIdValue) && v.type === this.itemTypeValue
-    )
-
-    if (existingIndex >= 0) {
-      // Already visited - remove (no geolocation needed)
-      this.profile.visited.splice(existingIndex, 1)
-      this.profile.stats.totalVisits--
-      this.showFeedback(this.t('removed_from_visited'), "success")
-      this.profile.updatedAt = new Date().toISOString()
-      this.saveProfile()
-      return
-    }
-
-    // For new visits, require geolocation validation
+    // A visit is permanent, and the server renders a stamp in place of this
+    // button once one exists — so there is only ever a new visit to record.
     this.showFeedback(this.t('checking_location'), "info")
     button.disabled = true
 
@@ -366,6 +351,10 @@ export default class extends Controller {
 
   // Request geolocation and validate visit
   requestGeolocationForVisit(button) {
+    // The server accepts an admin's visit from anywhere, so don't make them
+    // answer a location prompt that cannot change the outcome.
+    if (this.geofenceDisabledValue) return this.validateVisitOnServer(0, 0, button)
+
     if (!navigator.geolocation) {
       this.showFeedback(this.t('geolocation_not_supported'), "error")
       button.disabled = false
@@ -613,7 +602,7 @@ export default class extends Controller {
     const month = new Date().getMonth() + 1
     if (month >= 3 && month <= 5) return "spring"
     if (month >= 6 && month <= 8) return "summer"
-    if (month >= 9 && month <= 11) return "autumn"
+    if (month >= 9 && month <= 11) return "fall"
     return "winter"
   }
 
@@ -643,54 +632,6 @@ export default class extends Controller {
       if (emptyHeart && filledHeart) {
         emptyHeart.classList.toggle("hidden", isFavorite)
         filledHeart.classList.toggle("hidden", !isFavorite)
-      }
-    }
-
-    // Update visited button state
-    if (this.hasVisitedButtonTarget && this.hasItemIdValue && this.hasItemTypeValue) {
-      const isVisited = this.profile.visited.some(
-        v => String(v.id) === String(this.itemIdValue) && v.type === this.itemTypeValue
-      )
-
-      // Remove default background classes and add visited state
-      if (isVisited) {
-        this.visitedButtonTarget.classList.remove("bg-white/90", "dark:bg-gray-800/90", "bg-gray-100", "dark:bg-gray-800", "hover:bg-emerald-100", "dark:hover:bg-emerald-900/30")
-        this.visitedButtonTarget.classList.add("bg-emerald-500", "!text-white")
-        // Update text color for children
-        const textSpan = this.visitedButtonTarget.querySelector("span")
-        if (textSpan) {
-          textSpan.classList.remove("text-gray-700", "dark:text-gray-300", "group-hover:text-emerald-500")
-          textSpan.classList.add("!text-white")
-        }
-      } else {
-        this.visitedButtonTarget.classList.add("bg-gray-100", "dark:bg-gray-800", "hover:bg-emerald-100", "dark:hover:bg-emerald-900/30")
-        this.visitedButtonTarget.classList.remove("bg-emerald-500", "!text-white")
-        // Restore text color for children
-        const textSpan = this.visitedButtonTarget.querySelector("span")
-        if (textSpan) {
-          textSpan.classList.add("text-gray-700", "dark:text-gray-300", "group-hover:text-emerald-500")
-          textSpan.classList.remove("!text-white")
-        }
-      }
-      this.visitedButtonTarget.setAttribute("aria-pressed", isVisited)
-
-      // Toggle checkmark icons (empty/filled) and update their colors
-      const emptyCheck = this.visitedButtonTarget.querySelector(".check-empty")
-      const filledCheck = this.visitedButtonTarget.querySelector(".check-filled")
-      if (emptyCheck && filledCheck) {
-        emptyCheck.classList.toggle("hidden", isVisited)
-        filledCheck.classList.toggle("hidden", !isVisited)
-
-        // Update icon colors when visited
-        if (isVisited) {
-          emptyCheck.classList.remove("text-gray-600", "dark:text-gray-300", "group-hover:text-emerald-500")
-          emptyCheck.classList.add("!text-white")
-          filledCheck.classList.add("!text-white")
-        } else {
-          emptyCheck.classList.add("text-gray-600", "dark:text-gray-300", "group-hover:text-emerald-500")
-          emptyCheck.classList.remove("!text-white")
-          filledCheck.classList.remove("!text-white")
-        }
       }
     }
 

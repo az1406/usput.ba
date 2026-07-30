@@ -17,6 +17,14 @@ class Location < ApplicationRecord
     attachable.variant :large, resize_to_limit: [ 800, 800 ]
   end
 
+  # Photos that can actually be rendered as image variants. Guards against
+  # broken uploads (e.g. an HTML error page saved with a .jpg name) whose blob
+  # content_type is not an image — calling .variant on those raises
+  # ActiveStorage::InvariableError and would 500 the whole page.
+  def display_photos
+    photos.select { |photo| photo.blob&.variable? }
+  end
+
   # Asocijacije
   has_many :experience_locations, dependent: :destroy
   has_many :experiences, through: :experience_locations
@@ -24,6 +32,8 @@ class Location < ApplicationRecord
   has_many :experience_types, through: :location_experience_types
   has_many :audio_tours, dependent: :destroy
   has_many :photo_suggestions, dependent: :destroy
+  has_many :moments, dependent: :destroy
+  has_many :plan_visits, dependent: :destroy
 
   # Location categories (many-to-many - a location can have multiple categories)
   has_many :location_category_assignments, dependent: :destroy
@@ -166,6 +176,15 @@ class Location < ApplicationRecord
 
   # Valid seasons constant
   SEASONS = %w[spring summer fall winter].freeze
+
+  def self.current_season
+    case Time.current.month
+    when 3..5 then "spring"
+    when 6..8 then "summer"
+    when 9..11 then "fall"
+    else "winter"
+    end
+  end
 
   # Get supported experiences dynamically from database
   def self.supported_experiences

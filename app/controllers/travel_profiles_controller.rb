@@ -1,37 +1,43 @@
 class TravelProfilesController < ApplicationController
+  include RecordsVisits
+
   before_action :require_login, except: [ :page, :my_plans ]
 
   PER_PAGE = 6
-
-  # Maximum distance in kilometers to validate a visit claim
-  MAX_VISIT_DISTANCE_KM = 0.5 # 500 meters
 
   # GET /profile - Full travel profile page
   def page
     # Page is accessible to everyone, data comes from localStorage or server
     # Load user plans if logged in (first page for initial render)
     if logged_in?
-      @plans = current_user.plans.includes(plan_experiences: :experience)
+      @plans = current_user.plans.without_explore_bosnia.includes(plan_experiences: :experience)
                            .order(created_at: :desc)
                            .page(1).per(PER_PAGE)
+
+      # Every moment the traveller has collected, across every plan.
+      @moments = current_user.moments.with_attached_photo
+                             .includes(:location, :plan)
+                             .chronological
+
+      # Visited places come from the authoritative check-in (PlanVisit), not the
+      # localStorage travel profile — one place a location becomes "visited".
+      @visited_locations = current_user.plan_visits
+                                       .includes(:location, :plan)
+                                       .order(created_at: :desc)
+                                       .uniq(&:location_id)
     end
   end
 
   # GET /profile/plans - Paginated plans for Turbo Frame
   def my_plans
     if logged_in?
-      @plans = current_user.plans.includes(plan_experiences: :experience)
+      @plans = current_user.plans.without_explore_bosnia.includes(plan_experiences: :experience)
                            .order(created_at: :desc)
                            .page(params[:page]).per(PER_PAGE)
       render partial: "travel_profiles/my_plans_content", locals: { plans: @plans }
     else
       head :no_content
     end
-  end
-
-  # GET /travel_profile
-  def show
-    render json: { travel_profile_data: current_user.travel_profile_data }
   end
 
   # PATCH /travel_profile
@@ -92,7 +98,7 @@ class TravelProfilesController < ApplicationController
       return render json: { success: false, error: "Location ID is required" }, status: :bad_request
     end
 
-    if user_lat.zero? && user_lng.zero?
+    if user_lat.zero? && user_lng.zero? && visit_coordinates_required?
       return render json: { success: false, error: "User coordinates are required" }, status: :bad_request
     end
 
@@ -110,18 +116,8 @@ class TravelProfilesController < ApplicationController
     # Calculate distance between user and location
     distance_km = location.distance_from(user_lat, user_lng)
 
-    if distance_km <= MAX_VISIT_DISTANCE_KM
-      # User is close enough - add to visited
-      visit_data = {
-        "id" => location.uuid,
-        "type" => "location",
-        "name" => location.name,
-        "visitedAt" => Time.current.iso8601,
-        "city" => location.city,
-        "tags" => location.tags
-      }
-
-      add_visit_to_profile(visit_data)
+    if visit_in_range?(location, user_lat, user_lng)
+      record_visit(location)
 
       render json: {
         success: true,
@@ -147,23 +143,21 @@ class TravelProfilesController < ApplicationController
 
   private
 
-  def add_visit_to_profile(visit_data)
+  # A visit outside a plan still needs a plan to hang on; the hidden explore
+  # plan is the same one the deck's check-in writes to, so "visited anywhere
+  # counts" holds across every surface.
+  def record_visit(location)
+    record_visit_for(Plan.explore_bosnia_for(current_user), location)
+    touch_visit_stats(location)
+  end
+
+  def touch_visit_stats(location)
     current_data = current_user.travel_profile_data
-    visited = current_data["visited"] || []
-
-    # Check if already visited
-    already_visited = visited.any? { |v| v["id"] == visit_data["id"] && v["type"] == visit_data["type"] }
-    return if already_visited
-
-    # Add to visited
-    visited << visit_data
-
-    # Update stats
     stats = current_data["stats"] || {}
-    stats["totalVisits"] = (stats["totalVisits"] || 0) + 1
+    stats["totalVisits"] = current_user.plan_visits.distinct.count(:location_id)
 
-    if visit_data["city"].present? && !stats["citiesVisited"]&.include?(visit_data["city"])
-      stats["citiesVisited"] = (stats["citiesVisited"] || []) + [ visit_data["city"] ]
+    if location.city.present? && !stats["citiesVisited"]&.include?(location.city)
+      stats["citiesVisited"] = (stats["citiesVisited"] || []) + [ location.city ]
     end
 
     current_season = get_current_season
@@ -171,10 +165,8 @@ class TravelProfilesController < ApplicationController
       stats["seasonsVisited"] = (stats["seasonsVisited"] || []) + [ current_season ]
     end
 
-    # Save updated profile
     current_user.update!(
-      travel_profile_data: current_data.merge(
-        "visited" => visited,
+      travel_profile_data: current_data.except("visited").merge(
         "stats" => stats,
         "updatedAt" => Time.current.iso8601
       )
@@ -182,12 +174,6 @@ class TravelProfilesController < ApplicationController
   end
 
   def get_current_season
-    month = Time.current.month
-    case month
-    when 3..5 then "spring"
-    when 6..8 then "summer"
-    when 9..11 then "autumn"
-    else "winter"
-    end
+    Location.current_season
   end
 end
