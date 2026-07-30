@@ -157,7 +157,11 @@
             <div class="sm:col-span-2">
               <dt class="text-sm font-medium text-gray-500 dark:text-gray-400"><%= t("curator.locations.website") %></dt>
               <dd class="mt-1 text-sm text-gray-900 dark:text-white truncate">
-                <%= link_to @location.website, @location.website, target: "_blank", rel: "noopener", class: "text-emerald-600 dark:text-emerald-400 hover:text-emerald-900 dark:hover:text-emerald-300" %>
+                <% if (href = safe_external_url(@location.website)) %>
+                  <%= link_to @location.website, href, target: "_blank", rel: "noopener", class: "text-emerald-600 dark:text-emerald-400 hover:text-emerald-900 dark:hover:text-emerald-300" %>
+                <% else %>
+                  <%= @location.website %>
+                <% end %>
               </dd>
             </div>
           <% end %>
@@ -165,7 +169,11 @@
             <div class="sm:col-span-2">
               <dt class="text-sm font-medium text-gray-500 dark:text-gray-400"><%= t("curator.locations.video_url", default: "Video URL") %></dt>
               <dd class="mt-1 text-sm text-gray-900 dark:text-white truncate">
-                <%= link_to @location.video_url, @location.video_url, target: "_blank", rel: "noopener", class: "text-emerald-600 dark:text-emerald-400 hover:text-emerald-900 dark:hover:text-emerald-300" %>
+                <% if (href = safe_external_url(@location.video_url)) %>
+                  <%= link_to @location.video_url, href, target: "_blank", rel: "noopener", class: "text-emerald-600 dark:text-emerald-400 hover:text-emerald-900 dark:hover:text-emerald-300" %>
+                <% else %>
+                  <%= @location.video_url %>
+                <% end %>
               </dd>
             </div>
           <% end %>

@@ -6,6 +6,19 @@ module ApplicationHelper
     current_user_admin?
   end
 
+  # Curator-supplied urls are rendered as hrefs, and Rails does not escape the
+  # scheme — `javascript:alert(1)` would run on click. Only absolute http(s)
+  # survives; anything else comes back nil so the caller prints text instead.
+  def safe_external_url(url)
+    parsed = URI.parse(url.to_s.strip)
+    return nil unless parsed.is_a?(URI::HTTP) || parsed.is_a?(URI::HTTPS)
+    return nil if parsed.host.blank?
+
+    parsed.to_s
+  rescue URI::InvalidURIError
+    nil
+  end
+
   # Where signing in should land the visitor. A frame is fetched at its own url,
   # so for those the page to come back to is the one that asked for the frame.
   def sign_in_return_path

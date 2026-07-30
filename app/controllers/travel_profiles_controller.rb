@@ -41,11 +41,6 @@ class TravelProfilesController < ApplicationController
     end
   end
 
-  # GET /travel_profile
-  def show
-    render json: { travel_profile_data: current_user.travel_profile_data }
-  end
-
   # PATCH /travel_profile
   def update
     if params[:travel_profile_data].present?

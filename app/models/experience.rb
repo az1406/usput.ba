@@ -36,6 +36,7 @@ class Experience < ApplicationRecord
   validates :cycling_difficulty, inclusion: { in: CYCLING_DIFFICULTIES }, allow_blank: true
   validates :cycling_route_type, inclusion: { in: CYCLING_ROUTE_TYPES }, allow_blank: true
   validates :bike_type, inclusion: { in: BIKE_TYPES }, allow_blank: true
+  validates :contact_website, format: { with: URI::DEFAULT_PARSER.make_regexp(%w[http https]), message: "must be a valid URL" }, allow_blank: true
 
   # Scopes
   scope :with_locations, -> { joins(:experience_locations).distinct }

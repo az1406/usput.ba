@@ -36,7 +36,9 @@ Rails.application.routes.draw do
   # Travel profile page (accessible to everyone, syncs for logged-in users)
   get "profile", to: "travel_profiles#page", as: :profile_page
   get "profile/plans", to: "travel_profiles#my_plans", as: :profile_plans
-  resource :travel_profile, only: [ :show, :update ], controller: "travel_profiles" do
+  # No :show — it rendered the whole profile blob as JSON and nothing consumed it;
+  # the client reads its own copy back through :sync.
+  resource :travel_profile, only: [ :update ], controller: "travel_profiles" do
     post :sync, on: :member
     post :validate_visit, on: :member
   end

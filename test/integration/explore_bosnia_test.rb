@@ -690,7 +690,7 @@ class ExploreBosniaTest < ActionDispatch::IntegrationTest
     login_as(@user)
     get explore_bosnia_experience_path("history", **SARAJEVO)
 
-    get travel_profile_path
+    get profile_page_path
 
     assert_response :success
     refute_includes response.body, "Explore Bosnia</h3>"
