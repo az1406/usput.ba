@@ -159,7 +159,11 @@
             <div class="sm:col-span-2">
               <dt class="text-sm font-medium text-gray-500 dark:text-gray-400"><%= t("curator.experiences.contact_website", default: "Contact Website") %></dt>
               <dd class="mt-1 text-sm text-gray-900 dark:text-white truncate">
-                <%= link_to @experience.contact_website, @experience.contact_website, target: "_blank", rel: "noopener", class: "text-emerald-600 dark:text-emerald-400 hover:text-emerald-900 dark:hover:text-emerald-300" %>
+                <% if (href = safe_external_url(@experience.contact_website)) %>
+                  <%= link_to @experience.contact_website, href, target: "_blank", rel: "noopener", class: "text-emerald-600 dark:text-emerald-400 hover:text-emerald-900 dark:hover:text-emerald-300" %>
+                <% else %>
+                  <%= @experience.contact_website %>
+                <% end %>
               </dd>
             </div>
           <% end %>

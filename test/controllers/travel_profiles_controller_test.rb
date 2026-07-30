@@ -122,39 +122,16 @@ class TravelProfilesControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
-  # === Show action tests ===
+  # === No GET endpoint for the profile blob ===
 
-  test "show requires authentication for JSON request" do
-    get travel_profile_path, as: :json
-
-    assert_response :unauthorized
-  end
-
-  test "show returns travel profile data as JSON" do
+  # It dumped the whole profile as JSON and nothing consumed it; the client reads
+  # its own copy back through :sync, so the surface is gone rather than hidden.
+  test "the profile blob has no GET endpoint" do
     login_as(@user)
 
-    get travel_profile_path, as: :json
+    get "/travel_profile"
 
-    assert_response :success
-    body = response.parsed_body
-    assert body["travel_profile_data"].present?
-  end
-
-  test "show returns default profile data for new user" do
-    new_user = User.create!(
-      username: "newuser",
-      password: "password123",
-      password_confirmation: "password123"
-    )
-    login_as(new_user)
-
-    get travel_profile_path, as: :json
-
-    assert_response :success
-    body = response.parsed_body
-    assert body["travel_profile_data"].present?
-
-    new_user.destroy
+    assert_response :not_found
   end
 
   # === Update action tests ===
@@ -481,12 +458,6 @@ class TravelProfilesControllerTest < ActionDispatch::IntegrationTest
   end
 
   # === Authentication redirect tests ===
-
-  test "show redirects to login for HTML request when not authenticated" do
-    get travel_profile_path
-
-    assert_redirected_to login_path
-  end
 
   test "update redirects to login for HTML request when not authenticated" do
     patch travel_profile_path, params: { travel_profile_data: {}.to_json }

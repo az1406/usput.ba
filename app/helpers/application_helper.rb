@@ -1,4 +1,17 @@
 module ApplicationHelper
+  # Curator-supplied urls are rendered as hrefs, and Rails does not escape the
+  # scheme — `javascript:alert(1)` would run on click. Only absolute http(s)
+  # survives; anything else comes back nil so the caller prints text instead.
+  def safe_external_url(url)
+    parsed = URI.parse(url.to_s.strip)
+    return nil unless parsed.is_a?(URI::HTTP) || parsed.is_a?(URI::HTTPS)
+    return nil if parsed.host.blank?
+
+    parsed.to_s
+  rescue URI::InvalidURIError
+    nil
+  end
+
   # Safely renders an ActiveStorage attachment image, handling missing files gracefully
   # @param attachment [ActiveStorage::Attached, ActiveStorage::Attachment] The attachment to render
   # @param variant_options [Hash] Options to pass to variant() (e.g., resize_to_fill: [400, 300])
