@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import { positionService } from "services/position_service"
 import "leaflet"
 
 const L = window.L
@@ -65,8 +66,8 @@ export default class extends Controller {
   #locateUser() {
     if (!navigator.geolocation) return
     this.located = true
-    navigator.geolocation.getCurrentPosition((position) => {
-      const here = [position.coords.latitude, position.coords.longitude]
+    this.#onFirstFix((coords) => {
+      const here = [coords.latitude, coords.longitude]
       const target = this.pointsValue[0]
       this.userMarker = L.circleMarker(here, { radius: 8, color: "#ffffff", weight: 2, fillColor: "#2563eb", fillOpacity: 1 }).addTo(this.map)
       if (!target) return
@@ -80,13 +81,24 @@ export default class extends Controller {
     })
   }
 
-  // The dot walks with you while the map is on screen; the route re-fetches
-  // once you have drifted well off its start. Watching stops the moment the
-  // map is hidden so it can never interfere with the check-in's geolocation.
+  // One fix from the shared watcher, whether or not it has one yet.
+  #onFirstFix(handler) {
+    const held = positionService.measured()
+    if (held) return handler(held)
+
+    const stop = positionService.subscribe((coords) => {
+      stop()
+      handler(coords)
+    })
+  }
+
+  // The dot walks with you while the map is on screen; the route re-fetches once
+  // you have drifted well off its start. The subscription drops when the map is
+  // hidden, which stops the watcher if nothing else is listening.
   #followUser() {
-    this.watchId = navigator.geolocation.watchPosition((position) => {
+    this.unfollow = positionService.subscribe((coords) => {
       if (this.containerTarget.offsetParent === null) return this.#stopFollowing()
-      const here = [position.coords.latitude, position.coords.longitude]
+      const here = [coords.latitude, coords.longitude]
       this.userMarker?.setLatLng(here)
       const target = this.pointsValue[0]
       if (!target || !this.routeOrigin) return
@@ -95,12 +107,12 @@ export default class extends Controller {
         this.#clearPath()
         this.#drawPath(here, target)
       }
-    }, () => {}, { enableHighAccuracy: true })
+    })
   }
 
   #stopFollowing() {
-    if (this.watchId !== undefined) navigator.geolocation.clearWatch(this.watchId)
-    this.watchId = undefined
+    this.unfollow?.()
+    this.unfollow = undefined
     this.located = false
   }
 

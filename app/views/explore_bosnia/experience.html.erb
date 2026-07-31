@@ -10,7 +10,10 @@
 
 <%# The deck owns everything below the fixed header: no page scroll, no
     scrollbar, exactly one card in view. %>
-<div class="fixed inset-x-0 bottom-0 top-[calc(5rem+env(safe-area-inset-top))] flex flex-col overflow-hidden pb-[env(safe-area-inset-bottom)]" data-controller="moment-lightbox">
+<%# explore-geo only mounts while the position is missing: it asks once, then
+    reloads the deck with the coordinates. %>
+<div class="fixed inset-x-0 bottom-0 top-[calc(5rem+env(safe-area-inset-top))] flex flex-col overflow-hidden pb-[env(safe-area-inset-bottom)]"
+     data-controller="moment-lightbox<%= " explore-geo" if @needs_location %>">
   <%# Filters and deck swap together, in place: picking one filter must not cost a
       page load, or the next pill is dead until it lands. display:contents keeps
       the frame out of the flex column it wraps. %>
@@ -38,15 +41,6 @@
     </div>
   </div>
 
-  <% if @needs_location %>
-    <div class="mx-4 rounded-2xl border border-dashed border-gray-300 px-4 py-8 text-center dark:border-gray-600">
-      <p class="text-base font-semibold text-gray-900 dark:text-white"><%= t("explore_bosnia.needs_location.title") %></p>
-      <p class="mt-2 text-sm text-gray-500 dark:text-gray-400"><%= t("explore_bosnia.needs_location.body") %></p>
-      <%= link_to t("explore_bosnia.needs_location.retry"), explore_bosnia_path,
-            data: { turbo_frame: "_top" },
-            class: "mt-4 inline-flex rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow" %>
-    </div>
-  <% else %>
     <div id="moment-flash" class="absolute inset-x-0 top-12 z-30 px-4"></div>
 
     <div class="mx-auto flex min-h-0 w-full max-w-7xl flex-1 gap-6 lg:px-8">
@@ -64,22 +58,27 @@
       <div class="relative flex min-h-0 flex-1 flex-col">
         <div class="flex-1 snap-y snap-mandatory overflow-y-auto overscroll-y-contain scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
              data-controller="plan-deck" data-plan-deck-browse-value="true">
-          <%= render "explore_bosnia/deck_cards", plan: @plan, locations: @locations %>
+          <% if @needs_location %>
+            <%# Nothing can be dealt without a position; the prompt is a deck slot
+                like any other, and explore-geo reloads once the fix lands. %>
+            <%= render "explore_bosnia/message_card", message: t("explore_bosnia.needs_location.title") %>
+          <% else %>
+            <%= render "explore_bosnia/deck_cards", plan: @plan, locations: @locations %>
 
-          <% if @locations.empty? %>
-            <%= render "explore_bosnia/message_card",
-                  message: @all_visited ? t("explore_bosnia.deck_all_visited") : t("explore_bosnia.deck_empty") %>
+            <% if @locations.empty? %>
+              <%= render "explore_bosnia/message_card",
+                    message: @all_visited ? t("explore_bosnia.deck_all_visited") : t("explore_bosnia.deck_empty") %>
+            <% end %>
+
+            <%= render "explore_bosnia/deck_tail",
+                  next_url: @next_cursor ? explore_bosnia_experience_path(@category, **next_page_params) : nil,
+                  end_message: @locations.any? ? t("explore_bosnia.deck_end") : nil %>
           <% end %>
-
-          <%= render "explore_bosnia/deck_tail",
-                next_url: @next_cursor ? explore_bosnia_experience_path(@category, **next_page_params) : nil,
-                end_message: @locations.any? ? t("explore_bosnia.deck_end") : nil %>
         </div>
 
         <%= render "plans/deck_hints", scroll_hint: t("explore_bosnia.deck_hint") %>
       </div>
     </div>
-  <% end %>
   <% end %>
 
   <div data-moment-lightbox-target="overlay"

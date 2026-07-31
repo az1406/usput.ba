@@ -8,6 +8,10 @@ class MomentsController < ApplicationController
 
   def index
     @location = Location.find_by_public_id!(params[:location_id])
+    # Reached without a plan (a place browsed outside one): a signed-in traveller
+    # still needs somewhere to upload to, and that is their explore plan. A guest
+    # gets no plan and the form renders as a sign-in link.
+    @plan ||= Plan.explore_bosnia_for(current_user) if logged_in?
     @moments = if logged_in?
       current_user.moments.where(location: @location).with_attached_photo.includes(:plan).chronological
     else
@@ -76,7 +80,12 @@ class MomentsController < ApplicationController
 
   private
 
+  # The location-nested index carries no plan_id: reading a place's moments is
+  # not plan-scoped, and a guest in explore mode has no plan to name. Every
+  # writing action is routed under a plan, and still demands one here.
   def set_plan
+    return if params[:plan_id].blank? && action_name == "index"
+
     @plan = Plan.find_by_public_id!(params[:plan_id])
 
     unless @plan.visibility_public_plan? || @plan.user_id == current_user&.id

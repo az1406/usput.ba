@@ -4,6 +4,9 @@
     <title><%= content_for(:title) || "Usput.ba - Experience Bosnia & Herzegovina" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <%# The sync services read the session from here, so it belongs on every
+        layout — without it they treat a signed-in traveller as a guest. %>
+    <meta name="user-logged-in" content="<%= logged_in? ? 'true' : 'false' %>">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
 

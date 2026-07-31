@@ -33,6 +33,9 @@ class UsersController < ApplicationController
         end
       end
 
+      # Check-ins made before signing up join the traveller's explore walk.
+      GuestVisitsImporter.new(user: @user, payload: params[:guest_visits_data]).call
+
       respond_to do |format|
         format.html { redirect_to root_path, notice: t("auth.registration_success") }
         format.json { render json: { success: true, user: user_json(@user), plans: synced_plans } }

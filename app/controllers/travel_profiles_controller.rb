@@ -1,6 +1,4 @@
 class TravelProfilesController < ApplicationController
-  include RecordsVisits
-
   before_action :require_login, except: [ :page, :my_plans ]
 
   PER_PAGE = 6
@@ -84,96 +82,5 @@ class TravelProfilesController < ApplicationController
         travel_profile_data: current_user.travel_profile_data
       }
     end
-  end
-
-  # POST /travel_profile/validate_visit
-  # Validates that user is physically near a location before marking it as visited
-  def validate_visit
-    location_id = params[:location_id]
-    user_lat = params[:user_lat].to_f
-    user_lng = params[:user_lng].to_f
-
-    # Validate required parameters
-    if location_id.blank?
-      return render json: { success: false, error: "Location ID is required" }, status: :bad_request
-    end
-
-    if user_lat.zero? && user_lng.zero? && visit_coordinates_required?
-      return render json: { success: false, error: "User coordinates are required" }, status: :bad_request
-    end
-
-    # Find the location by UUID
-    location = Location.find_by_public_id(location_id)
-    unless location
-      return render json: { success: false, error: "Location not found" }, status: :not_found
-    end
-
-    # Check if location has coordinates
-    unless location.geocoded?
-      return render json: { success: false, error: "Location does not have coordinates" }, status: :unprocessable_entity
-    end
-
-    # Calculate distance between user and location
-    distance_km = location.distance_from(user_lat, user_lng)
-
-    if visit_in_range?(location, user_lat, user_lng)
-      record_visit(location)
-
-      render json: {
-        success: true,
-        validated: true,
-        distance_km: distance_km.round(3),
-        travel_profile_data: current_user.reload.travel_profile_data,
-        message: I18n.t("travel_profile.visit_recorded")
-      }
-    else
-      # User is too far away
-      distance_text = distance_km >= 1 ?
-        "#{distance_km.round(1)} km" :
-        "#{(distance_km * 1000).round} m"
-      render json: {
-        success: false,
-        validated: false,
-        distance_km: distance_km.round(3),
-        max_distance_km: MAX_VISIT_DISTANCE_KM,
-        error: I18n.t("travel_profile.too_far_from_location", distance: distance_text, max_distance: (MAX_VISIT_DISTANCE_KM * 1000).to_i)
-      }, status: :unprocessable_entity
-    end
-  end
-
-  private
-
-  # A visit outside a plan still needs a plan to hang on; the hidden explore
-  # plan is the same one the deck's check-in writes to, so "visited anywhere
-  # counts" holds across every surface.
-  def record_visit(location)
-    record_visit_for(Plan.explore_bosnia_for(current_user), location)
-    touch_visit_stats(location)
-  end
-
-  def touch_visit_stats(location)
-    current_data = current_user.travel_profile_data
-    stats = current_data["stats"] || {}
-    stats["totalVisits"] = current_user.plan_visits.distinct.count(:location_id)
-
-    if location.city.present? && !stats["citiesVisited"]&.include?(location.city)
-      stats["citiesVisited"] = (stats["citiesVisited"] || []) + [ location.city ]
-    end
-
-    current_season = get_current_season
-    unless stats["seasonsVisited"]&.include?(current_season)
-      stats["seasonsVisited"] = (stats["seasonsVisited"] || []) + [ current_season ]
-    end
-
-    current_user.update!(
-      travel_profile_data: current_data.except("visited").merge(
-        "stats" => stats,
-        "updatedAt" => Time.current.iso8601
-      )
-    )
-  end
-
-  def get_current_season
-    Location.current_season
   end
 end

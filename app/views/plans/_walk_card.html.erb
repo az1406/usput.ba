@@ -125,8 +125,9 @@
             aria-label="<%= t('common.close') %>">✕</button>
     <%# Hidden until the panel opens, so a deck of any length ships no
         moments until one is actually asked for. %>
+    <%# A guest has no plan, so the read goes to the place's own moments route. %>
     <turbo-frame id="<%= dom_id(location, :moments_frame) %>"
-                 src="<%= plan_moments_path(plan, location_id: location.uuid, context: context) %>"
+                 src="<%= plan ? plan_moments_path(plan, location_id: location.uuid, context: context) : location_moments_path(location.uuid, context: context) %>"
                  loading="lazy"></turbo-frame>
   </div>
 

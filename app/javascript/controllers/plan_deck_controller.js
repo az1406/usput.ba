@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import { positionService } from "services/position_service"
 
 export default class extends Controller {
   static targets = ["card", "done", "distanceLabel"]
@@ -12,9 +13,52 @@ export default class extends Controller {
       this.render()
       this.dealNearest(false)
     }
-    // The server printed each card's distance from where you were at page load;
-    // refresh it against where you actually are now (and again after check-in).
-    this.refreshFromLocation()
+    // The server ordered the deck from where the traveller stood at page load.
+    // From here the live position owns both the labels and the order.
+    this.unsubscribe = positionService.subscribe(({ latitude, longitude }) => {
+      this.refreshDistances(latitude, longitude)
+      if (this.browseValue) this.resortAhead(latitude, longitude)
+    })
+  }
+
+  disconnect() {
+    this.unsubscribe?.()
+  }
+
+  // Nearest-first, but only over the cards the traveller has not reached yet:
+  // reordering what is on screen would move a card out from under their thumb.
+  resortAhead(lat, lng) {
+    const slots = this.slots()
+    const current = this.currentSlot(slots)
+    const ahead = slots.slice(current + 1)
+    if (ahead.length < 2) return
+
+    const sorted = [ ...ahead ].sort((a, b) => this.slotDistance(a, lat, lng) - this.slotDistance(b, lat, lng))
+    if (sorted.every((slot, i) => slot === ahead[i])) return
+
+    const anchor = ahead[ahead.length - 1].nextSibling
+    sorted.forEach((slot) => slot.parentNode.insertBefore(slot, anchor))
+  }
+
+  slots() {
+    return this.cardTargets
+      .map((card) => card.closest(".snap-start"))
+      .filter((slot, i, all) => slot && all.indexOf(slot) === i)
+  }
+
+  // The slot whose top is nearest the scroller's top is the one in view.
+  currentSlot(slots) {
+    const top = this.element.scrollTop
+    let index = 0
+    slots.forEach((slot, i) => {
+      if (slot.offsetTop <= top + 1) index = i
+    })
+    return index
+  }
+
+  slotDistance(slot, lat, lng) {
+    const card = slot.querySelector("[data-plan-deck-target='card']")
+    return this.distance(lat, lng, parseFloat(card?.dataset.planDeckLat), parseFloat(card?.dataset.planDeckLng))
   }
 
 
@@ -34,18 +78,13 @@ export default class extends Controller {
       if (advancing) { this.index = this.cardTargets.length; this.render() }
       return
     }
-    if (!navigator.geolocation) return this.show(remaining[0].i)
+    const here = positionService.current()
+    if (!here) return this.show(remaining[0].i)
 
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const nearest = remaining
-          .map((entry) => ({ ...entry, distance: this.distance(position.coords.latitude, position.coords.longitude, parseFloat(entry.card.dataset.planDeckLat), parseFloat(entry.card.dataset.planDeckLng)) }))
-          .sort((a, b) => a.distance - b.distance)[0]
-        this.show(nearest.i)
-      },
-      () => this.show(remaining[0].i),
-      { enableHighAccuracy: true, timeout: 10000 }
-    )
+    const nearest = remaining
+      .map((entry) => ({ ...entry, distance: this.distance(here.latitude, here.longitude, parseFloat(entry.card.dataset.planDeckLat), parseFloat(entry.card.dataset.planDeckLng)) }))
+      .sort((a, b) => a.distance - b.distance)[0]
+    this.show(nearest.i)
   }
 
   show(i) {
@@ -63,17 +102,6 @@ export default class extends Controller {
     return card.dataset.planDeckVisited === "true" || card.querySelector("[data-walk-visited='true']") !== null
   }
 
-
-  // One location read (cached, coarse — no watcher), then rewrite each card's
-  // "X km away" from the current position.
-  refreshFromLocation() {
-    if (!this.hasDistanceLabelTarget || !navigator.geolocation) return
-    navigator.geolocation.getCurrentPosition(
-      (pos) => this.refreshDistances(pos.coords.latitude, pos.coords.longitude),
-      () => {},
-      { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 }
-    )
-  }
 
   refreshDistances(lat, lng) {
     this.distanceLabelTargets.forEach((label) => {

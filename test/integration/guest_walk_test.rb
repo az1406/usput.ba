@@ -1,0 +1,117 @@
+# frozen_string_literal: true
+
+require "test_helper"
+
+# A traveller with no account browses, walks explore mode and marks places as
+# they go; the walk is held on their device and joins their account the moment
+# they sign in. Only uploading a moment asks them to log in.
+class GuestWalkTest < ActionDispatch::IntegrationTest
+  SARAJEVO = { lat: 43.85, lng: 18.41 }.freeze
+
+  setup do
+    @history = ExperienceType.create!(key: "history", name: "History", active: true)
+    @location = Location.create!(name: "Guest Fort", city: "Sarajevo", lat: 43.85, lng: 18.41,
+                                 suitable_experiences: [ @history.key ])
+  end
+
+  teardown do
+    @location&.destroy
+    @history&.destroy
+  end
+
+  test "a guest reaches the deck without being sent to the login page" do
+    get explore_bosnia_experience_path("history", **SARAJEVO)
+
+    assert_response :success
+    assert_includes response.body, "Guest Fort"
+  end
+
+  test "a guest reads a place's moments without a plan" do
+    get location_moments_path(@location.uuid)
+
+    assert_response :success
+  end
+
+  test "a guest is offered sign-in where a moment would be uploaded" do
+    get location_moments_path(@location.uuid)
+
+    assert_response :success
+    assert_select "a[href*=?]", login_path, true, "the upload tile should invite sign-in"
+    assert_select "input[type='file']", count: 0, message: "a guest gets no upload field"
+  end
+
+  test "uploading a moment is refused without an account" do
+    plan = Plan.create!(title: "Public walk", visibility: :public_plan)
+
+    assert_no_difference "Moment.count" do
+      post plan_moments_path(plan), params: { moment: { location_id: @location.uuid } }
+    end
+
+    assert_redirected_to login_path
+  ensure
+    plan&.destroy
+  end
+
+  test "signing in turns the device's check-ins into visits on the explore plan" do
+    user = User.create!(username: "arriving", password: "password123")
+
+    post login_path, params: {
+      username: user.username, password: "password123",
+      guest_visits_data: [ { "id" => @location.uuid } ].to_json
+    }
+
+    plan = Plan.explore_bosnia_for(user)
+    assert_equal [ @location.id ], user.plan_visits.where(plan: plan).pluck(:location_id)
+  ensure
+    user&.destroy
+  end
+
+  test "signing up carries the walk across too" do
+    assert_difference "PlanVisit.count", 1 do
+      post register_path, params: {
+        user: { username: "fresh", password: "password123", password_confirmation: "password123" },
+        guest_visits_data: [ { "id" => @location.uuid } ].to_json
+      }
+    end
+
+    user = User.find_by(username: "fresh")
+    assert_equal [ @location.id ], user.plan_visits.pluck(:location_id)
+  ensure
+    User.find_by(username: "fresh")&.destroy
+  end
+
+  test "signing in with nothing held on the device changes nothing" do
+    user = User.create!(username: "empty_handed", password: "password123")
+
+    assert_no_difference "PlanVisit.count" do
+      post login_path, params: { username: user.username, password: "password123" }
+    end
+  ensure
+    user&.destroy
+  end
+
+  test "a bad password imports nothing, even with visits attached" do
+    user = User.create!(username: "wrong_key", password: "password123")
+
+    assert_no_difference "PlanVisit.count" do
+      post login_path, params: {
+        username: user.username, password: "not-the-password",
+        guest_visits_data: [ { "id" => @location.uuid } ].to_json
+      }
+    end
+  ensure
+    user&.destroy
+  end
+
+  test "a signed-in traveller reading a place outside a plan can still upload" do
+    user = User.create!(username: "browsing", password: "password123")
+    post login_path, params: { username: user.username, password: "password123" }
+
+    get location_moments_path(@location.uuid)
+
+    assert_response :success
+    assert_select "input[type='file']", minimum: 1
+  ensure
+    user&.destroy
+  end
+end

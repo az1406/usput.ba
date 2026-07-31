@@ -49,7 +49,6 @@ Rails.application.routes.draw do
   # the client reads its own copy back through :sync.
   resource :travel_profile, only: [ :update ], controller: "travel_profiles" do
     post :sync, on: :member
-    post :validate_visit, on: :member
   end
 
   # User plans (for logged-in users)
@@ -72,6 +71,9 @@ Rails.application.routes.draw do
   # Locations (index removed - use /explore instead)
   resources :locations, only: [ :show ] do
     resources :reviews, only: [ :index, :create ]
+    # Reading a place's moments needs no plan — a guest walking explore mode has
+    # none. Writing one still does, and stays on the plan-nested route below.
+    resources :moments, only: [ :index ]
     member do
       get :audio_tour
     end

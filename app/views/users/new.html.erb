@@ -82,6 +82,9 @@
         <%# Hidden field for plans data from localStorage %>
         <input type="hidden" name="plans_data" id="plans_data" data-registration-form-target="plansData">
 
+        <%# Hidden field for check-ins made before signing up %>
+        <input type="hidden" name="guest_visits_data" id="guest_visits_data">
+
         <%# Info about profile sync %>
         <div class="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg p-4">
           <div class="flex">
@@ -133,6 +136,13 @@
         if (plans) {
           var plansField = document.getElementById('plans_data');
           if (plansField) plansField.value = plans;
+        }
+
+        // Check-ins made before signing up
+        var visits = localStorage.getItem('usput_guest_visits');
+        if (visits) {
+          var visitsField = document.getElementById('guest_visits_data');
+          if (visitsField) visitsField.value = visits;
         }
       } catch (e) {
         console.error('Could not read data from localStorage:', e);

@@ -30,13 +30,14 @@ class ExploreBosniaTest < ActionDispatch::IntegrationTest
     @admin&.destroy
   end
 
-  test "the grid shows the six browse tiles" do
+  test "entry goes straight to the deck, not to a category grid" do
     get explore_bosnia_path
 
-    assert_response :success
-    assert_select "[data-explore-geo-target='tile']", count: 6
-    assert_select "a[href=?]", explore_bosnia_experience_path("history"), count: 1
-    assert_select "a[href=?]", explore_bosnia_experience_path("relax"), count: 1
+    assert_redirected_to explore_bosnia_experience_path(ExploreBosniaController::ALL_CATEGORIES)
+    follow_redirect!
+    assert_select "[data-explore-geo-target='tile']", count: 0
+    # The tiles survive only as filter pills, six of them on the rail.
+    assert_select "aside input[name='categories[]']", count: 6
   end
 
   test "entry with a position lands in the deck of every category" do
@@ -60,19 +61,40 @@ class ExploreBosniaTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Close Fort"
     assert_includes response.body, "Near Gallery"
     assert_includes response.body, "Untagged Spot"
+    # No tile is preselected; the traveller picks if and when they want to.
     assert_select "aside input[type=checkbox][name='categories[]'][checked]", count: 0
   ensure
     [ gallery, untagged ].each { |location| location&.destroy }
     art&.destroy
   end
 
-  test "entry without a position still asks for one instead of guessing" do
+  test "picking five of the six tiles deals those five and drops the sixth" do
+    art = ExperienceType.create!(key: "art", name: "Art", active: true)
+    gallery = Location.create!(name: "Near Gallery", city: "Sarajevo", lat: 43.851, lng: 18.411,
+                               suitable_experiences: [ art.key ])
+    login_as(@user)
+
+    remaining = ExploreBosniaController::BROWSE_TILES.keys - [ "culture" ]
+    get explore_bosnia_experience_path("all", **SARAJEVO, categories: remaining)
+
+    assert_response :success
+    assert_includes response.body, "Close Fort"
+    refute_includes response.body, "Near Gallery"
+  ensure
+    gallery&.destroy
+    art&.destroy
+  end
+
+  test "without a position the deck shows the filters and asks for one" do
     login_as(@user)
 
     get explore_bosnia_path
+    follow_redirect!
 
     assert_response :success
-    assert_select "[data-explore-geo-target='tile']", minimum: 1
+    assert_includes response.body, I18n.t("explore_bosnia.needs_location.title")
+    assert_select "input[name='categories[]']", minimum: 1
+    assert_select "[data-plan-deck-target='card'][data-plan-deck-lat]", count: 0
   end
 
   test "a budget filter narrows the deck and keeps closest first" do
@@ -229,10 +251,33 @@ class ExploreBosniaTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Close Fort"
   end
 
-  test "the experience deck requires login" do
-    get explore_bosnia_experience_path("history")
+  test "the experience deck deals to a guest, who checks in on the device" do
+    get explore_bosnia_experience_path("history", **SARAJEVO)
 
-    assert_redirected_to login_path
+    assert_response :success
+    assert_includes response.body, "Close Fort"
+    # No account, so no plan to hang a check-in on: the control marks the visit
+    # locally instead of posting it.
+    assert_select "[data-geo-visit-guest-value='true']"
+    assert_select "form[action*='/visits']", count: 0
+  end
+
+  test "a guest deck deals every place, since visited lives on their device" do
+    get explore_bosnia_experience_path("history", **SARAJEVO)
+
+    assert_response :success
+    # Nothing is filtered out server-side — there is no server-side record of a
+    # guest's walk to filter by.
+    assert_includes response.body, "Close Fort"
+    assert_includes response.body, "Middle Fort"
+  end
+
+  test "a guest deck creates no explore plan" do
+    assert_no_difference "Plan.count" do
+      get explore_bosnia_experience_path("history", **SARAJEVO)
+    end
+
+    assert_response :success
   end
 
   test "without coordinates the deck asks for location instead of dealing" do

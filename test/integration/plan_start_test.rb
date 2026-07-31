@@ -190,6 +190,30 @@ class PlanStartTest < ActionDispatch::IntegrationTest
     refute @user.plan_visits.exists?(plan: @plan, location: @location), "a check-in from 2000 km away must not count"
   end
 
+  # These two moved here with `touch_visit_stats`, which used to live on the
+  # location page's own check-in endpoint and so only ever fired on that one
+  # surface. It belongs to recording a visit, whichever screen asked.
+  test "checking in updates the profile's visit stats" do
+    login_as(@user)
+
+    post plan_visits_path(@plan), params: { location_id: @location.uuid, user_lat: @location.lat, user_lng: @location.lng }, as: :turbo_stream
+
+    stats = @user.reload.travel_profile_data["stats"]
+    assert_equal 1, stats["totalVisits"]
+    assert_includes stats["citiesVisited"], @location.city
+    assert_includes stats["seasonsVisited"], Location.current_season
+  end
+
+  test "checking in twice records one visit and does not inflate the stats" do
+    login_as(@user)
+    coordinates = { location_id: @location.uuid, user_lat: @location.lat, user_lng: @location.lng }
+
+    2.times { post plan_visits_path(@plan), params: coordinates, as: :turbo_stream }
+
+    assert_equal 1, @user.plan_visits.where(plan: @plan, location: @location).count
+    assert_equal 1, @user.reload.travel_profile_data["stats"]["totalVisits"]
+  end
+
   private
 
   def login_as(user)

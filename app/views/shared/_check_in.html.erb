@@ -1,0 +1,40 @@
+<%# Locals: location, plan, button_class, wrapper_class. Optional: context, icon. %>
+<% context = local_assigns.fetch(:context, nil)
+   icon = local_assigns.fetch(:icon, false)
+   guest = !logged_in?
+   label = capture do %>
+  <% if icon %>
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+    </svg>
+  <% end %>
+  <span><%= t("plans.start.mark_visited") %></span>
+<% end %>
+
+<% if logged_in? && geofence_disabled? %>
+  <div class="<%= wrapper_class %>">
+    <%= button_to plan_visits_path(plan),
+          params: { location_id: location.uuid, user_lat: 0, user_lng: 0, context: context }.compact,
+          class: button_class do %><%= label %><% end %>
+  </div>
+<% else %>
+  <% attributes = { controller: "geo-visit", geo_visit_lat_value: location.lat, geo_visit_lng_value: location.lng }
+     attributes.merge!(geo_visit_guest_value: true, geo_visit_location_id_value: location.uuid) if guest %>
+  <%= tag.div class: wrapper_class, data: attributes do %>
+    <div data-geo-visit-target="control">
+      <% if guest %>
+        <button type="button" class="<%= button_class %>" data-action="geo-visit#capture"><%= label %></button>
+      <% else %>
+        <%= button_to plan_visits_path(plan),
+              params: { location_id: location.uuid, user_lat: "", user_lng: "", context: context }.compact,
+              class: button_class do %><%= label %><% end %>
+      <% end %>
+    </div>
+
+    <p class="hidden mt-2 inline-block rounded-full bg-black/60 px-3 py-1 text-sm font-semibold text-white"
+       data-geo-visit-target="hint"
+       data-directions="<%= t('plans.start.compass', default: 'N,NE,E,SE,S,SW,W,NW') %>"
+       data-warmth="<%= t('plans.start.warmth', default: 'Freezing,Cold,Cool,Warm') %>"
+       data-enable-location="<%= t('plans.start.need_location') %>"></p>
+  <% end %>
+<% end %>

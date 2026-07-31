@@ -21,6 +21,9 @@ class SessionsController < ApplicationController
         end
       end
 
+      # Check-ins made before signing in join the traveller's explore walk.
+      GuestVisitsImporter.new(user: user, payload: params[:guest_visits_data]).call
+
       respond_to do |format|
         format.html { redirect_to session.delete(:return_to) || root_path, notice: t("auth.login_success") }
         format.json { render json: { success: true, user: user_json(user) } }

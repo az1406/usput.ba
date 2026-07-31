@@ -1,35 +1,57 @@
 import { Controller } from "@hotwired/stimulus"
+import { guestVisitsService } from "services/guest_visits_service"
+import { positionService } from "services/position_service"
 
 export default class extends Controller {
-  static targets = ["hint"]
-  static values = { lat: Number, lng: Number }
+  static targets = ["hint", "control"]
+  static values = { lat: Number, lng: Number, guest: Boolean, locationId: String }
 
   connect() {
     this.sending = false
-    this.element.addEventListener("submit", this.capture)
+    // A guest has no form to submit, so the button reports its own press.
+    this.event = this.guestValue ? "click" : "submit"
+    this.element.addEventListener(this.event, this.capture)
+    this.unsubscribe = positionService.subscribe(() => {})
+    if (this.guestValue && guestVisitsService.has(this.locationIdValue)) this.restoreVisited()
+  }
+
+  // Explore deals unvisited places only, so a visited one is dropped on a fresh
+  // deal exactly as the server drops it for a signed-in traveller. The walk keeps
+  // its visited steps, and so does a location page.
+  restoreVisited() {
+    const card = this.element.closest("[data-plan-deck-target='card']")
+    const browsing = card?.closest("[data-plan-deck-browse-value='true']")
+    if (!browsing) return this.markVisited()
+
+    ;(card.closest(".snap-start") || card).remove()
   }
 
   disconnect() {
-    this.element.removeEventListener("submit", this.capture)
+    this.element.removeEventListener(this.event, this.capture)
+    this.unsubscribe?.()
   }
 
   capture = (event) => {
     if (this.sending) return
     event.preventDefault()
 
+    // Out of this event first: requestSubmit() is ignored while the submit it
+    // would re-trigger is still being dispatched.
+    const here = positionService.fresh()
+    if (here) return setTimeout(() => this.evaluate(here.latitude, here.longitude), 0)
     if (!navigator.geolocation) return this.showEnableLocation()
+
+    // Nothing held yet — the first press on this page waits for one fix.
     navigator.geolocation.getCurrentPosition(
       (position) => this.evaluate(position.coords.latitude, position.coords.longitude),
       () => this.showEnableLocation(),
-      // Coarse bands (100m/500m/1km) don't need a fresh high-accuracy lock;
-      // maximumAge reuses a recent fix so repeated swipes resolve instantly.
-      { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 }
+      { enableHighAccuracy: true, timeout: 10000 }
     )
   }
 
   evaluate(lat, lng) {
     const distanceKm = this.distance(lat, lng, this.latValue, this.lngValue)
-    if (distanceKm <= 0.1) return this.submitWith(lat, lng)
+    if (distanceKm <= 0.1) return this.guestValue ? this.recordGuestVisit() : this.submitWith(lat, lng)
     this.showHint(distanceKm, this.bearing(lat, lng, this.latValue, this.lngValue))
   }
 
@@ -39,6 +61,22 @@ export default class extends Controller {
     form.querySelector('input[name="user_lng"]').value = lng
     this.sending = true
     form.requestSubmit()
+  }
+
+  // Only the place is remembered, never where the traveller stood.
+  recordGuestVisit() {
+    this.sending = true
+    guestVisitsService.add(this.locationIdValue)
+    this.markVisited()
+  }
+
+  markVisited() {
+    if (this.hasControlTarget) this.controlTarget.classList.add("hidden")
+    if (this.hasHintTarget) this.hintTarget.classList.add("hidden")
+    const card = this.element.closest("[data-plan-deck-target='card']")
+    card?.setAttribute("data-plan-deck-visited", "true")
+    const scope = this.element.closest("[data-walk-visited]") || card || this.element.parentElement
+    scope?.querySelector("[data-visited-badge]")?.classList.remove("hidden")
   }
 
   showHint(distanceKm, direction) {

@@ -1,6 +1,4 @@
 class ExploreBosniaController < ApplicationController
-  before_action :require_login, only: :experience
-
   rescue_from ActiveRecord::RecordNotFound, with: :redirect_to_menu
 
   PAGE_SIZE = 10
@@ -24,12 +22,11 @@ class ExploreBosniaController < ApplicationController
 
   ALL_CATEGORIES = "all"
 
+  # The tile grid is gone: entry is the deck itself, which asks for a position and
+  # says so while it waits.
   def show
-    @tile_keys = BROWSE_TILES.keys
     lat, lng = origin
-    return if lat.nil?
-
-    redirect_to explore_bosnia_experience_path(ALL_CATEGORIES, lat: lat, lng: lng)
+    redirect_to explore_bosnia_experience_path(ALL_CATEGORIES, **(lat ? { lat: lat, lng: lng } : {}))
   end
 
   def experience
@@ -50,7 +47,9 @@ class ExploreBosniaController < ApplicationController
     @budget = params.key?(:budget) ? params[:budget].presence : Location.budgets.keys.last
     @min_rating = params[:min_rating].presence
 
-    @plan = Plan.explore_bosnia_for(current_user)
+    # A guest has no plan to hang check-ins on; theirs stay on the device until
+    # they sign in, so the deck is dealt without one.
+    @plan = Plan.explore_bosnia_for(current_user) if logged_in?
     from = cursor
     @locations, @has_more = dealt_locations(cursor: from)
     @next_cursor = @has_more ? [ @locations.last.distance, @locations.last.id ] : nil
@@ -126,7 +125,7 @@ class ExploreBosniaController < ApplicationController
   def dealt_locations(skip_visited: true, cursor: nil)
     scope = Location.with_coordinates
     scope = scope.where(id: tile_location_ids) if @type_keys.any?
-    scope = scope.where.not(id: current_user.plan_visits.select(:location_id)) if skip_visited
+    scope = scope.where.not(id: current_user.plan_visits.select(:location_id)) if skip_visited && logged_in?
     scope = apply_filters(scope)
     scope = scope.includes(photos_attachments: :blob)
                  .near([ @lat, @lng ], RADIUS_KM, units: :km)
