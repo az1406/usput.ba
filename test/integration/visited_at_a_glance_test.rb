@@ -62,11 +62,20 @@ class VisitedAtAGlanceTest < ActionDispatch::IntegrationTest
                   ActionView::RecordIdentifier.dom_id(@visited, :moments_frame), count: 1
   end
 
-  test "a guest gets no moments frame on the location page" do
+  test "a guest sees a place's moments too, on the plan-free route" do
     get location_path(@visited)
 
     assert_response :success
-    assert_select "turbo-frame[id^='moments_frame_']", count: 0
+    assert_select "turbo-frame[id=?][loading='lazy']",
+                  ActionView::RecordIdentifier.dom_id(@visited, :moments_frame), count: 1
+    assert_select "turbo-frame[src=?]",
+                  location_moments_path(@visited.uuid, context: "location"), count: 1
+  end
+
+  test "a guest reads a place's public moments without a plan" do
+    get location_moments_path(@visited.uuid, context: "location")
+
+    assert_response :success
   end
 
   private

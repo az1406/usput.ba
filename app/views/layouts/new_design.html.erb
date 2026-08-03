@@ -7,6 +7,11 @@
     <%# The sync services read the session from here, so it belongs on every
         layout — without it they treat a signed-in traveller as a guest. %>
     <meta name="user-logged-in" content="<%= logged_in? ? 'true' : 'false' %>">
+    <%# And the store key is derived from here, so a page missing it would put
+        this traveller's profile back under the name every account shares. %>
+    <% if logged_in? %>
+      <meta name="travel-store-scope" content="<%= travel_store_scope %>">
+    <% end %>
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
 

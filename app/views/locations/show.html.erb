@@ -87,8 +87,9 @@
 
         <%# Right side - Action buttons %>
         <div class="flex flex-wrap gap-3 lg:flex-col lg:w-auto">
-          <%# Action buttons %>
-          <div class="flex gap-2 flex-wrap">
+          <%# Action buttons. items-start so the check-in's distance hint grows
+              downward without stretching the buttons beside it. %>
+          <div class="flex items-start gap-2 flex-wrap">
             <%# Curator Edit Button %>
             <% if current_user_can_curate? %>
               <%= link_to curator_location_path(@location),
@@ -154,7 +155,9 @@
             <% end %>
             <%# The same control the deck and the walk render — one check-in. %>
             <%= render "shared/check_in", location: @location, plan: @moments_plan, icon: true,
-                  button_class: "inline-flex items-center space-x-2 px-4 py-2.5 bg-gray-100 dark:bg-gray-800 rounded-xl hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer",
+                  button_class: "inline-flex items-center space-x-2 px-4 py-2.5 bg-gray-100 dark:bg-gray-800 rounded-xl hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors group cursor-pointer",
+                  icon_class: "w-5 h-5 text-gray-600 dark:text-gray-300 group-hover:text-emerald-500 transition-colors",
+                  label_class: "text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-emerald-500 transition-colors",
                   wrapper_class: "inline-block" %>
             <% end %>
           </div>
@@ -430,13 +433,11 @@
 
         <%# Moments — your own plus everyone's public ones. Loads on scroll so
             the page above it is not held up. %>
-        <% if logged_in? %>
-          <div class="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg mb-6">
-            <turbo-frame id="<%= dom_id(@location, :moments_frame) %>"
-                         src="<%= plan_moments_path(@moments_plan, location_id: @location.uuid, context: "location") %>"
-                         loading="lazy"></turbo-frame>
-          </div>
-        <% end %>
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg mb-6">
+          <turbo-frame id="<%= dom_id(@location, :moments_frame) %>"
+                       src="<%= @moments_plan ? plan_moments_path(@moments_plan, location_id: @location.uuid, context: "location") : location_moments_path(@location.uuid, context: "location") %>"
+                       loading="lazy"></turbo-frame>
+        </div>
 
         <%# Reviews Section %>
         <div class="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg">

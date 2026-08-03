@@ -17,7 +17,7 @@
     <%= csp_meta_tag %>
     <meta name="user-logged-in" content="<%= logged_in? ? 'true' : 'false' %>">
     <% if logged_in? %>
-      <meta name="user-id" content="<%= current_user.uuid %>">
+      <meta name="travel-store-scope" content="<%= travel_store_scope %>">
     <% end %>
 
     <%= yield :head %>

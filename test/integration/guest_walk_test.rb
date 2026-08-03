@@ -57,7 +57,7 @@ class GuestWalkTest < ActionDispatch::IntegrationTest
 
     post login_path, params: {
       username: user.username, password: "password123",
-      guest_visits_data: [ { "id" => @location.uuid } ].to_json
+      travel_profile_data: { "visited" => [ { "id" => @location.uuid, "type" => "location" } ] }.to_json
     }
 
     plan = Plan.explore_bosnia_for(user)
@@ -70,7 +70,7 @@ class GuestWalkTest < ActionDispatch::IntegrationTest
     assert_difference "PlanVisit.count", 1 do
       post register_path, params: {
         user: { username: "fresh", password: "password123", password_confirmation: "password123" },
-        guest_visits_data: [ { "id" => @location.uuid } ].to_json
+        travel_profile_data: { "visited" => [ { "id" => @location.uuid, "type" => "location" } ] }.to_json
       }
     end
 
@@ -78,6 +78,50 @@ class GuestWalkTest < ActionDispatch::IntegrationTest
     assert_equal [ @location.id ], user.plan_visits.pluck(:location_id)
   ensure
     User.find_by(username: "fresh")&.destroy
+  end
+
+  # The importer writes its rows with a bulk insert, so it never went near the
+  # counters. It no longer has to: they are read from the rows it wrote.
+  test "a walk carried in at the door is counted" do
+    user = User.create!(username: "counted", password: "password123")
+
+    post login_path, params: {
+      username: user.username, password: "password123",
+      travel_profile_data: { "visited" => [ { "id" => @location.uuid, "type" => "location" } ] }.to_json
+    }
+
+    stats = user.reload.travel_profile_data["stats"]
+    assert_equal 1, stats["totalVisits"]
+    assert_includes stats["citiesVisited"], "Sarajevo"
+  ensure
+    user&.destroy
+  end
+
+  test "signing in from a browser holding no profile leaves the account's favourites" do
+    user = User.create!(username: "favouriting", password: "password123")
+    user.merge_travel_profile({ "favorites" => [ { "id" => @location.uuid, "type" => "location" } ] })
+
+    post login_path, params: {
+      username: user.username, password: "password123",
+      travel_profile_data: { "visited" => [], "favorites" => [] }.to_json
+    }
+
+    assert_equal [ @location.uuid ], user.reload.travel_profile_data["favorites"].map { |item| item["id"] }
+  ensure
+    user&.destroy
+  end
+
+  test "signing in carries a plan built without an account" do
+    user = User.create!(username: "planner", password: "password123")
+
+    assert_difference "user.plans.count", 1 do
+      post login_path, params: {
+        username: user.username, password: "password123",
+        plans_data: [ { "city_name" => "Sarajevo", "duration_days" => 2 } ].to_json
+      }
+    end
+  ensure
+    user&.destroy
   end
 
   test "signing in with nothing held on the device changes nothing" do
@@ -90,13 +134,26 @@ class GuestWalkTest < ActionDispatch::IntegrationTest
     user&.destroy
   end
 
+  test "the profile sync cannot add a visit once the traveller is signed in" do
+    user = User.create!(username: "already_in", password: "password123")
+    post login_path, params: { username: user.username, password: "password123" }
+
+    assert_no_difference "PlanVisit.count" do
+      post sync_travel_profile_path, params: {
+        travel_profile_data: { "visited" => [ { "id" => @location.uuid, "type" => "location" } ] }.to_json
+      }
+    end
+  ensure
+    user&.destroy
+  end
+
   test "a bad password imports nothing, even with visits attached" do
     user = User.create!(username: "wrong_key", password: "password123")
 
     assert_no_difference "PlanVisit.count" do
       post login_path, params: {
         username: user.username, password: "not-the-password",
-        guest_visits_data: [ { "id" => @location.uuid } ].to_json
+        travel_profile_data: { "visited" => [ { "id" => @location.uuid, "type" => "location" } ] }.to_json
       }
     end
   ensure

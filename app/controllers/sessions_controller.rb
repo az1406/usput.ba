@@ -1,4 +1,6 @@
 class SessionsController < ApplicationController
+  include SyncsLocalData
+
   def new
     return redirect_to root_path if logged_in?
 
@@ -11,18 +13,8 @@ class SessionsController < ApplicationController
     if user&.authenticate(params[:password])
       log_in(user)
 
-      # Merge travel profile from localStorage if provided
-      if params[:travel_profile_data].present?
-        begin
-          profile_data = JSON.parse(params[:travel_profile_data])
-          user.merge_travel_profile(profile_data)
-        rescue JSON::ParserError
-          # Ignore invalid JSON
-        end
-      end
-
-      # Check-ins made before signing in join the traveller's explore walk.
-      GuestVisitsImporter.new(user: user, payload: params[:guest_visits_data]).call
+      merge_local_profile(user, params[:travel_profile_data])
+      sync_local_plans(user, params[:plans_data])
 
       respond_to do |format|
         format.html { redirect_to session.delete(:return_to) || root_path, notice: t("auth.login_success") }

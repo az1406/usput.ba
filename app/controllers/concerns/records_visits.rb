@@ -21,36 +21,13 @@ module RecordsVisits
     !helpers.geofence_disabled?
   end
 
+  # The row is the whole record of the act. The profile's counters used to be
+  # written here too; they are projected from these rows now, so an import that
+  # never came through this path reports the same numbers a check-in does.
   def record_visit_for(plan, location)
-    visit = current_user.plan_visits.find_or_create_by!(plan: plan, location: location)
-    touch_visit_stats(location)
-    visit
+    current_user.plan_visits.find_or_create_by!(plan: plan, location: location)
   rescue ActiveRecord::RecordNotUnique
     # A double-tap raced us to the insert; the visit exists either way.
     nil
-  end
-
-  # Lives here rather than on one surface: the profile's counters used to be
-  # updated by the location page's check-in and by nothing else, so the same act
-  # moved the badges on one screen and not on another.
-  def touch_visit_stats(location)
-    current_data = current_user.travel_profile_data
-    stats = current_data["stats"] || {}
-    stats["totalVisits"] = current_user.plan_visits.distinct.count(:location_id)
-
-    if location.city.present? && !stats["citiesVisited"]&.include?(location.city)
-      stats["citiesVisited"] = (stats["citiesVisited"] || []) + [ location.city ]
-    end
-
-    season = Location.current_season
-    stats["seasonsVisited"] = (stats["seasonsVisited"] || []) + [ season ] unless stats["seasonsVisited"]&.include?(season)
-
-    current_user.update!(
-      # `visited` is projected from PlanVisit, never stored — see User#travel_profile_data.
-      travel_profile_data: current_data.except("visited").merge(
-        "stats" => stats,
-        "updatedAt" => Time.current.iso8601
-      )
-    )
   end
 end

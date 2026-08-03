@@ -1,10 +1,13 @@
 import { Controller } from "@hotwired/stimulus"
-import { guestVisitsService } from "services/guest_visits_service"
+import { travelProfileService } from "services/travel_profile_service"
 import { positionService } from "services/position_service"
 
 export default class extends Controller {
   static targets = ["hint", "control"]
-  static values = { lat: Number, lng: Number, guest: Boolean, locationId: String }
+  static values = {
+    lat: Number, lng: Number, guest: Boolean,
+    locationId: String, locationName: String, locationCity: String, locationTags: Array
+  }
 
   connect() {
     this.sending = false
@@ -12,7 +15,7 @@ export default class extends Controller {
     this.event = this.guestValue ? "click" : "submit"
     this.element.addEventListener(this.event, this.capture)
     this.unsubscribe = positionService.subscribe(() => {})
-    if (this.guestValue && guestVisitsService.has(this.locationIdValue)) this.restoreVisited()
+    if (this.guestValue && travelProfileService.isVisited(this.locationIdValue)) this.restoreVisited()
   }
 
   // Explore deals unvisited places only, so a visited one is dropped on a fresh
@@ -63,10 +66,15 @@ export default class extends Controller {
     form.requestSubmit()
   }
 
-  // Only the place is remembered, never where the traveller stood.
+  // The place is remembered, never where the traveller stood.
   recordGuestVisit() {
     this.sending = true
-    guestVisitsService.add(this.locationIdValue)
+    travelProfileService.markVisited({
+      id: this.locationIdValue,
+      name: this.locationNameValue,
+      city: this.locationCityValue,
+      tags: this.locationTagsValue
+    })
     this.markVisited()
   }
 
@@ -76,7 +84,8 @@ export default class extends Controller {
     const card = this.element.closest("[data-plan-deck-target='card']")
     card?.setAttribute("data-plan-deck-visited", "true")
     const scope = this.element.closest("[data-walk-visited]") || card || this.element.parentElement
-    scope?.querySelector("[data-visited-badge]")?.classList.remove("hidden")
+    scope?.querySelectorAll("[data-visited-badge]").forEach(el => el.classList.remove("hidden"))
+    scope?.querySelectorAll("[data-visited-hide]").forEach(el => el.classList.add("hidden"))
   }
 
   showHint(distanceKm, direction) {

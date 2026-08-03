@@ -5,16 +5,17 @@ import "controllers"
 
 ActiveStorage.start()
 import { planSyncService } from "services/plan_sync_service"
-import { guestVisitsService } from "services/guest_visits_service"
+import { travelProfileService } from "services/travel_profile_service"
 
 // Auto-sync plans when logged in user loads the page
 // This ensures localStorage is updated with server data (including UUIDs) after registration/login
 document.addEventListener("turbo:load", async () => {
-  // Sign-in imported whatever the device was holding, and the database is the
-  // truth from here — a leftover copy would only ever go stale.
-  if (guestVisitsService.isLoggedIn()) guestVisitsService.clear()
-
   if (planSyncService.isLoggedIn()) {
+    // Before anything reads the profile: the claim has to reach the pages that
+    // never read it, or the walk stays under the bare key on the home page a
+    // traveller lands on after signing in.
+    travelProfileService.claimUnscopedStore()
+
     // Only sync if there are local plans that might need UUID updates
     const localPlans = planSyncService.getLocalPlans()
     const needsSync = localPlans.some(plan => !plan.uuid || !plan.synced)

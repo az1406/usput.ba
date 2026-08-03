@@ -107,15 +107,21 @@ class User < ApplicationRecord
     update!(activity_count_today: 0)
   end
 
-  # Default travel profile structure. `visited` is always projected from
-  # PlanVisit — the browser holds a copy, never the truth, because a native
-  # app and a second device have to see the same visits.
+  # Default travel profile structure. `visited` and `stats` are always projected
+  # from PlanVisit — the browser holds a copy, never the truth, because a native
+  # app and a second device have to see the same visits. Both come off one load
+  # of the rows, and neither is memoized: `reload` does not clear a custom ivar,
+  # so a cached projection would outlive the check-in that invalidated it.
   def travel_profile_data
-    (super.presence || default_travel_profile).merge("visited" => visited_profile_entries)
+    visits = visits_for_profile
+    (super.presence || default_travel_profile).merge(
+      "visited" => visited_profile_entries(visits),
+      "stats" => visit_stats(visits)
+    )
   end
 
-  def visited_profile_entries
-    plan_visits.includes(:location).order(created_at: :desc).uniq(&:location_id).map do |visit|
+  def visited_profile_entries(visits = visits_for_profile)
+    visits.uniq(&:location_id).map do |visit|
       {
         "id" => visit.location.uuid,
         "type" => "location",
@@ -127,9 +133,21 @@ class User < ApplicationRecord
     end
   end
 
-  # Merge incoming profile data with existing. `visited` is not merged — it is
-  # derived from PlanVisit, so whatever the client sends is discarded.
-  # For badges, savedPlans, and recentlyViewed, we merge to avoid losing data.
+  # Cities and seasons come off every visit rather than the deduplicated list:
+  # returning to one place in a later season must not retire the season the
+  # first walk there earned.
+  def visit_stats(visits = visits_for_profile)
+    {
+      "totalVisits" => visits.uniq(&:location_id).size,
+      "citiesVisited" => visits.filter_map { |visit| visit.location.city.presence }.uniq,
+      "seasonsVisited" => visits.map { |visit| Location.season_for(visit.created_at) }.uniq
+    }
+  end
+
+  # Merge incoming profile data with existing. `visited` and `stats` are not
+  # merged — both are derived from PlanVisit, so whatever the client sends is
+  # discarded. For badges, savedPlans, and recentlyViewed, we merge to avoid
+  # losing data.
   def merge_travel_profile(incoming_data)
     return if incoming_data.blank?
 
@@ -137,21 +155,52 @@ class User < ApplicationRecord
     merged = {
       "createdAt" => [ current_data["createdAt"], incoming_data["createdAt"] ].compact.min,
       "updatedAt" => Time.current.iso8601,
-      "favorites" => incoming_data["favorites"] || current_data["favorites"] || [],
+      "favorites" => merge_favorites(current_data, incoming_data),
       "recentlyViewed" => (current_data["recentlyViewed"].to_a + incoming_data["recentlyViewed"].to_a)
                            .uniq { |item| item["id"] }
                            .sort_by { |item| item["viewedAt"] || "" }
                            .reverse
                            .first(20),
       "badges" => merge_arrays_by_id(current_data["badges"], incoming_data["badges"]),
-      "savedPlans" => merge_arrays_by_id(current_data["savedPlans"], incoming_data["savedPlans"]),
-      "stats" => incoming_data["stats"] || current_data["stats"] || {}
+      "savedPlans" => merge_arrays_by_id(current_data["savedPlans"], incoming_data["savedPlans"])
     }
 
     update!(travel_profile_data: merged)
   end
 
   private
+
+  def visits_for_profile
+    plan_visits.includes(:location).order(created_at: :desc).to_a
+  end
+
+  # Favourites have no server-side source to recompute from, so the device stays
+  # their owner — but a device holding no profile yet sends an empty list, and an
+  # empty array is truthy in Ruby. Nothing said is not the same as delete these.
+  def merge_favorites(current_data, incoming_data)
+    incoming = incoming_data["favorites"]
+    current = current_data["favorites"].to_a
+    return current if incoming.blank?
+    return incoming if current.empty?
+
+    client_copy_newer?(current_data, incoming_data) ? incoming : current
+  end
+
+  def client_copy_newer?(current_data, incoming_data)
+    incoming_at = parsed_profile_time(incoming_data["updatedAt"])
+    return true if incoming_at.nil?
+
+    current_at = parsed_profile_time(current_data["updatedAt"])
+    current_at.nil? || incoming_at >= current_at
+  end
+
+  # The two sides stamp in different formats — Rails writes a zoned iso8601, the
+  # browser writes UTC with milliseconds — so the strings cannot be compared.
+  def parsed_profile_time(value)
+    Time.iso8601(value.to_s)
+  rescue ArgumentError, TypeError
+    nil
+  end
 
   def reset_activity_count_if_needed!
     if activity_count_reset_at.nil? || activity_count_reset_at < Time.current.beginning_of_day
@@ -182,17 +231,6 @@ class User < ApplicationRecord
   def merge_arrays_by_id(arr1, arr2)
     combined = (arr1.to_a + arr2.to_a)
     combined.group_by { |item| item["id"] }.map { |_id, items| items.last }
-  end
-
-  def merge_stats(stats1, stats2)
-    stats1 ||= {}
-    stats2 ||= {}
-
-    {
-      "totalVisits" => [ stats1["totalVisits"].to_i, stats2["totalVisits"].to_i ].max,
-      "citiesVisited" => ((stats1["citiesVisited"] || []) + (stats2["citiesVisited"] || [])).uniq,
-      "seasonsVisited" => ((stats1["seasonsVisited"] || []) + (stats2["seasonsVisited"] || [])).uniq
-    }
   end
 
   def acceptable_avatar

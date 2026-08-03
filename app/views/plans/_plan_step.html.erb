@@ -9,14 +9,17 @@
      data-walk-visited="<%= visited %>">
     <div class="flex items-start gap-4">
       <% unless overlay %>
-        <span class="flex size-9 flex-shrink-0 items-center justify-center rounded-full <%= visited ? "bg-emerald-600" : "bg-emerald-100 dark:bg-emerald-900/30" %>">
-          <svg class="size-5 <%= visited ? "text-white" : "text-emerald-600 dark:text-emerald-400" %>" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <% if visited %>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-            <% else %>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-            <% end %>
+        <%# Both states are rendered so a guest's check-in can swap them from
+            localStorage, the way the label badge already does. %>
+        <span class="flex size-9 flex-shrink-0 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30 <%= "hidden" if visited %>" data-visited-hide>
+          <svg class="size-5 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+          </svg>
+        </span>
+        <span class="flex size-9 flex-shrink-0 items-center justify-center rounded-full bg-emerald-600 <%= "hidden" unless visited %>" data-visited-badge>
+          <svg class="size-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
           </svg>
         </span>
       <% end %>
@@ -64,6 +67,7 @@
       <%# One button on every screen: swiping used to stand in for it on mobile,
           and there is no swipe left to stand in. %>
       <%= render "shared/check_in", location: location, plan: plan, context: step_context,
-            button_class: check_class, wrapper_class: (overlay ? "text-center" : "mt-4") %>
+            button_class: check_class, wrapper_class: (overlay ? "text-center" : "mt-4"),
+            hint_class: (overlay ? "flex w-fit mx-auto" : "flex w-fit") %>
     <% end %>
   </div>

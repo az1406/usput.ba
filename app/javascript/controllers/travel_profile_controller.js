@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import { travelProfileService } from "services/travel_profile_service"
 
 // Travel Profile Controller
 // Manages user's travel data in localStorage including:
@@ -46,7 +47,6 @@ export default class extends Controller {
     translations: Object // I18n translations passed from Rails
   }
 
-  static STORAGE_KEY = "usput_travel_profile"
   static BADGES = {
     first_visit: { id: "first_visit", name: "Prvi Korak", nameEn: "First Step", icon: "👣", description: "Posjetio prvu lokaciju" },
     explorer_5: { id: "explorer_5", name: "Istraživač", nameEn: "Explorer", icon: "🧭", description: "Posjetio 5 lokacija" },
@@ -151,13 +151,14 @@ export default class extends Controller {
 
   // Load profile from localStorage
   loadProfile() {
-    const stored = localStorage.getItem(this.constructor.STORAGE_KEY)
-    this.profile = stored ? JSON.parse(stored) : this.defaultProfile()
+    this.profile = travelProfileService.read()
   }
 
   // Save profile to localStorage and optionally sync to server
   saveProfile() {
-    localStorage.setItem(this.constructor.STORAGE_KEY, JSON.stringify(this.profile))
+    // The check-in writes visits directly; ours is a stale copy.
+    this.profile.visited = travelProfileService.visited()
+    travelProfileService.write(this.profile)
     this.updateUI()
 
     // If user is logged in, sync to server
@@ -223,8 +224,11 @@ export default class extends Controller {
         if (data.success && data.travel_profile_data) {
           // Merge server data with local data
           this.profile = data.travel_profile_data
-          localStorage.setItem(this.constructor.STORAGE_KEY, JSON.stringify(this.profile))
+          travelProfileService.write(this.profile)
           this.updateUI()
+          // `visited` came back projected from PlanVisit, so a check-in made on
+          // another surface — or on another device — earns its badge here.
+          this.checkBadges()
           this.updateSyncStatus("synced")
         }
       } else {
@@ -259,20 +263,7 @@ export default class extends Controller {
 
   // Default profile structure
   defaultProfile() {
-    return {
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      visited: [], // { id, type, name, visitedAt, city, tags }
-      favorites: [], // { id, type, name, addedAt }
-      recentlyViewed: [], // { id, type, name, viewedAt } - last 20
-      badges: [], // { id, earnedAt }
-      savedPlans: [], // { id, name, savedAt, data }
-      stats: {
-        totalVisits: 0,
-        citiesVisited: [],
-        seasonsVisited: []
-      }
-    }
+    return travelProfileService.defaultProfile()
   }
 
   // Track current page view
@@ -333,82 +324,16 @@ export default class extends Controller {
     this.saveProfile()
   }
 
-  // Mark location as visited - requires geolocation validation
+  // The rules live with the store that holds the walk, so a check-in earns the
+  // same badges whether or not this controller is on the page. Here they are
+  // persisted and shown.
   checkBadges() {
-    const newBadges = []
-    const visited = this.profile.visited
-    const favorites = this.profile.favorites
+    const earned = travelProfileService.awardBadges(this.profile)
+    if (earned.length === 0) return
 
-    // First visit
-    if (visited.length >= 1 && !this.hasBadge("first_visit")) {
-      newBadges.push("first_visit")
-    }
-
-    // Explorer badges
-    if (visited.length >= 5 && !this.hasBadge("explorer_5")) {
-      newBadges.push("explorer_5")
-    }
-    if (visited.length >= 10 && !this.hasBadge("explorer_10")) {
-      newBadges.push("explorer_10")
-    }
-    if (visited.length >= 25 && !this.hasBadge("explorer_25")) {
-      newBadges.push("explorer_25")
-    }
-
-    // Culture lover
-    const culturalVisits = visited.filter(v =>
-      v.tags && (v.tags.includes("culture") || v.tags.includes("history") || v.tags.includes("museum"))
-    ).length
-    if (culturalVisits >= 5 && !this.hasBadge("culture_lover")) {
-      newBadges.push("culture_lover")
-    }
-
-    // Foodie
-    const foodVisits = visited.filter(v =>
-      v.type === "restaurant" || (v.tags && v.tags.includes("food"))
-    ).length
-    if (foodVisits >= 5 && !this.hasBadge("foodie")) {
-      newBadges.push("foodie")
-    }
-
-    // Nature lover
-    const natureVisits = visited.filter(v =>
-      v.tags && (v.tags.includes("nature") || v.tags.includes("park") || v.tags.includes("mountain"))
-    ).length
-    if (natureVisits >= 5 && !this.hasBadge("nature_lover")) {
-      newBadges.push("nature_lover")
-    }
-
-    // City hopper
-    if (this.profile.stats.citiesVisited.length >= 3 && !this.hasBadge("city_hopper")) {
-      newBadges.push("city_hopper")
-    }
-
-    // All seasons
-    if (this.profile.stats.seasonsVisited.length >= 4 && !this.hasBadge("all_seasons")) {
-      newBadges.push("all_seasons")
-    }
-
-    // Collector
-    if (favorites.length >= 10 && !this.hasBadge("collector")) {
-      newBadges.push("collector")
-    }
-
-    // Award new badges
-    newBadges.forEach(badgeId => {
-      this.profile.badges.push({
-        id: badgeId,
-        earnedAt: new Date().toISOString()
-      })
-      const badge = this.constructor.BADGES[badgeId]
-      this.showBadgeEarned(badge)
-    })
+    this.saveProfile()
+    earned.forEach(badgeId => this.showBadgeEarned(this.constructor.BADGES[badgeId]))
   }
-
-  hasBadge(badgeId) {
-    return this.profile.badges.some(b => b.id === badgeId)
-  }
-
 
   // Update UI elements
   updateUI() {

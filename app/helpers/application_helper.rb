@@ -6,6 +6,16 @@ module ApplicationHelper
     current_user_admin?
   end
 
+  # Names the traveller's device store without naming the traveller. The browser
+  # keeps its profile reads synchronous, and its only digest is asynchronous, so
+  # the hash is taken here — which also stops the account id being left behind on
+  # a shared machine. Obfuscation, not a boundary: the page carries it in clear.
+  def travel_store_scope
+    return nil unless logged_in?
+
+    Digest::SHA256.hexdigest(current_user.uuid)[0, 16]
+  end
+
   # Curator-supplied urls are rendered as hrefs, and Rails does not escape the
   # scheme — `javascript:alert(1)` would run on click. Only absolute http(s)
   # survives; anything else comes back nil so the caller prints text instead.

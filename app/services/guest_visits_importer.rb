@@ -10,7 +10,7 @@
 # rather than starting a new one.
 #
 # Usage:
-#   GuestVisitsImporter.new(user: user, payload: params[:guest_visits_data]).call
+#   GuestVisitsImporter.new(user: user, payload: profile_data["visited"]).call
 #
 class GuestVisitsImporter
   # A walk is a few dozen places; anything past this is a malformed or hostile
@@ -68,14 +68,14 @@ class GuestVisitsImporter
     @location_uuids ||= parsed_payload.filter_map { |entry| uuid_from(entry) }.uniq.first(MAX_VISITS)
   end
 
-  # The device sends its own records, so every shape here is untrusted: entries
-  # may be bare uuid strings or objects, and anything else is dropped silently
-  # rather than failing a sign-in the traveller cannot retry differently.
+  # Untrusted device records: bare uuids or objects, anything else dropped
+  # rather than failing a sign-in. Experiences have no PlanVisit, so they go too.
   def uuid_from(entry)
-    value = entry.is_a?(Hash) ? entry["id"] : entry
-    return nil unless value.is_a?(String)
+    return entry.strip.presence if entry.is_a?(String)
+    return nil unless entry.is_a?(Hash)
+    return nil unless entry["type"].nil? || entry["type"] == "location"
 
-    value.strip.presence
+    entry["id"].is_a?(String) ? entry["id"].strip.presence : nil
   end
 
   def parsed_payload
