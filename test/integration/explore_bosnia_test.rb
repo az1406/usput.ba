@@ -30,6 +30,26 @@ class ExploreBosniaTest < ActionDispatch::IntegrationTest
     @admin&.destroy
   end
 
+  # The deck's keyset cursor interpolates Geocoder's distance expression into
+  # SQL, which Brakeman flags. Verified 2026-08-04: Geocoder coerces its own
+  # coordinates, so a raw injection string yields the same numeric SQL as a
+  # float — our to_f is a second belt, not the load-bearing one — and the cursor
+  # is bound besides. This asserts on the SQL text rather than the response,
+  # because a request returning 200 says nothing about what reached the database.
+  test "coordinates and cursor cannot carry sql into the deck query" do
+    injection = "43.3'); DROP TABLE locations; --"
+    statements = []
+    sub = ActiveSupport::Notifications.subscribe("sql.active_record") { |*, payload| statements << payload[:sql] }
+
+    get explore_bosnia_experience_path("all"),
+        params: { lat: injection, lng: injection,
+                  after_distance: injection, after_id: injection }
+
+    ActiveSupport::Notifications.unsubscribe(sub)
+    offending = statements.select { |sql| sql.include?("DROP TABLE") }
+    assert_empty offending, "a request value reached the SQL text: #{offending.first}"
+  end
+
   test "entry goes straight to the deck, not to a category grid" do
     get explore_bosnia_path
 

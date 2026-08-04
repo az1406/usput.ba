@@ -18,6 +18,8 @@
      data-map-points-value="<%= map_points.to_json %>"
      data-map-catalogue-value="<%= catalogue %>"
      data-map-catalogue-version-value="<%= catalogue ? map_points_version : 0 %>"
+     data-map-away-label-value="<%= t("explore_bosnia.km_away", km: "%{km}") %>"
+     data-map-load-failed-label-value="<%= t("common.error") %>"
      data-map-user-location-value="true">
   <div class="relative <%= height %> overflow-hidden rounded-xl bg-gray-100 dark:bg-gray-700 z-0" data-map-target="container">
     <%# The place beside the map. Fullscreen only — the card has no room. %>

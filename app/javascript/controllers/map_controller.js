@@ -8,6 +8,9 @@ const L = window.L
 // Below this the pins stand alone: a town fits on screen, which is where the
 // operator wants to stop seeing bubbles.
 const CLUSTER_UNTIL_ZOOM = 13
+// Past this nobody is walking, so asking the routing service is a request that
+// was always going to be refused. Show the distance instead.
+const MAX_WALKING_KM = 30
 // Every map on the page wants the same catalogue, and the explore reel mounts
 // one per card. Fetch it once per page, and keep it for the session so moving
 // between places does not re-download the country. The version is the newest
@@ -29,7 +32,7 @@ function catalogue(version) {
   }
 
   cataloguePromise = fetch("/locations/map_points", { headers: { Accept: "application/json" } })
-    .then((response) => (response.ok ? response.json() : []))
+    .then((response) => (response.ok ? response.json() : Promise.reject(new Error(response.status))))
     .then((points) => {
       try {
         Object.keys(sessionStorage)
@@ -42,8 +45,10 @@ function catalogue(version) {
       return points
     })
     .catch(() => {
+      // null is "we could not load", [] is "there is nothing" — the map says
+      // different things about each, and a retry is only sane for the first.
       cataloguePromise = null
-      return []
+      return null
     })
 
   return cataloguePromise
@@ -62,6 +67,8 @@ export default class extends Controller {
     userLocation: Boolean,
     catalogue: Boolean,
     catalogueVersion: Number,
+    awayLabel: String,
+    loadFailedLabel: String,
   }
 
   connect() {
@@ -129,7 +136,9 @@ export default class extends Controller {
   // go blocks the main thread once the country is in it.
   async #loadCatalogue() {
     const points = await catalogue(this.catalogueVersionValue)
-    if (!this.map || points.length === 0) return
+    if (!this.map) return
+    if (points === null) return this.#showChip(this.loadFailedLabelValue)
+    if (points.length === 0) return
 
     this.clusters = L.markerClusterGroup({
       chunkedLoading: true,
@@ -309,6 +318,9 @@ export default class extends Controller {
   // The real walking route when the proxy can deliver one; a straight dashed
   // line otherwise — routing degrades, it never breaks the map.
   async #drawPath(here, target) {
+    const km = this.#distanceKm(here[0], here[1], target.lat, target.lng)
+    if (km > MAX_WALKING_KM) return this.#showTooFar(here, target, km)
+
     try {
       const query = new URLSearchParams({ from_lat: here[0], from_lng: here[1], to_lat: target.lat, to_lng: target.lng })
       const response = await fetch(`/route?${query}`, { headers: { Accept: "application/json" } })
@@ -319,19 +331,43 @@ export default class extends Controller {
       this.#addRouteChip(route)
       if (firstDraw) this.map.fitBounds(route.points, { padding: [30, 30], maxZoom: 16 })
     } catch {
+      // The dashed fallback needs framing as much as a real route does — more,
+      // since routing fails exactly when the two points are far apart.
       this.routeLayer = L.polyline([here, [target.lat, target.lng]], { color: "#2563eb", weight: 3, opacity: 0.7, dashArray: "6 6" }).addTo(this.map)
+      this.#frame([here, [target.lat, target.lng]])
     }
   }
 
+  // Too far to walk: no line implying a path, just where it is and how far.
+  #showTooFar(here, target, km) {
+    this.#addDistanceChip(km)
+    this.#frame([here, [target.lat, target.lng]])
+  }
+
+  // Phones have less room than the desktop route framing assumes, and two
+  // distant points would otherwise zoom out past anything legible.
+  #frame(points) {
+    const tight = this.containerTarget.clientWidth < 480
+    this.map.fitBounds(points, { padding: tight ? [16, 16] : [30, 30], maxZoom: 15 })
+  }
+
   #addRouteChip(route) {
+    const km = (route.distance_m / 1000).toFixed(1)
+    const min = Math.max(1, Math.round(route.duration_s / 60))
+    this.#showChip(`${km} km · ${min} min`)
+  }
+
+  #addDistanceChip(km) {
+    this.#showChip(this.awayLabelValue.replace("%{km}", km.toFixed(0)))
+  }
+
+  #showChip(text) {
     this.routeChip?.remove()
     const chip = L.control({ position: "bottomleft" })
     chip.onAdd = () => {
       const el = L.DomUtil.create("div")
       el.className = "rounded-full bg-white/95 px-3 py-1 text-xs font-semibold text-gray-900 shadow dark:bg-gray-900/90 dark:text-gray-100"
-      const km = (route.distance_m / 1000).toFixed(1)
-      const min = Math.max(1, Math.round(route.duration_s / 60))
-      el.textContent = `${km} km · ${min} min`
+      el.textContent = text
       return el
     }
     chip.addTo(this.map)

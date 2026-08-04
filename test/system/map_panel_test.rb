@@ -6,7 +6,9 @@ require "application_system_test_case"
 class MapPanelTest < ApplicationSystemTestCase
   setup do
     @first = Location.create!(name: "Sys Bridge", city: "Mostar", lat: 43.337, lng: 17.815)
-    @second = Location.create!(name: "Sys Mosque", city: "Mostar", lat: 43.338, lng: 17.816)
+    # Far enough apart that the pins neither cluster nor overlap at the default
+    # zoom, close enough that both sit in the viewport.
+    @second = Location.create!(name: "Sys Mosque", city: "Mostar", lat: 43.3425, lng: 17.815)
   end
 
   teardown do
@@ -26,7 +28,18 @@ class MapPanelTest < ApplicationSystemTestCase
     page.execute_script("window.__stillHere = true")
 
     find("[data-map-target='fullscreenButton']").click
-    markers = all(".leaflet-marker-icon", minimum: 2)
+
+    # Both places may start inside one cluster; clicking it zooms in and splits
+    # them, which is also how a traveller reaches them.
+    3.times do
+      break if all(".leaflet-marker-icon:not(.marker-cluster)", wait: 2).size >= 2
+      cluster = all(".marker-cluster").first
+      break unless cluster
+
+      cluster.click
+      sleep 0.6
+    end
+    markers = all(".leaflet-marker-icon:not(.marker-cluster)", minimum: 2, wait: 5)
 
     markers.first.click
     assert_selector "turbo-frame#map_panel h1", wait: 5

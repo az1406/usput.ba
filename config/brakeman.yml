@@ -1,0 +1,5 @@
+---
+# The Platform DSL is upstream's code, not ours to sign off on. Its warnings are
+# excluded so this scan reports only what we own and can act on.
+:skip_files:
+  - lib/platform/
