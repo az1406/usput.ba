@@ -29,6 +29,13 @@ module ApplicationHelper
     nil
   end
 
+  # Stamps the catalogue so a browser holding an old copy can tell. Rails builds
+  # this from count plus max(updated_at) in one query — seconds alone collide
+  # when several places are written inside the same second.
+  def map_points_version
+    Location.all.cache_key_with_version.parameterize
+  end
+
   # Where signing in should land the visitor. A frame is fetched at its own url,
   # so for those the page to come back to is the one that asked for the frame.
   def sign_in_return_path

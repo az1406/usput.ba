@@ -411,6 +411,23 @@ class Location < ApplicationRecord
   end
 
   # Get primary category (first one marked as primary, or just first one)
+  # One read for the whole catalogue. Going through primary_category instead
+  # would be a lookup per record, and the map is not a bounded render.
+  # LEFT JOIN: an uncategorised place still belongs on the map.
+  def self.map_points
+    places
+      .where.not(lat: nil, lng: nil)
+      .joins(<<~SQL.squish)
+        LEFT JOIN location_category_assignments
+          ON location_category_assignments.location_id = locations.id
+         AND location_category_assignments.primary = TRUE
+        LEFT JOIN location_categories
+          ON location_categories.id = location_category_assignments.location_category_id
+      SQL
+      .pluck(:uuid, :lat, :lng, "location_categories.key")
+      .map { |uuid, lat, lng, key| { id: uuid, lat: lat.to_f, lng: lng.to_f, category: key } }
+  end
+
   def primary_category
     location_category_assignments.find_by(primary: true)&.location_category ||
       location_categories.first

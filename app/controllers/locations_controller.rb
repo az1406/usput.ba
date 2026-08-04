@@ -1,4 +1,6 @@
 class LocationsController < ApplicationController
+  MAP_POINTS_TTL = 1.hour
+
   rescue_from ActiveRecord::RecordNotFound, with: :redirect_to_explore
 
   def show
@@ -37,7 +39,25 @@ class LocationsController < ApplicationController
     @location = Location.find_by_public_id!(params[:id])
   end
 
+  def map_points
+    points = Rails.cache.fetch(map_points_cache_key, expires_in: MAP_POINTS_TTL) { Location.map_points }
+
+    render json: points
+  end
+
+
+  def map_panel
+    location = Location.includes(:reviews).find_by_public_id!(params[:id])
+
+    render partial: "locations/map_panel", locals: { location: location }
+  end
+
   private
+
+  # Content edits are the only thing that moves the catalogue.
+  def map_points_cache_key
+    "locations/map_points/#{I18n.locale}/#{helpers.map_points_version}"
+  end
 
   def redirect_to_explore
     redirect_to explore_path, alert: I18n.t("locations.not_found", default: "Location not found. Explore other destinations.")

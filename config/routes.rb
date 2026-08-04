@@ -70,12 +70,16 @@ Rails.application.routes.draw do
 
   # Locations (index removed - use /explore instead)
   resources :locations, only: [ :show ] do
+    collection do
+      get :map_points
+    end
     resources :reviews, only: [ :index, :create ]
     # Reading a place's moments needs no plan — a guest walking explore mode has
     # none. Writing one still does, and stays on the plan-nested route below.
     resources :moments, only: [ :index ]
     member do
       get :audio_tour
+      get :map_panel
     end
   end
 

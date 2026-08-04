@@ -510,7 +510,7 @@
 
         <%# Map %>
         <% if @location.lat && @location.lng %>
-          <%= render "map", location: @location, nearby_locations: @nearby_locations %>
+          <%= render "map", location: @location %>
         <% end %>
 
         <%# Nearby Locations %>
