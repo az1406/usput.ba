@@ -4,7 +4,9 @@ class UsersController < ApplicationController
   before_action :require_login, only: [ :update_avatar, :remove_avatar ]
 
   def new
-    redirect_to root_path if logged_in?
+    return redirect_to root_path if logged_in?
+
+    remember_origin_for_sign_in
     @user = User.new
   end
 
@@ -18,7 +20,7 @@ class UsersController < ApplicationController
       synced_plans = sync_local_plans(@user, params[:plans_data])
 
       respond_to do |format|
-        format.html { redirect_to root_path, notice: t("auth.registration_success") }
+        format.html { redirect_to session.delete(:return_to) || root_path, notice: t("auth.registration_success") }
         format.json { render json: { success: true, user: user_json(@user), plans: synced_plans } }
       end
     else

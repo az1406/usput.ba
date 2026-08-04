@@ -31,6 +31,40 @@ class SessionsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to root_path
   end
 
+  # === Returning the visitor where they were ===
+
+  test "signing in returns the visitor to the page they came from" do
+    get login_path, headers: { "HTTP_REFERER" => explore_path }
+
+    post login_path, params: { username: @user.username, password: "password123" }
+
+    assert_redirected_to explore_path
+  end
+
+  test "an explicit return_to wins over the referring page" do
+    get login_path(return_to: profile_page_path), headers: { "HTTP_REFERER" => explore_path }
+
+    post login_path, params: { username: @user.username, password: "password123" }
+
+    assert_redirected_to profile_page_path
+  end
+
+  test "arriving from the register page does not bounce the visitor back to it" do
+    get login_path, headers: { "HTTP_REFERER" => register_path }
+
+    post login_path, params: { username: @user.username, password: "password123" }
+
+    assert_redirected_to root_path
+  end
+
+  test "a visitor who typed the login url lands on the home page" do
+    get login_path
+
+    post login_path, params: { username: @user.username, password: "password123" }
+
+    assert_redirected_to root_path
+  end
+
   # === Create action tests (HTML format) ===
 
   test "create logs in user with valid credentials" do

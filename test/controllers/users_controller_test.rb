@@ -23,6 +23,21 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test "registering returns the visitor to the page they came from" do
+    get register_path, headers: { "HTTP_REFERER" => explore_path }
+
+    post register_path, params: {
+      user: {
+        username: "returning_user",
+        password: "password123",
+        password_confirmation: "password123"
+      }
+    }
+
+    assert_redirected_to explore_path
+    User.find_by(username: "returning_user")&.destroy
+  end
+
   test "new redirects to root when already logged in" do
     post login_path, params: { username: @existing_user.username, password: "password123" }
 

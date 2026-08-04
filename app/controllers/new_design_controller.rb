@@ -185,21 +185,6 @@ class NewDesignController < ApplicationController
     scope.page(@moments_page).per(PER_PAGE)
   end
 
-  # Build queries without Browse (when no search query)
-  def build_direct_queries(search_types)
-    if search_types.include?("location")
-      @locations = build_locations_query
-    end
-
-    if search_types.include?("experience")
-      @experiences = build_experiences_query
-    end
-
-    if search_types.include?("plan")
-      @plans = build_plans_query
-    end
-  end
-
   # Build locations from Browse results
   def build_locations_from_browse(base_browse)
     # Get matching location IDs from Browse

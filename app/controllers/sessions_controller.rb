@@ -4,7 +4,7 @@ class SessionsController < ApplicationController
   def new
     return redirect_to root_path if logged_in?
 
-    remember_where_we_were(params[:return_to]) if params[:return_to].present?
+    remember_origin_for_sign_in
   end
 
   def create
