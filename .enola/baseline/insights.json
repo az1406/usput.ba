@@ -1,0 +1,2417 @@
+[
+  {
+    "title": "Cyclic dependency detected (7 modules)",
+    "source": "cycles",
+    "description": "The following modules form a dependency cycle: app/jobs -\u003e app/models -\u003e app/models/concerns -\u003e app/services -\u003e app/services/ai -\u003e app/services/ai/location_enricher -\u003e app/services/mine_checker -\u003e app/jobs. This can cause initialization issues, make refactoring harder, and indicates tight coupling.",
+    "confidence": 1,
+    "evidence": [
+      {
+        "fact": "app/jobs",
+        "detail": "module \"app/jobs\" is part of the cycle"
+      },
+      {
+        "fact": "app/models",
+        "detail": "module \"app/models\" is part of the cycle"
+      },
+      {
+        "fact": "app/models/concerns",
+        "detail": "module \"app/models/concerns\" is part of the cycle"
+      },
+      {
+        "fact": "app/services",
+        "detail": "module \"app/services\" is part of the cycle"
+      },
+      {
+        "fact": "app/services/ai",
+        "detail": "module \"app/services/ai\" is part of the cycle"
+      },
+      {
+        "fact": "app/services/ai/location_enricher",
+        "detail": "module \"app/services/ai/location_enricher\" is part of the cycle"
+      },
+      {
+        "fact": "app/services/mine_checker",
+        "detail": "module \"app/services/mine_checker\" is part of the cycle"
+      }
+    ],
+    "suggested_actions": [
+      "Introduce an interface to break the cycle",
+      "Extract shared types to a separate package",
+      "Consider merging tightly coupled modules"
+    ]
+  },
+  {
+    "title": "Cyclic dependency detected (2 modules)",
+    "source": "cycles",
+    "description": "The following modules form a dependency cycle: lib/platform/dsl -\u003e lib/platform/dsl/executors -\u003e lib/platform/dsl. This can cause initialization issues, make refactoring harder, and indicates tight coupling.",
+    "confidence": 1,
+    "evidence": [
+      {
+        "fact": "lib/platform/dsl",
+        "detail": "module \"lib/platform/dsl\" is part of the cycle"
+      },
+      {
+        "fact": "lib/platform/dsl/executors",
+        "detail": "module \"lib/platform/dsl/executors\" is part of the cycle"
+      }
+    ],
+    "suggested_actions": [
+      "Introduce an interface to break the cycle",
+      "Extract shared types to a separate package",
+      "Consider merging tightly coupled modules"
+    ]
+  },
+  {
+    "title": "Architecture pattern: rails-mvc",
+    "source": "layers",
+    "description": "Detected rails-mvc architecture pattern with 59% confidence. Found 7 layers with 23 classified modules.",
+    "confidence": 0.5868055555555556,
+    "evidence": [
+      {
+        "fact": "app/controllers",
+        "detail": "module \"app/controllers\" maps to layer \"controller\""
+      },
+      {
+        "fact": "app/controllers/concerns",
+        "detail": "module \"app/controllers/concerns\" maps to layer \"controller\""
+      },
+      {
+        "fact": "app/controllers/curator",
+        "detail": "module \"app/controllers/curator\" maps to layer \"controller\""
+      },
+      {
+        "fact": "app/controllers/curator/admin",
+        "detail": "module \"app/controllers/curator/admin\" maps to layer \"controller\""
+      },
+      {
+        "fact": "app/controllers/plans",
+        "detail": "module \"app/controllers/plans\" maps to layer \"controller\""
+      },
+      {
+        "fact": "app/helpers",
+        "detail": "module \"app/helpers\" maps to layer \"helper\""
+      },
+      {
+        "fact": "app/jobs",
+        "detail": "module \"app/jobs\" maps to layer \"job\""
+      },
+      {
+        "fact": "app/mailers",
+        "detail": "module \"app/mailers\" maps to layer \"mailer\""
+      },
+      {
+        "fact": "app/models",
+        "detail": "module \"app/models\" maps to layer \"model\""
+      },
+      {
+        "fact": "app/models/concerns",
+        "detail": "module \"app/models/concerns\" maps to layer \"model\""
+      },
+      {
+        "fact": "app/services",
+        "detail": "module \"app/services\" maps to layer \"service\""
+      },
+      {
+        "fact": "app/services/ai",
+        "detail": "module \"app/services/ai\" maps to layer \"service\""
+      },
+      {
+        "fact": "app/services/ai/concerns",
+        "detail": "module \"app/services/ai/concerns\" maps to layer \"service\""
+      },
+      {
+        "fact": "app/services/ai/location_enricher",
+        "detail": "module \"app/services/ai/location_enricher\" maps to layer \"service\""
+      },
+      {
+        "fact": "app/services/geo",
+        "detail": "module \"app/services/geo\" maps to layer \"service\""
+      },
+      {
+        "fact": "app/services/maps",
+        "detail": "module \"app/services/maps\" maps to layer \"service\""
+      },
+      {
+        "fact": "app/services/mine_checker",
+        "detail": "module \"app/services/mine_checker\" maps to layer \"service\""
+      },
+      {
+        "fact": "lib",
+        "detail": "module \"lib\" maps to layer \"lib\""
+      },
+      {
+        "fact": "lib/platform",
+        "detail": "module \"lib/platform\" maps to layer \"lib\""
+      },
+      {
+        "fact": "lib/platform/dsl",
+        "detail": "module \"lib/platform/dsl\" maps to layer \"lib\""
+      },
+      {
+        "fact": "lib/platform/dsl/executors",
+        "detail": "module \"lib/platform/dsl/executors\" maps to layer \"lib\""
+      },
+      {
+        "fact": "lib/platform/services",
+        "detail": "module \"lib/platform/services\" maps to layer \"service\""
+      },
+      {
+        "fact": "lib/tasks",
+        "detail": "module \"lib/tasks\" maps to layer \"lib\""
+      }
+    ],
+    "suggested_actions": [
+      "Ensure new code follows the detected layer structure",
+      "Review cross-layer dependencies for violations"
+    ]
+  },
+  {
+    "title": "High fan-in symbol: Location (164 dependents)",
+    "source": "god-class",
+    "description": "\"Location\" is depended upon by 164 other symbols — well above the repo average. High fan-in concentrates change risk: edits here ripple across many call sites, and it often indicates a missing or overly broad abstraction.",
+    "confidence": 0.95,
+    "evidence": [
+      {
+        "file": "app/models/location.rb",
+        "symbol": "Location",
+        "detail": "164 symbols depend on this"
+      },
+      {
+        "symbol": "Ai::ExperienceLocationSyncer#find_location_in_database",
+        "detail": "depends on Location"
+      },
+      {
+        "symbol": "Ai::ExperienceLocationSyncer#get_city_coordinates",
+        "detail": "depends on Location"
+      },
+      {
+        "symbol": "Ai::ExperienceLocationSyncerTest",
+        "detail": "depends on Location"
+      },
+      {
+        "symbol": "Ai::ExperienceTypeClassifier#classify_missing",
+        "detail": "depends on Location"
+      },
+      {
+        "symbol": "Ai::ExperienceTypeClassifierTest",
+        "detail": "depends on Location"
+      },
+      {
+        "symbol": "Ai::LocationEnricher#create_and_enrich",
+        "detail": "depends on Location"
+      },
+      {
+        "symbol": "Ai::LocationEnricher::ApplicatorTest",
+        "detail": "depends on Location"
+      },
+      {
+        "symbol": "Ai::LocationEnricherTest",
+        "detail": "depends on Location"
+      }
+    ],
+    "suggested_actions": [
+      "Split the symbol along distinct responsibilities its callers use",
+      "Introduce narrower interfaces so callers depend only on what they need",
+      "Stabilize its public contract to limit churn for dependents"
+    ]
+  },
+  {
+    "title": "High fan-in symbol: User (75 dependents)",
+    "source": "god-class",
+    "description": "\"User\" is depended upon by 75 other symbols — well above the repo average. High fan-in concentrates change risk: edits here ripple across many call sites, and it often indicates a missing or overly broad abstraction.",
+    "confidence": 0.95,
+    "evidence": [
+      {
+        "file": "app/models/user.rb",
+        "symbol": "User",
+        "detail": "75 symbols depend on this"
+      },
+      {
+        "symbol": "Authenticatable#current_user",
+        "detail": "depends on User"
+      },
+      {
+        "symbol": "AuthenticatableTest",
+        "detail": "depends on User"
+      },
+      {
+        "symbol": "ContentChangeTest",
+        "detail": "depends on User"
+      },
+      {
+        "symbol": "Curator::Admin::BaseControllerTest",
+        "detail": "depends on User"
+      },
+      {
+        "symbol": "Curator::Admin::ContentChangesControllerTest",
+        "detail": "depends on User"
+      },
+      {
+        "symbol": "Curator::Admin::CuratorApplicationsControllerTest",
+        "detail": "depends on User"
+      },
+      {
+        "symbol": "Curator::Admin::PhotoSuggestionsControllerTest",
+        "detail": "depends on User"
+      },
+      {
+        "symbol": "Curator::Admin::UsersController#index",
+        "detail": "depends on User"
+      }
+    ],
+    "suggested_actions": [
+      "Split the symbol along distinct responsibilities its callers use",
+      "Introduce narrower interfaces so callers depend only on what they need",
+      "Stabilize its public contract to limit churn for dependents"
+    ]
+  },
+  {
+    "title": "High fan-in symbol: Experience (65 dependents)",
+    "source": "god-class",
+    "description": "\"Experience\" is depended upon by 65 other symbols — well above the repo average. High fan-in concentrates change risk: edits here ripple across many call sites, and it often indicates a missing or overly broad abstraction.",
+    "confidence": 0.95,
+    "evidence": [
+      {
+        "file": "app/models/experience.rb",
+        "symbol": "Experience",
+        "detail": "65 symbols depend on this"
+      },
+      {
+        "symbol": "Browse.rebuild_all!",
+        "detail": "depends on Experience"
+      },
+      {
+        "symbol": "Browse.syncable?",
+        "detail": "depends on Experience"
+      },
+      {
+        "symbol": "BrowseAdapter.attributes_for",
+        "detail": "depends on Experience"
+      },
+      {
+        "symbol": "BrowseAdapterTest",
+        "detail": "depends on Experience"
+      },
+      {
+        "symbol": "BrowseTest",
+        "detail": "depends on Experience"
+      },
+      {
+        "symbol": "ContentChangeTest",
+        "detail": "depends on Experience"
+      },
+      {
+        "symbol": "Curator::DashboardController#index",
+        "detail": "depends on Experience"
+      },
+      {
+        "symbol": "Curator::ExperiencesController#create",
+        "detail": "depends on Experience"
+      }
+    ],
+    "suggested_actions": [
+      "Split the symbol along distinct responsibilities its callers use",
+      "Introduce narrower interfaces so callers depend only on what they need",
+      "Stabilize its public contract to limit churn for dependents"
+    ]
+  },
+  {
+    "title": "High fan-in symbol: Plan (65 dependents)",
+    "source": "god-class",
+    "description": "\"Plan\" is depended upon by 65 other symbols — well above the repo average. High fan-in concentrates change risk: edits here ripple across many call sites, and it often indicates a missing or overly broad abstraction.",
+    "confidence": 0.95,
+    "evidence": [
+      {
+        "file": "app/models/plan.rb",
+        "symbol": "Plan",
+        "detail": "65 symbols depend on this"
+      },
+      {
+        "symbol": "Browse.rebuild_all!",
+        "detail": "depends on Plan"
+      },
+      {
+        "symbol": "Browse.syncable?",
+        "detail": "depends on Plan"
+      },
+      {
+        "symbol": "BrowseAdapter.attributes_for",
+        "detail": "depends on Plan"
+      },
+      {
+        "symbol": "BrowseAdapterTest",
+        "detail": "depends on Plan"
+      },
+      {
+        "symbol": "BrowseTest",
+        "detail": "depends on Plan"
+      },
+      {
+        "symbol": "Curator::DashboardController#index",
+        "detail": "depends on Plan"
+      },
+      {
+        "symbol": "Curator::MomentsControllerTest",
+        "detail": "depends on Plan"
+      },
+      {
+        "symbol": "Curator::PlansController#create",
+        "detail": "depends on Plan"
+      }
+    ],
+    "suggested_actions": [
+      "Split the symbol along distinct responsibilities its callers use",
+      "Introduce narrower interfaces so callers depend only on what they need",
+      "Stabilize its public contract to limit churn for dependents"
+    ]
+  },
+  {
+    "title": "High fan-in symbol: ContentChange (35 dependents)",
+    "source": "god-class",
+    "description": "\"ContentChange\" is depended upon by 35 other symbols — well above the repo average. High fan-in concentrates change risk: edits here ripple across many call sites, and it often indicates a missing or overly broad abstraction.",
+    "confidence": 0.95,
+    "evidence": [
+      {
+        "file": "app/models/content_change.rb",
+        "symbol": "ContentChange",
+        "detail": "35 symbols depend on this"
+      },
+      {
+        "symbol": "ContentChangeTest",
+        "detail": "depends on ContentChange"
+      },
+      {
+        "symbol": "Curator::Admin::ContentChangesController#index",
+        "detail": "depends on ContentChange"
+      },
+      {
+        "symbol": "Curator::Admin::ContentChangesController#set_content_change",
+        "detail": "depends on ContentChange"
+      },
+      {
+        "symbol": "Curator::Admin::ContentChangesControllerTest",
+        "detail": "depends on ContentChange"
+      },
+      {
+        "symbol": "Curator::AudioToursController#destroy",
+        "detail": "depends on ContentChange"
+      },
+      {
+        "symbol": "Curator::AudioToursController#update",
+        "detail": "depends on ContentChange"
+      },
+      {
+        "symbol": "Curator::AudioToursControllerTest",
+        "detail": "depends on ContentChange"
+      },
+      {
+        "symbol": "Curator::BaseController#pending_proposal_for",
+        "detail": "depends on ContentChange"
+      }
+    ],
+    "suggested_actions": [
+      "Split the symbol along distinct responsibilities its callers use",
+      "Introduce narrower interfaces so callers depend only on what they need",
+      "Stabilize its public contract to limit churn for dependents"
+    ]
+  },
+  {
+    "title": "High fan-in symbol: ExperienceType (33 dependents)",
+    "source": "god-class",
+    "description": "\"ExperienceType\" is depended upon by 33 other symbols — well above the repo average. High fan-in concentrates change risk: edits here ripple across many call sites, and it often indicates a missing or overly broad abstraction.",
+    "confidence": 0.95,
+    "evidence": [
+      {
+        "file": "app/models/experience_type.rb",
+        "symbol": "ExperienceType",
+        "detail": "33 symbols depend on this"
+      },
+      {
+        "symbol": "Ai::ExperienceTypeClassifier#available_types_description",
+        "detail": "depends on ExperienceType"
+      },
+      {
+        "symbol": "Ai::ExperienceTypeClassifier#valid_type?",
+        "detail": "depends on ExperienceType"
+      },
+      {
+        "symbol": "Ai::ExperienceTypeClassifierTest",
+        "detail": "depends on ExperienceType"
+      },
+      {
+        "symbol": "Ai::LocationEnricher#supported_experience_types",
+        "detail": "depends on ExperienceType"
+      },
+      {
+        "symbol": "Ai::LocationEnricher::Base#supported_experience_types",
+        "detail": "depends on ExperienceType"
+      },
+      {
+        "symbol": "Ai::LocationEnricher::MetadataGeneratorTest",
+        "detail": "depends on ExperienceType"
+      },
+      {
+        "symbol": "Curator::LocationsController#load_form_options",
+        "detail": "depends on ExperienceType"
+      },
+      {
+        "symbol": "Curator::LocationsControllerTest",
+        "detail": "depends on ExperienceType"
+      }
+    ],
+    "suggested_actions": [
+      "Split the symbol along distinct responsibilities its callers use",
+      "Introduce narrower interfaces so callers depend only on what they need",
+      "Stabilize its public contract to limit churn for dependents"
+    ]
+  },
+  {
+    "title": "High fan-in symbol: Platform::DSL (23 dependents)",
+    "source": "god-class",
+    "description": "\"Platform::DSL\" is depended upon by 23 other symbols — well above the repo average. High fan-in concentrates change risk: edits here ripple across many call sites, and it often indicates a missing or overly broad abstraction.",
+    "confidence": 0.95,
+    "evidence": [
+      {
+        "file": "lib/platform/dsl/content_validator.rb",
+        "symbol": "Platform::DSL",
+        "detail": "23 symbols depend on this"
+      },
+      {
+        "symbol": "Platform::CLI#execute_batch",
+        "detail": "depends on Platform::DSL"
+      },
+      {
+        "symbol": "Platform::CLI#execute_single",
+        "detail": "depends on Platform::DSL"
+      },
+      {
+        "symbol": "Platform::CLI#query",
+        "detail": "depends on Platform::DSL"
+      },
+      {
+        "symbol": "Platform::DSL::ApprovalTest",
+        "detail": "depends on Platform::DSL"
+      },
+      {
+        "symbol": "Platform::DSL::AudioTest",
+        "detail": "depends on Platform::DSL"
+      },
+      {
+        "symbol": "Platform::DSL::ContentValidatorTest",
+        "detail": "depends on Platform::DSL"
+      },
+      {
+        "symbol": "Platform::DSL::CuratorTest",
+        "detail": "depends on Platform::DSL"
+      },
+      {
+        "symbol": "Platform::DSL::ExecutorTest",
+        "detail": "depends on Platform::DSL"
+      }
+    ],
+    "suggested_actions": [
+      "Split the symbol along distinct responsibilities its callers use",
+      "Introduce narrower interfaces so callers depend only on what they need",
+      "Stabilize its public contract to limit churn for dependents"
+    ]
+  },
+  {
+    "title": "High fan-in symbol: Platform::DSL.execute (23 dependents)",
+    "source": "god-class",
+    "description": "\"Platform::DSL.execute\" is depended upon by 23 other symbols — well above the repo average. High fan-in concentrates change risk: edits here ripple across many call sites, and it often indicates a missing or overly broad abstraction.",
+    "confidence": 0.95,
+    "evidence": [
+      {
+        "file": "lib/platform/dsl.rb",
+        "symbol": "Platform::DSL.execute",
+        "detail": "23 symbols depend on this"
+      },
+      {
+        "symbol": "Platform::CLI#execute_batch",
+        "detail": "depends on Platform::DSL.execute"
+      },
+      {
+        "symbol": "Platform::CLI#execute_single",
+        "detail": "depends on Platform::DSL.execute"
+      },
+      {
+        "symbol": "Platform::CLI#query",
+        "detail": "depends on Platform::DSL.execute"
+      },
+      {
+        "symbol": "Platform::DSL",
+        "detail": "depends on Platform::DSL.execute"
+      },
+      {
+        "symbol": "Platform::DSL::ApprovalTest",
+        "detail": "depends on Platform::DSL.execute"
+      },
+      {
+        "symbol": "Platform::DSL::AudioTest",
+        "detail": "depends on Platform::DSL.execute"
+      },
+      {
+        "symbol": "Platform::DSL::ContentValidatorTest",
+        "detail": "depends on Platform::DSL.execute"
+      },
+      {
+        "symbol": "Platform::DSL::CuratorTest",
+        "detail": "depends on Platform::DSL.execute"
+      }
+    ],
+    "suggested_actions": [
+      "Split the symbol along distinct responsibilities its callers use",
+      "Introduce narrower interfaces so callers depend only on what they need",
+      "Stabilize its public contract to limit churn for dependents"
+    ]
+  },
+  {
+    "title": "High fan-in symbol: Identifiable (22 dependents)",
+    "source": "god-class",
+    "description": "\"Identifiable\" is depended upon by 22 other symbols — well above the repo average. High fan-in concentrates change risk: edits here ripple across many call sites, and it often indicates a missing or overly broad abstraction.",
+    "confidence": 0.922258575818578,
+    "evidence": [
+      {
+        "file": "app/models/concerns/identifiable.rb",
+        "symbol": "Identifiable",
+        "detail": "22 symbols depend on this"
+      },
+      {
+        "symbol": "AudioTour",
+        "detail": "depends on Identifiable"
+      },
+      {
+        "symbol": "AudioTour -\u003e Identifiable",
+        "detail": "depends on Identifiable"
+      },
+      {
+        "symbol": "CuratorApplication",
+        "detail": "depends on Identifiable"
+      },
+      {
+        "symbol": "CuratorApplication -\u003e Identifiable",
+        "detail": "depends on Identifiable"
+      },
+      {
+        "symbol": "Experience",
+        "detail": "depends on Identifiable"
+      },
+      {
+        "symbol": "Experience -\u003e Identifiable",
+        "detail": "depends on Identifiable"
+      },
+      {
+        "symbol": "ExperienceCategory",
+        "detail": "depends on Identifiable"
+      },
+      {
+        "symbol": "ExperienceCategory -\u003e Identifiable",
+        "detail": "depends on Identifiable"
+      }
+    ],
+    "suggested_actions": [
+      "Split the symbol along distinct responsibilities its callers use",
+      "Introduce narrower interfaces so callers depend only on what they need",
+      "Stabilize its public contract to limit churn for dependents"
+    ]
+  },
+  {
+    "title": "High fan-in symbol: Ai::OpenaiQueue (21 dependents)",
+    "source": "god-class",
+    "description": "\"Ai::OpenaiQueue\" is depended upon by 21 other symbols — well above the repo average. High fan-in concentrates change risk: edits here ripple across many call sites, and it often indicates a missing or overly broad abstraction.",
+    "confidence": 0.880337731463188,
+    "evidence": [
+      {
+        "file": "app/services/ai/openai_queue.rb",
+        "symbol": "Ai::OpenaiQueue",
+        "detail": "21 symbols depend on this"
+      },
+      {
+        "symbol": "Ai::AudioTourGenerator#generate_tour_script",
+        "detail": "depends on Ai::OpenaiQueue"
+      },
+      {
+        "symbol": "Ai::AudioTourGeneratorTest",
+        "detail": "depends on Ai::OpenaiQueue"
+      },
+      {
+        "symbol": "Ai::AudioTourGeneratorTest#stub_ai_queue_response",
+        "detail": "depends on Ai::OpenaiQueue"
+      },
+      {
+        "symbol": "Ai::ExperienceLocationSyncer#extract_locations_from_description",
+        "detail": "depends on Ai::OpenaiQueue"
+      },
+      {
+        "symbol": "Ai::ExperienceLocationSyncerTest",
+        "detail": "depends on Ai::OpenaiQueue"
+      },
+      {
+        "symbol": "Ai::ExperienceTypeClassifier#ai_classify_location",
+        "detail": "depends on Ai::OpenaiQueue"
+      },
+      {
+        "symbol": "Ai::ExperienceTypeClassifierTest#stub_ai_error",
+        "detail": "depends on Ai::OpenaiQueue"
+      },
+      {
+        "symbol": "Ai::ExperienceTypeClassifierTest#stub_ai_response",
+        "detail": "depends on Ai::OpenaiQueue"
+      }
+    ],
+    "suggested_actions": [
+      "Split the symbol along distinct responsibilities its callers use",
+      "Introduce narrower interfaces so callers depend only on what they need",
+      "Stabilize its public contract to limit churn for dependents"
+    ]
+  },
+  {
+    "title": "High fan-in symbol: Moment (21 dependents)",
+    "source": "god-class",
+    "description": "\"Moment\" is depended upon by 21 other symbols — well above the repo average. High fan-in concentrates change risk: edits here ripple across many call sites, and it often indicates a missing or overly broad abstraction.",
+    "confidence": 0.880337731463188,
+    "evidence": [
+      {
+        "file": "app/models/moment.rb",
+        "symbol": "Moment",
+        "detail": "21 symbols depend on this"
+      },
+      {
+        "symbol": "Browse.syncable?",
+        "detail": "depends on Moment"
+      },
+      {
+        "symbol": "BrowseAdapter.attributes_for",
+        "detail": "depends on Moment"
+      },
+      {
+        "symbol": "Curator::MomentsController#index",
+        "detail": "depends on Moment"
+      },
+      {
+        "symbol": "Curator::MomentsController#photo",
+        "detail": "depends on Moment"
+      },
+      {
+        "symbol": "Curator::MomentsController#set_moment",
+        "detail": "depends on Moment"
+      },
+      {
+        "symbol": "Curator::MomentsControllerTest",
+        "detail": "depends on Moment"
+      },
+      {
+        "symbol": "ExploreBosniaTest",
+        "detail": "depends on Moment"
+      },
+      {
+        "symbol": "MomentPhotoAccessTest",
+        "detail": "depends on Moment"
+      }
+    ],
+    "suggested_actions": [
+      "Split the symbol along distinct responsibilities its callers use",
+      "Introduce narrower interfaces so callers depend only on what they need",
+      "Stabilize its public contract to limit churn for dependents"
+    ]
+  },
+  {
+    "title": "High fan-in symbol: Platform::DSL::ExecutionError (21 dependents)",
+    "source": "god-class",
+    "description": "\"Platform::DSL::ExecutionError\" is depended upon by 21 other symbols — well above the repo average. High fan-in concentrates change risk: edits here ripple across many call sites, and it often indicates a missing or overly broad abstraction.",
+    "confidence": 0.880337731463188,
+    "evidence": [
+      {
+        "file": "lib/platform/dsl.rb",
+        "symbol": "Platform::DSL::ExecutionError",
+        "detail": "21 symbols depend on this"
+      },
+      {
+        "symbol": "Platform::CLI#exec",
+        "detail": "depends on Platform::DSL::ExecutionError"
+      },
+      {
+        "symbol": "Platform::CLI#execute_batch",
+        "detail": "depends on Platform::DSL::ExecutionError"
+      },
+      {
+        "symbol": "Platform::CLI#query",
+        "detail": "depends on Platform::DSL::ExecutionError"
+      },
+      {
+        "symbol": "Platform::DSL::ApprovalTest",
+        "detail": "depends on Platform::DSL::ExecutionError"
+      },
+      {
+        "symbol": "Platform::DSL::AudioTest",
+        "detail": "depends on Platform::DSL::ExecutionError"
+      },
+      {
+        "symbol": "Platform::DSL::ContentValidatorTest",
+        "detail": "depends on Platform::DSL::ExecutionError"
+      },
+      {
+        "symbol": "Platform::DSL::CuratorTest",
+        "detail": "depends on Platform::DSL::ExecutionError"
+      },
+      {
+        "symbol": "Platform::DSL::ExecutorTest",
+        "detail": "depends on Platform::DSL::ExecutionError"
+      }
+    ],
+    "suggested_actions": [
+      "Split the symbol along distinct responsibilities its callers use",
+      "Introduce narrower interfaces so callers depend only on what they need",
+      "Stabilize its public contract to limit churn for dependents"
+    ]
+  },
+  {
+    "title": "High fan-in symbol: AudioTour (18 dependents)",
+    "source": "god-class",
+    "description": "\"AudioTour\" is depended upon by 18 other symbols — well above the repo average. High fan-in concentrates change risk: edits here ripple across many call sites, and it often indicates a missing or overly broad abstraction.",
+    "confidence": 0.7545751983970183,
+    "evidence": [
+      {
+        "file": "app/models/audio_tour.rb",
+        "symbol": "AudioTour",
+        "detail": "18 symbols depend on this"
+      },
+      {
+        "symbol": "Curator::AudioToursController#create",
+        "detail": "depends on AudioTour"
+      },
+      {
+        "symbol": "Curator::AudioToursController#index",
+        "detail": "depends on AudioTour"
+      },
+      {
+        "symbol": "Curator::AudioToursController#load_form_options",
+        "detail": "depends on AudioTour"
+      },
+      {
+        "symbol": "Curator::AudioToursController#new",
+        "detail": "depends on AudioTour"
+      },
+      {
+        "symbol": "Curator::AudioToursController#set_audio_tour",
+        "detail": "depends on AudioTour"
+      },
+      {
+        "symbol": "Curator::AudioToursControllerTest",
+        "detail": "depends on AudioTour"
+      },
+      {
+        "symbol": "Curator::DashboardController#calculate_audio_coverage",
+        "detail": "depends on AudioTour"
+      },
+      {
+        "symbol": "Curator::DashboardController#index",
+        "detail": "depends on AudioTour"
+      }
+    ],
+    "suggested_actions": [
+      "Split the symbol along distinct responsibilities its callers use",
+      "Introduce narrower interfaces so callers depend only on what they need",
+      "Stabilize its public contract to limit churn for dependents"
+    ]
+  },
+  {
+    "title": "High fan-in symbol: Review (18 dependents)",
+    "source": "god-class",
+    "description": "\"Review\" is depended upon by 18 other symbols — well above the repo average. High fan-in concentrates change risk: edits here ripple across many call sites, and it often indicates a missing or overly broad abstraction.",
+    "confidence": 0.7545751983970183,
+    "evidence": [
+      {
+        "file": "app/models/review.rb",
+        "symbol": "Review",
+        "detail": "18 symbols depend on this"
+      },
+      {
+        "symbol": "Curator::DashboardController#index",
+        "detail": "depends on Review"
+      },
+      {
+        "symbol": "Curator::ReviewsController#index",
+        "detail": "depends on Review"
+      },
+      {
+        "symbol": "Curator::ReviewsController#set_review",
+        "detail": "depends on Review"
+      },
+      {
+        "symbol": "CuratorShowActionsTest",
+        "detail": "depends on Review"
+      },
+      {
+        "symbol": "ExperiencesController#show",
+        "detail": "depends on Review"
+      },
+      {
+        "symbol": "ExperiencesControllerTest",
+        "detail": "depends on Review"
+      },
+      {
+        "symbol": "ExploreBosniaTest",
+        "detail": "depends on Review"
+      },
+      {
+        "symbol": "LocationsController#show",
+        "detail": "depends on Review"
+      }
+    ],
+    "suggested_actions": [
+      "Split the symbol along distinct responsibilities its callers use",
+      "Introduce narrower interfaces so callers depend only on what they need",
+      "Stabilize its public contract to limit churn for dependents"
+    ]
+  },
+  {
+    "title": "High fan-in symbol: Ai::OpenaiQueue::RequestError (16 dependents)",
+    "source": "god-class",
+    "description": "\"Ai::OpenaiQueue::RequestError\" is depended upon by 16 other symbols — well above the repo average. High fan-in concentrates change risk: edits here ripple across many call sites, and it often indicates a missing or overly broad abstraction.",
+    "confidence": 0.6707335096862385,
+    "evidence": [
+      {
+        "file": "app/services/ai/openai_queue.rb",
+        "symbol": "Ai::OpenaiQueue::RequestError",
+        "detail": "16 symbols depend on this"
+      },
+      {
+        "symbol": "Ai::ExperienceLocationSyncer#extract_locations_from_description",
+        "detail": "depends on Ai::OpenaiQueue::RequestError"
+      },
+      {
+        "symbol": "Ai::ExperienceLocationSyncerTest",
+        "detail": "depends on Ai::OpenaiQueue::RequestError"
+      },
+      {
+        "symbol": "Ai::ExperienceTypeClassifier#ai_classify_location",
+        "detail": "depends on Ai::OpenaiQueue::RequestError"
+      },
+      {
+        "symbol": "Ai::ExperienceTypeClassifierTest#stub_ai_error",
+        "detail": "depends on Ai::OpenaiQueue::RequestError"
+      },
+      {
+        "symbol": "Ai::LocationEnricher#generate_enrichment",
+        "detail": "depends on Ai::OpenaiQueue::RequestError"
+      },
+      {
+        "symbol": "Ai::LocationEnricher::DescriptionGenerator#generate_batch",
+        "detail": "depends on Ai::OpenaiQueue::RequestError"
+      },
+      {
+        "symbol": "Ai::LocationEnricher::DescriptionGeneratorTest",
+        "detail": "depends on Ai::OpenaiQueue::RequestError"
+      },
+      {
+        "symbol": "Ai::LocationEnricher::HistoricalGenerator#generate_batch",
+        "detail": "depends on Ai::OpenaiQueue::RequestError"
+      }
+    ],
+    "suggested_actions": [
+      "Split the symbol along distinct responsibilities its callers use",
+      "Introduce narrower interfaces so callers depend only on what they need",
+      "Stabilize its public contract to limit churn for dependents"
+    ]
+  },
+  {
+    "title": "High fan-in symbol: Setting (16 dependents)",
+    "source": "god-class",
+    "description": "\"Setting\" is depended upon by 16 other symbols — well above the repo average. High fan-in concentrates change risk: edits here ripple across many call sites, and it often indicates a missing or overly broad abstraction.",
+    "confidence": 0.6707335096862385,
+    "evidence": [
+      {
+        "file": "app/models/setting.rb",
+        "symbol": "Setting",
+        "detail": "16 symbols depend on this"
+      },
+      {
+        "symbol": "Ai::AudioTourGenerator#elevenlabs_tts",
+        "detail": "depends on Setting"
+      },
+      {
+        "symbol": "Ai::AudioTourGenerator#get_voice_id",
+        "detail": "depends on Setting"
+      },
+      {
+        "symbol": "Ai::AudioTourGenerator#openai_tts",
+        "detail": "depends on Setting"
+      },
+      {
+        "symbol": "Ai::AudioTourGenerator#tts_provider",
+        "detail": "depends on Setting"
+      },
+      {
+        "symbol": "Ai::AudioTourGenerator.fetch_voices_from_api",
+        "detail": "depends on Setting"
+      },
+      {
+        "symbol": "Ai::AudioTourGeneratorTest",
+        "detail": "depends on Setting"
+      },
+      {
+        "symbol": "Ai::AudioTourGeneratorTest#stub_tts_settings",
+        "detail": "depends on Setting"
+      },
+      {
+        "symbol": "GeoapifyService#api_limit",
+        "detail": "depends on Setting"
+      }
+    ],
+    "suggested_actions": [
+      "Split the symbol along distinct responsibilities its callers use",
+      "Introduce narrower interfaces so callers depend only on what they need",
+      "Stabilize its public contract to limit churn for dependents"
+    ]
+  },
+  {
+    "title": "High fan-in symbol: CuratorActivity (14 dependents)",
+    "source": "god-class",
+    "description": "\"CuratorActivity\" is depended upon by 14 other symbols — well above the repo average. High fan-in concentrates change risk: edits here ripple across many call sites, and it often indicates a missing or overly broad abstraction.",
+    "confidence": 0.5868918209754587,
+    "evidence": [
+      {
+        "file": "app/models/curator_activity.rb",
+        "symbol": "CuratorActivity",
+        "detail": "14 symbols depend on this"
+      },
+      {
+        "symbol": "Curator::Admin::ContentChangesControllerTest",
+        "detail": "depends on CuratorActivity"
+      },
+      {
+        "symbol": "Curator::Admin::CuratorApplicationsControllerTest",
+        "detail": "depends on CuratorActivity"
+      },
+      {
+        "symbol": "Curator::Admin::PhotoSuggestionsControllerTest",
+        "detail": "depends on CuratorActivity"
+      },
+      {
+        "symbol": "Curator::Admin::UsersControllerTest",
+        "detail": "depends on CuratorActivity"
+      },
+      {
+        "symbol": "Curator::AudioToursControllerTest",
+        "detail": "depends on CuratorActivity"
+      },
+      {
+        "symbol": "Curator::BaseController#record_activity",
+        "detail": "depends on CuratorActivity"
+      },
+      {
+        "symbol": "Curator::DashboardController#index",
+        "detail": "depends on CuratorActivity"
+      },
+      {
+        "symbol": "Curator::ExperiencesControllerTest",
+        "detail": "depends on CuratorActivity"
+      }
+    ],
+    "suggested_actions": [
+      "Split the symbol along distinct responsibilities its callers use",
+      "Introduce narrower interfaces so callers depend only on what they need",
+      "Stabilize its public contract to limit churn for dependents"
+    ]
+  },
+  {
+    "title": "High fan-in symbol: Geo::BihBoundaryValidator.inside_bih? (14 dependents)",
+    "source": "god-class",
+    "description": "\"Geo::BihBoundaryValidator.inside_bih?\" is depended upon by 14 other symbols — well above the repo average. High fan-in concentrates change risk: edits here ripple across many call sites, and it often indicates a missing or overly broad abstraction.",
+    "confidence": 0.5868918209754587,
+    "evidence": [
+      {
+        "file": "app/services/geo/bih_boundary_validator.rb",
+        "symbol": "Geo::BihBoundaryValidator.inside_bih?",
+        "detail": "14 symbols depend on this"
+      },
+      {
+        "symbol": "Geo::BihBoundaryValidator",
+        "detail": "depends on Geo::BihBoundaryValidator.inside_bih?"
+      },
+      {
+        "symbol": "Geo::BihBoundaryValidatorTest",
+        "detail": "depends on Geo::BihBoundaryValidator.inside_bih?"
+      },
+      {
+        "symbol": "Platform::DSL::ContentValidator.check_bih_boundaries",
+        "detail": "depends on Geo::BihBoundaryValidator.inside_bih?"
+      },
+      {
+        "symbol": "Platform::DSL::ContentValidator.check_geoapify",
+        "detail": "depends on Geo::BihBoundaryValidator.inside_bih?"
+      },
+      {
+        "symbol": "Platform::DSL::Executors::Content.enrich_location_with_geoapify",
+        "detail": "depends on Geo::BihBoundaryValidator.inside_bih?"
+      },
+      {
+        "symbol": "Platform::DSL::Executors::Content.execute_create",
+        "detail": "depends on Geo::BihBoundaryValidator.inside_bih?"
+      },
+      {
+        "symbol": "Platform::DSL::Executors::Content.execute_update",
+        "detail": "depends on Geo::BihBoundaryValidator.inside_bih?"
+      },
+      {
+        "symbol": "Platform::DSL::Executors::External.geocode_address",
+        "detail": "depends on Geo::BihBoundaryValidator.inside_bih?"
+      }
+    ],
+    "suggested_actions": [
+      "Split the symbol along distinct responsibilities its callers use",
+      "Introduce narrower interfaces so callers depend only on what they need",
+      "Stabilize its public contract to limit churn for dependents"
+    ]
+  },
+  {
+    "title": "High fan-in symbol: Geo::BihBoundaryValidator (13 dependents)",
+    "source": "god-class",
+    "description": "\"Geo::BihBoundaryValidator\" is depended upon by 13 other symbols — well above the repo average. High fan-in concentrates change risk: edits here ripple across many call sites, and it often indicates a missing or overly broad abstraction.",
+    "confidence": 0.5449709766200688,
+    "evidence": [
+      {
+        "file": "app/services/geo/bih_boundary_validator.rb",
+        "symbol": "Geo::BihBoundaryValidator",
+        "detail": "13 symbols depend on this"
+      },
+      {
+        "symbol": "Geo::BihBoundaryValidatorTest",
+        "detail": "depends on Geo::BihBoundaryValidator"
+      },
+      {
+        "symbol": "Platform::DSL::ContentValidator.check_bih_boundaries",
+        "detail": "depends on Geo::BihBoundaryValidator"
+      },
+      {
+        "symbol": "Platform::DSL::ContentValidator.check_geoapify",
+        "detail": "depends on Geo::BihBoundaryValidator"
+      },
+      {
+        "symbol": "Platform::DSL::Executors::Content.enrich_location_with_geoapify",
+        "detail": "depends on Geo::BihBoundaryValidator"
+      },
+      {
+        "symbol": "Platform::DSL::Executors::Content.execute_create",
+        "detail": "depends on Geo::BihBoundaryValidator"
+      },
+      {
+        "symbol": "Platform::DSL::Executors::Content.execute_update",
+        "detail": "depends on Geo::BihBoundaryValidator"
+      },
+      {
+        "symbol": "Platform::DSL::Executors::External.geocode_address",
+        "detail": "depends on Geo::BihBoundaryValidator"
+      },
+      {
+        "symbol": "Platform::DSL::Executors::External.get_city_coordinates",
+        "detail": "depends on Geo::BihBoundaryValidator"
+      }
+    ],
+    "suggested_actions": [
+      "Split the symbol along distinct responsibilities its callers use",
+      "Introduce narrower interfaces so callers depend only on what they need",
+      "Stabilize its public contract to limit churn for dependents"
+    ]
+  },
+  {
+    "title": "High fan-in symbol: Setting.get (13 dependents)",
+    "source": "god-class",
+    "description": "\"Setting.get\" is depended upon by 13 other symbols — well above the repo average. High fan-in concentrates change risk: edits here ripple across many call sites, and it often indicates a missing or overly broad abstraction.",
+    "confidence": 0.5449709766200688,
+    "evidence": [
+      {
+        "file": "app/models/setting.rb",
+        "symbol": "Setting.get",
+        "detail": "13 symbols depend on this"
+      },
+      {
+        "symbol": "Ai::AudioTourGenerator#elevenlabs_tts",
+        "detail": "depends on Setting.get"
+      },
+      {
+        "symbol": "Ai::AudioTourGenerator#get_voice_id",
+        "detail": "depends on Setting.get"
+      },
+      {
+        "symbol": "Ai::AudioTourGenerator#openai_tts",
+        "detail": "depends on Setting.get"
+      },
+      {
+        "symbol": "Ai::AudioTourGenerator#tts_provider",
+        "detail": "depends on Setting.get"
+      },
+      {
+        "symbol": "Ai::AudioTourGenerator.fetch_voices_from_api",
+        "detail": "depends on Setting.get"
+      },
+      {
+        "symbol": "GeoapifyService#api_limit",
+        "detail": "depends on Setting.get"
+      },
+      {
+        "symbol": "GeoapifyService#default_language",
+        "detail": "depends on Setting.get"
+      },
+      {
+        "symbol": "GeoapifyService#default_max_results",
+        "detail": "depends on Setting.get"
+      }
+    ],
+    "suggested_actions": [
+      "Split the symbol along distinct responsibilities its callers use",
+      "Introduce narrower interfaces so callers depend only on what they need",
+      "Stabilize its public contract to limit churn for dependents"
+    ]
+  },
+  {
+    "title": "High fan-in symbol: Translatable (13 dependents)",
+    "source": "god-class",
+    "description": "\"Translatable\" is depended upon by 13 other symbols — well above the repo average. High fan-in concentrates change risk: edits here ripple across many call sites, and it often indicates a missing or overly broad abstraction.",
+    "confidence": 0.5449709766200688,
+    "evidence": [
+      {
+        "file": "app/models/concerns/translatable.rb",
+        "symbol": "Translatable",
+        "detail": "13 symbols depend on this"
+      },
+      {
+        "symbol": "Experience",
+        "detail": "depends on Translatable"
+      },
+      {
+        "symbol": "Experience -\u003e Translatable",
+        "detail": "depends on Translatable"
+      },
+      {
+        "symbol": "ExperienceCategory",
+        "detail": "depends on Translatable"
+      },
+      {
+        "symbol": "ExperienceCategory -\u003e Translatable",
+        "detail": "depends on Translatable"
+      },
+      {
+        "symbol": "ExperienceType",
+        "detail": "depends on Translatable"
+      },
+      {
+        "symbol": "ExperienceType -\u003e Translatable",
+        "detail": "depends on Translatable"
+      },
+      {
+        "symbol": "Location",
+        "detail": "depends on Translatable"
+      },
+      {
+        "symbol": "Location -\u003e Translatable",
+        "detail": "depends on Translatable"
+      }
+    ],
+    "suggested_actions": [
+      "Split the symbol along distinct responsibilities its callers use",
+      "Introduce narrower interfaces so callers depend only on what they need",
+      "Stabilize its public contract to limit churn for dependents"
+    ]
+  },
+  {
+    "title": "High fan-in symbol: CuratorApplication (12 dependents)",
+    "source": "god-class",
+    "description": "\"CuratorApplication\" is depended upon by 12 other symbols — well above the repo average. High fan-in concentrates change risk: edits here ripple across many call sites, and it often indicates a missing or overly broad abstraction.",
+    "confidence": 0.5030501322646789,
+    "evidence": [
+      {
+        "file": "app/models/curator_application.rb",
+        "symbol": "CuratorApplication",
+        "detail": "12 symbols depend on this"
+      },
+      {
+        "symbol": "Curator::Admin::CuratorApplicationsController#index",
+        "detail": "depends on CuratorApplication"
+      },
+      {
+        "symbol": "Curator::Admin::CuratorApplicationsController#set_application",
+        "detail": "depends on CuratorApplication"
+      },
+      {
+        "symbol": "Curator::Admin::CuratorApplicationsControllerTest",
+        "detail": "depends on CuratorApplication"
+      },
+      {
+        "symbol": "CuratorApplication#no_pending_application",
+        "detail": "depends on CuratorApplication"
+      },
+      {
+        "symbol": "CuratorApplicationsController#new",
+        "detail": "depends on CuratorApplication"
+      },
+      {
+        "symbol": "Platform::DSL::ApprovalTest",
+        "detail": "depends on CuratorApplication"
+      },
+      {
+        "symbol": "Platform::DSL::ExecutorTest",
+        "detail": "depends on CuratorApplication"
+      },
+      {
+        "symbol": "Platform::DSL::Executors::Curator.count_applications",
+        "detail": "depends on CuratorApplication"
+      }
+    ],
+    "suggested_actions": [
+      "Split the symbol along distinct responsibilities its callers use",
+      "Introduce narrower interfaces so callers depend only on what they need",
+      "Stabilize its public contract to limit churn for dependents"
+    ]
+  },
+  {
+    "title": "High fan-in symbol: ExperienceCategory (12 dependents)",
+    "source": "god-class",
+    "description": "\"ExperienceCategory\" is depended upon by 12 other symbols — well above the repo average. High fan-in concentrates change risk: edits here ripple across many call sites, and it often indicates a missing or overly broad abstraction.",
+    "confidence": 0.5030501322646789,
+    "evidence": [
+      {
+        "file": "app/models/experience_category.rb",
+        "symbol": "ExperienceCategory",
+        "detail": "12 symbols depend on this"
+      },
+      {
+        "symbol": "BrowseAdapterTest",
+        "detail": "depends on ExperienceCategory"
+      },
+      {
+        "symbol": "Curator::ExperiencesController#index",
+        "detail": "depends on ExperienceCategory"
+      },
+      {
+        "symbol": "Curator::ExperiencesController#load_form_options",
+        "detail": "depends on ExperienceCategory"
+      },
+      {
+        "symbol": "Curator::ExperiencesControllerTest",
+        "detail": "depends on ExperienceCategory"
+      },
+      {
+        "symbol": "Experience",
+        "detail": "depends on ExperienceCategory"
+      },
+      {
+        "symbol": "ExperienceTest",
+        "detail": "depends on ExperienceCategory"
+      },
+      {
+        "symbol": "ExperiencesControllerTest",
+        "detail": "depends on ExperienceCategory"
+      },
+      {
+        "symbol": "NewDesignController#explore",
+        "detail": "depends on ExperienceCategory"
+      }
+    ],
+    "suggested_actions": [
+      "Split the symbol along distinct responsibilities its callers use",
+      "Introduce narrower interfaces so callers depend only on what they need",
+      "Stabilize its public contract to limit churn for dependents"
+    ]
+  },
+  {
+    "title": "High fan-in symbol: GeoapifyService (12 dependents)",
+    "source": "god-class",
+    "description": "\"GeoapifyService\" is depended upon by 12 other symbols — well above the repo average. High fan-in concentrates change risk: edits here ripple across many call sites, and it often indicates a missing or overly broad abstraction.",
+    "confidence": 0.5030501322646789,
+    "evidence": [
+      {
+        "file": "app/services/geoapify_service.rb",
+        "symbol": "GeoapifyService",
+        "detail": "12 symbols depend on this"
+      },
+      {
+        "symbol": "Ai::ExperienceLocationSyncer#initialize",
+        "detail": "depends on GeoapifyService"
+      },
+      {
+        "symbol": "Ai::ExperienceLocationSyncerTest",
+        "detail": "depends on GeoapifyService"
+      },
+      {
+        "symbol": "GeoapifyServiceTest",
+        "detail": "depends on GeoapifyService"
+      },
+      {
+        "symbol": "GeoapifyServiceTest#build_service_with_api_key",
+        "detail": "depends on GeoapifyService"
+      },
+      {
+        "symbol": "GeoapifyServiceTest#build_service_with_stubbed_connection",
+        "detail": "depends on GeoapifyService"
+      },
+      {
+        "symbol": "Platform::DSL::ContentValidator.check_geoapify",
+        "detail": "depends on GeoapifyService"
+      },
+      {
+        "symbol": "Platform::DSL::ContentValidatorTest",
+        "detail": "depends on GeoapifyService"
+      },
+      {
+        "symbol": "Platform::DSL::ExecutorTest",
+        "detail": "depends on GeoapifyService"
+      }
+    ],
+    "suggested_actions": [
+      "Split the symbol along distinct responsibilities its callers use",
+      "Introduce narrower interfaces so callers depend only on what they need",
+      "Stabilize its public contract to limit churn for dependents"
+    ]
+  },
+  {
+    "title": "High fan-in symbol: LocationCategory (12 dependents)",
+    "source": "god-class",
+    "description": "\"LocationCategory\" is depended upon by 12 other symbols — well above the repo average. High fan-in concentrates change risk: edits here ripple across many call sites, and it often indicates a missing or overly broad abstraction.",
+    "confidence": 0.5030501322646789,
+    "evidence": [
+      {
+        "file": "app/models/location_category.rb",
+        "symbol": "LocationCategory",
+        "detail": "12 symbols depend on this"
+      },
+      {
+        "symbol": "BrowseAdapterTest",
+        "detail": "depends on LocationCategory"
+      },
+      {
+        "symbol": "Curator::LocationsController#index",
+        "detail": "depends on LocationCategory"
+      },
+      {
+        "symbol": "Curator::LocationsController#load_form_options",
+        "detail": "depends on LocationCategory"
+      },
+      {
+        "symbol": "Curator::LocationsControllerTest",
+        "detail": "depends on LocationCategory"
+      },
+      {
+        "symbol": "Location",
+        "detail": "depends on LocationCategory"
+      },
+      {
+        "symbol": "Location#add_category",
+        "detail": "depends on LocationCategory"
+      },
+      {
+        "symbol": "Location#add_category_from_temp_type",
+        "detail": "depends on LocationCategory"
+      },
+      {
+        "symbol": "Location#has_category?",
+        "detail": "depends on LocationCategory"
+      }
+    ],
+    "suggested_actions": [
+      "Split the symbol along distinct responsibilities its callers use",
+      "Introduce narrower interfaces so callers depend only on what they need",
+      "Stabilize its public contract to limit churn for dependents"
+    ]
+  },
+  {
+    "title": "Call-graph hotspot: Location (fan-in 164, fan-out 72)",
+    "source": "hotspots",
+    "description": "\"Location\" is a pinch point: 164 symbols call into it and it calls out to 72 others, so a large share of call chains pass through it (degree-centrality proxy for betweenness). Such chokepoints are high-risk to change and high-value to test.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "file": "app/models/location.rb",
+        "symbol": "Location",
+        "detail": "fan-in 164 × fan-out 72 = score 11808"
+      },
+      {
+        "symbol": "Ai::ExperienceLocationSyncer#find_location_in_database",
+        "detail": "calls into Location"
+      },
+      {
+        "symbol": "Ai::ExperienceLocationSyncer#get_city_coordinates",
+        "detail": "calls into Location"
+      },
+      {
+        "symbol": "Ai::ExperienceLocationSyncerTest",
+        "detail": "calls into Location"
+      },
+      {
+        "symbol": "Ai::ExperienceTypeClassifier#classify_missing",
+        "detail": "calls into Location"
+      },
+      {
+        "symbol": "Ai::ExperienceTypeClassifierTest",
+        "detail": "calls into Location"
+      },
+      {
+        "symbol": "ApplicationRecord",
+        "detail": "called by Location"
+      },
+      {
+        "symbol": "AudioTour",
+        "detail": "called by Location"
+      },
+      {
+        "symbol": "AudioTour.with_audio",
+        "detail": "called by Location"
+      },
+      {
+        "symbol": "Browsable",
+        "detail": "called by Location"
+      },
+      {
+        "symbol": "Identifiable",
+        "detail": "called by Location"
+      }
+    ],
+    "suggested_actions": [
+      "Add focused tests around this chokepoint before refactoring",
+      "Consider decomposing it so call paths don't all funnel through one symbol",
+      "Verify it isn't doing orchestration that belongs in callers"
+    ]
+  },
+  {
+    "title": "Call-graph hotspot: Plan (fan-in 65, fan-out 66)",
+    "source": "hotspots",
+    "description": "\"Plan\" is a pinch point: 65 symbols call into it and it calls out to 66 others, so a large share of call chains pass through it (degree-centrality proxy for betweenness). Such chokepoints are high-risk to change and high-value to test.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "file": "app/models/plan.rb",
+        "symbol": "Plan",
+        "detail": "fan-in 65 × fan-out 66 = score 4290"
+      },
+      {
+        "symbol": "Browse.rebuild_all!",
+        "detail": "calls into Plan"
+      },
+      {
+        "symbol": "Browse.syncable?",
+        "detail": "calls into Plan"
+      },
+      {
+        "symbol": "BrowseAdapter.attributes_for",
+        "detail": "calls into Plan"
+      },
+      {
+        "symbol": "BrowseAdapterTest",
+        "detail": "calls into Plan"
+      },
+      {
+        "symbol": "BrowseTest",
+        "detail": "calls into Plan"
+      },
+      {
+        "symbol": "ApplicationRecord",
+        "detail": "called by Plan"
+      },
+      {
+        "symbol": "Browsable",
+        "detail": "called by Plan"
+      },
+      {
+        "symbol": "Date.current",
+        "detail": "called by Plan"
+      },
+      {
+        "symbol": "Experience",
+        "detail": "called by Plan"
+      },
+      {
+        "symbol": "Experience.where",
+        "detail": "called by Plan"
+      }
+    ],
+    "suggested_actions": [
+      "Add focused tests around this chokepoint before refactoring",
+      "Consider decomposing it so call paths don't all funnel through one symbol",
+      "Verify it isn't doing orchestration that belongs in callers"
+    ]
+  },
+  {
+    "title": "Call-graph hotspot: Experience (fan-in 65, fan-out 43)",
+    "source": "hotspots",
+    "description": "\"Experience\" is a pinch point: 65 symbols call into it and it calls out to 43 others, so a large share of call chains pass through it (degree-centrality proxy for betweenness). Such chokepoints are high-risk to change and high-value to test.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "file": "app/models/experience.rb",
+        "symbol": "Experience",
+        "detail": "fan-in 65 × fan-out 43 = score 2795"
+      },
+      {
+        "symbol": "Browse.rebuild_all!",
+        "detail": "calls into Experience"
+      },
+      {
+        "symbol": "Browse.syncable?",
+        "detail": "calls into Experience"
+      },
+      {
+        "symbol": "BrowseAdapter.attributes_for",
+        "detail": "calls into Experience"
+      },
+      {
+        "symbol": "BrowseAdapterTest",
+        "detail": "calls into Experience"
+      },
+      {
+        "symbol": "BrowseTest",
+        "detail": "calls into Experience"
+      },
+      {
+        "symbol": "ApplicationRecord",
+        "detail": "called by Experience"
+      },
+      {
+        "symbol": "Browsable",
+        "detail": "called by Experience"
+      },
+      {
+        "symbol": "ExperienceCategory",
+        "detail": "called by Experience"
+      },
+      {
+        "symbol": "ExperienceCategory.find_by_public_id",
+        "detail": "called by Experience"
+      },
+      {
+        "symbol": "Identifiable",
+        "detail": "called by Experience"
+      }
+    ],
+    "suggested_actions": [
+      "Add focused tests around this chokepoint before refactoring",
+      "Consider decomposing it so call paths don't all funnel through one symbol",
+      "Verify it isn't doing orchestration that belongs in callers"
+    ]
+  },
+  {
+    "title": "Call-graph hotspot: User (fan-in 75, fan-out 20)",
+    "source": "hotspots",
+    "description": "\"User\" is a pinch point: 75 symbols call into it and it calls out to 20 others, so a large share of call chains pass through it (degree-centrality proxy for betweenness). Such chokepoints are high-risk to change and high-value to test.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "file": "app/models/user.rb",
+        "symbol": "User",
+        "detail": "fan-in 75 × fan-out 20 = score 1500"
+      },
+      {
+        "symbol": "Authenticatable#current_user",
+        "detail": "calls into User"
+      },
+      {
+        "symbol": "AuthenticatableTest",
+        "detail": "calls into User"
+      },
+      {
+        "symbol": "ContentChangeTest",
+        "detail": "calls into User"
+      },
+      {
+        "symbol": "Curator::Admin::BaseControllerTest",
+        "detail": "calls into User"
+      },
+      {
+        "symbol": "Curator::Admin::ContentChangesControllerTest",
+        "detail": "calls into User"
+      },
+      {
+        "symbol": "ApplicationRecord",
+        "detail": "called by User"
+      },
+      {
+        "symbol": "Identifiable",
+        "detail": "called by User"
+      },
+      {
+        "symbol": "MAX_ACTIVITIES_PER_DAY",
+        "detail": "called by User"
+      },
+      {
+        "symbol": "MAX_ACTIVITIES_PER_HOUR",
+        "detail": "called by User"
+      },
+      {
+        "symbol": "SPAM_BLOCK_DURATION",
+        "detail": "called by User"
+      }
+    ],
+    "suggested_actions": [
+      "Add focused tests around this chokepoint before refactoring",
+      "Consider decomposing it so call paths don't all funnel through one symbol",
+      "Verify it isn't doing orchestration that belongs in callers"
+    ]
+  },
+  {
+    "title": "Call-graph hotspot: Browse (fan-in 10, fan-out 72)",
+    "source": "hotspots",
+    "description": "\"Browse\" is a pinch point: 10 symbols call into it and it calls out to 72 others, so a large share of call chains pass through it (degree-centrality proxy for betweenness). Such chokepoints are high-risk to change and high-value to test.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "file": "app/models/browse.rb",
+        "symbol": "Browse",
+        "detail": "fan-in 10 × fan-out 72 = score 720"
+      },
+      {
+        "symbol": "Browsable#browsable?",
+        "detail": "calls into Browse"
+      },
+      {
+        "symbol": "Browsable#remove_from_browse",
+        "detail": "calls into Browse"
+      },
+      {
+        "symbol": "Browsable#sync_to_browse",
+        "detail": "calls into Browse"
+      },
+      {
+        "symbol": "BrowseTest",
+        "detail": "calls into Browse"
+      },
+      {
+        "symbol": "Curator::MomentsControllerTest",
+        "detail": "calls into Browse"
+      },
+      {
+        "symbol": "ApplicationRecord",
+        "detail": "called by Browse"
+      },
+      {
+        "symbol": "Arel",
+        "detail": "called by Browse"
+      },
+      {
+        "symbol": "Arel.sql",
+        "detail": "called by Browse"
+      },
+      {
+        "symbol": "Browse.rebuild_all!",
+        "detail": "called by Browse"
+      },
+      {
+        "symbol": "Browse.remove_record",
+        "detail": "called by Browse"
+      }
+    ],
+    "suggested_actions": [
+      "Add focused tests around this chokepoint before refactoring",
+      "Consider decomposing it so call paths don't all funnel through one symbol",
+      "Verify it isn't doing orchestration that belongs in callers"
+    ]
+  },
+  {
+    "title": "Deep dependency chain: app/controllers/curator/admin (depth 12)",
+    "source": "dependency-depth",
+    "description": "Module \"app/controllers/curator/admin\" has a longest dependency chain of 12 modules: app/controllers/curator/admin -\u003e app/controllers/curator -\u003e app/controllers -\u003e app/controllers/concerns -\u003e app/jobs -\u003e app/models -\u003e app/models/concerns -\u003e app/services -\u003e app/services/ai -\u003e app/services/ai/location_enricher -\u003e app/services/mine_checker -\u003e app/helpers. Deep chains slow comprehension and widen rebuild/retest impact when a module near the bottom changes.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "fact": "app/controllers/curator/admin"
+      },
+      {
+        "fact": "app/controllers/curator"
+      },
+      {
+        "fact": "app/controllers"
+      },
+      {
+        "fact": "app/controllers/concerns"
+      },
+      {
+        "fact": "app/jobs"
+      },
+      {
+        "fact": "app/models"
+      },
+      {
+        "fact": "app/models/concerns"
+      },
+      {
+        "fact": "app/services"
+      },
+      {
+        "fact": "app/services/ai"
+      },
+      {
+        "fact": "app/services/ai/location_enricher"
+      },
+      {
+        "fact": "app/services/mine_checker"
+      },
+      {
+        "fact": "app/helpers"
+      }
+    ],
+    "suggested_actions": [
+      "Flatten the chain by depending on shared abstractions instead of deep transitive modules",
+      "Check whether intermediate modules are pass-through layers that can be removed",
+      "Introduce interfaces to decouple the deepest modules from their consumers"
+    ]
+  },
+  {
+    "title": "Deep dependency chain: lib/platform (depth 12)",
+    "source": "dependency-depth",
+    "description": "Module \"lib/platform\" has a longest dependency chain of 12 modules: lib/platform -\u003e lib/platform/dsl -\u003e lib/platform/dsl/executors -\u003e lib/platform/services -\u003e app/jobs -\u003e app/models -\u003e app/models/concerns -\u003e app/services -\u003e app/services/ai -\u003e app/services/ai/location_enricher -\u003e app/services/mine_checker -\u003e app/helpers. Deep chains slow comprehension and widen rebuild/retest impact when a module near the bottom changes.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "fact": "lib/platform"
+      },
+      {
+        "fact": "lib/platform/dsl"
+      },
+      {
+        "fact": "lib/platform/dsl/executors"
+      },
+      {
+        "fact": "lib/platform/services"
+      },
+      {
+        "fact": "app/jobs"
+      },
+      {
+        "fact": "app/models"
+      },
+      {
+        "fact": "app/models/concerns"
+      },
+      {
+        "fact": "app/services"
+      },
+      {
+        "fact": "app/services/ai"
+      },
+      {
+        "fact": "app/services/ai/location_enricher"
+      },
+      {
+        "fact": "app/services/mine_checker"
+      },
+      {
+        "fact": "app/helpers"
+      }
+    ],
+    "suggested_actions": [
+      "Flatten the chain by depending on shared abstractions instead of deep transitive modules",
+      "Check whether intermediate modules are pass-through layers that can be removed",
+      "Introduce interfaces to decouple the deepest modules from their consumers"
+    ]
+  },
+  {
+    "title": "Deep dependency chain: app/controllers/curator (depth 11)",
+    "source": "dependency-depth",
+    "description": "Module \"app/controllers/curator\" has a longest dependency chain of 11 modules: app/controllers/curator -\u003e app/controllers -\u003e app/controllers/concerns -\u003e app/jobs -\u003e app/models -\u003e app/models/concerns -\u003e app/services -\u003e app/services/ai -\u003e app/services/ai/location_enricher -\u003e app/services/mine_checker -\u003e app/helpers. Deep chains slow comprehension and widen rebuild/retest impact when a module near the bottom changes.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "fact": "app/controllers/curator"
+      },
+      {
+        "fact": "app/controllers"
+      },
+      {
+        "fact": "app/controllers/concerns"
+      },
+      {
+        "fact": "app/jobs"
+      },
+      {
+        "fact": "app/models"
+      },
+      {
+        "fact": "app/models/concerns"
+      },
+      {
+        "fact": "app/services"
+      },
+      {
+        "fact": "app/services/ai"
+      },
+      {
+        "fact": "app/services/ai/location_enricher"
+      },
+      {
+        "fact": "app/services/mine_checker"
+      },
+      {
+        "fact": "app/helpers"
+      }
+    ],
+    "suggested_actions": [
+      "Flatten the chain by depending on shared abstractions instead of deep transitive modules",
+      "Check whether intermediate modules are pass-through layers that can be removed",
+      "Introduce interfaces to decouple the deepest modules from their consumers"
+    ]
+  },
+  {
+    "title": "Deep dependency chain: app/controllers/plans (depth 11)",
+    "source": "dependency-depth",
+    "description": "Module \"app/controllers/plans\" has a longest dependency chain of 11 modules: app/controllers/plans -\u003e app/controllers -\u003e app/controllers/concerns -\u003e app/jobs -\u003e app/models -\u003e app/models/concerns -\u003e app/services -\u003e app/services/ai -\u003e app/services/ai/location_enricher -\u003e app/services/mine_checker -\u003e app/helpers. Deep chains slow comprehension and widen rebuild/retest impact when a module near the bottom changes.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "fact": "app/controllers/plans"
+      },
+      {
+        "fact": "app/controllers"
+      },
+      {
+        "fact": "app/controllers/concerns"
+      },
+      {
+        "fact": "app/jobs"
+      },
+      {
+        "fact": "app/models"
+      },
+      {
+        "fact": "app/models/concerns"
+      },
+      {
+        "fact": "app/services"
+      },
+      {
+        "fact": "app/services/ai"
+      },
+      {
+        "fact": "app/services/ai/location_enricher"
+      },
+      {
+        "fact": "app/services/mine_checker"
+      },
+      {
+        "fact": "app/helpers"
+      }
+    ],
+    "suggested_actions": [
+      "Flatten the chain by depending on shared abstractions instead of deep transitive modules",
+      "Check whether intermediate modules are pass-through layers that can be removed",
+      "Introduce interfaces to decouple the deepest modules from their consumers"
+    ]
+  },
+  {
+    "title": "Deep dependency chain: lib/platform/dsl (depth 11)",
+    "source": "dependency-depth",
+    "description": "Module \"lib/platform/dsl\" has a longest dependency chain of 11 modules: lib/platform/dsl -\u003e lib/platform/dsl/executors -\u003e lib/platform/services -\u003e app/jobs -\u003e app/models -\u003e app/models/concerns -\u003e app/services -\u003e app/services/ai -\u003e app/services/ai/location_enricher -\u003e app/services/mine_checker -\u003e app/helpers. Deep chains slow comprehension and widen rebuild/retest impact when a module near the bottom changes.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "fact": "lib/platform/dsl"
+      },
+      {
+        "fact": "lib/platform/dsl/executors"
+      },
+      {
+        "fact": "lib/platform/services"
+      },
+      {
+        "fact": "app/jobs"
+      },
+      {
+        "fact": "app/models"
+      },
+      {
+        "fact": "app/models/concerns"
+      },
+      {
+        "fact": "app/services"
+      },
+      {
+        "fact": "app/services/ai"
+      },
+      {
+        "fact": "app/services/ai/location_enricher"
+      },
+      {
+        "fact": "app/services/mine_checker"
+      },
+      {
+        "fact": "app/helpers"
+      }
+    ],
+    "suggested_actions": [
+      "Flatten the chain by depending on shared abstractions instead of deep transitive modules",
+      "Check whether intermediate modules are pass-through layers that can be removed",
+      "Introduce interfaces to decouple the deepest modules from their consumers"
+    ]
+  },
+  {
+    "title": "Deep dependency chain: app/controllers (depth 10)",
+    "source": "dependency-depth",
+    "description": "Module \"app/controllers\" has a longest dependency chain of 10 modules: app/controllers -\u003e app/controllers/concerns -\u003e app/jobs -\u003e app/models -\u003e app/models/concerns -\u003e app/services -\u003e app/services/ai -\u003e app/services/ai/location_enricher -\u003e app/services/mine_checker -\u003e app/helpers. Deep chains slow comprehension and widen rebuild/retest impact when a module near the bottom changes.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "fact": "app/controllers"
+      },
+      {
+        "fact": "app/controllers/concerns"
+      },
+      {
+        "fact": "app/jobs"
+      },
+      {
+        "fact": "app/models"
+      },
+      {
+        "fact": "app/models/concerns"
+      },
+      {
+        "fact": "app/services"
+      },
+      {
+        "fact": "app/services/ai"
+      },
+      {
+        "fact": "app/services/ai/location_enricher"
+      },
+      {
+        "fact": "app/services/mine_checker"
+      },
+      {
+        "fact": "app/helpers"
+      }
+    ],
+    "suggested_actions": [
+      "Flatten the chain by depending on shared abstractions instead of deep transitive modules",
+      "Check whether intermediate modules are pass-through layers that can be removed",
+      "Introduce interfaces to decouple the deepest modules from their consumers"
+    ]
+  },
+  {
+    "title": "Deep dependency chain: app/controllers/concerns (depth 9)",
+    "source": "dependency-depth",
+    "description": "Module \"app/controllers/concerns\" has a longest dependency chain of 9 modules: app/controllers/concerns -\u003e app/jobs -\u003e app/models -\u003e app/models/concerns -\u003e app/services -\u003e app/services/ai -\u003e app/services/ai/location_enricher -\u003e app/services/mine_checker -\u003e app/helpers. Deep chains slow comprehension and widen rebuild/retest impact when a module near the bottom changes.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "fact": "app/controllers/concerns"
+      },
+      {
+        "fact": "app/jobs"
+      },
+      {
+        "fact": "app/models"
+      },
+      {
+        "fact": "app/models/concerns"
+      },
+      {
+        "fact": "app/services"
+      },
+      {
+        "fact": "app/services/ai"
+      },
+      {
+        "fact": "app/services/ai/location_enricher"
+      },
+      {
+        "fact": "app/services/mine_checker"
+      },
+      {
+        "fact": "app/helpers"
+      }
+    ],
+    "suggested_actions": [
+      "Flatten the chain by depending on shared abstractions instead of deep transitive modules",
+      "Check whether intermediate modules are pass-through layers that can be removed",
+      "Introduce interfaces to decouple the deepest modules from their consumers"
+    ]
+  },
+  {
+    "title": "Deep dependency chain: app/mailers (depth 9)",
+    "source": "dependency-depth",
+    "description": "Module \"app/mailers\" has a longest dependency chain of 9 modules: app/mailers -\u003e app/jobs -\u003e app/models -\u003e app/models/concerns -\u003e app/services -\u003e app/services/ai -\u003e app/services/ai/location_enricher -\u003e app/services/mine_checker -\u003e app/helpers. Deep chains slow comprehension and widen rebuild/retest impact when a module near the bottom changes.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "fact": "app/mailers"
+      },
+      {
+        "fact": "app/jobs"
+      },
+      {
+        "fact": "app/models"
+      },
+      {
+        "fact": "app/models/concerns"
+      },
+      {
+        "fact": "app/services"
+      },
+      {
+        "fact": "app/services/ai"
+      },
+      {
+        "fact": "app/services/ai/location_enricher"
+      },
+      {
+        "fact": "app/services/mine_checker"
+      },
+      {
+        "fact": "app/helpers"
+      }
+    ],
+    "suggested_actions": [
+      "Flatten the chain by depending on shared abstractions instead of deep transitive modules",
+      "Check whether intermediate modules are pass-through layers that can be removed",
+      "Introduce interfaces to decouple the deepest modules from their consumers"
+    ]
+  },
+  {
+    "title": "Deep dependency chain: db/migrate (depth 9)",
+    "source": "dependency-depth",
+    "description": "Module \"db/migrate\" has a longest dependency chain of 9 modules: db/migrate -\u003e app/jobs -\u003e app/models -\u003e app/models/concerns -\u003e app/services -\u003e app/services/ai -\u003e app/services/ai/location_enricher -\u003e app/services/mine_checker -\u003e app/helpers. Deep chains slow comprehension and widen rebuild/retest impact when a module near the bottom changes.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "fact": "db/migrate"
+      },
+      {
+        "fact": "app/jobs"
+      },
+      {
+        "fact": "app/models"
+      },
+      {
+        "fact": "app/models/concerns"
+      },
+      {
+        "fact": "app/services"
+      },
+      {
+        "fact": "app/services/ai"
+      },
+      {
+        "fact": "app/services/ai/location_enricher"
+      },
+      {
+        "fact": "app/services/mine_checker"
+      },
+      {
+        "fact": "app/helpers"
+      }
+    ],
+    "suggested_actions": [
+      "Flatten the chain by depending on shared abstractions instead of deep transitive modules",
+      "Check whether intermediate modules are pass-through layers that can be removed",
+      "Introduce interfaces to decouple the deepest modules from their consumers"
+    ]
+  },
+  {
+    "title": "Deep dependency chain: lib/platform/services (depth 9)",
+    "source": "dependency-depth",
+    "description": "Module \"lib/platform/services\" has a longest dependency chain of 9 modules: lib/platform/services -\u003e app/jobs -\u003e app/models -\u003e app/models/concerns -\u003e app/services -\u003e app/services/ai -\u003e app/services/ai/location_enricher -\u003e app/services/mine_checker -\u003e app/helpers. Deep chains slow comprehension and widen rebuild/retest impact when a module near the bottom changes.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "fact": "lib/platform/services"
+      },
+      {
+        "fact": "app/jobs"
+      },
+      {
+        "fact": "app/models"
+      },
+      {
+        "fact": "app/models/concerns"
+      },
+      {
+        "fact": "app/services"
+      },
+      {
+        "fact": "app/services/ai"
+      },
+      {
+        "fact": "app/services/ai/location_enricher"
+      },
+      {
+        "fact": "app/services/mine_checker"
+      },
+      {
+        "fact": "app/helpers"
+      }
+    ],
+    "suggested_actions": [
+      "Flatten the chain by depending on shared abstractions instead of deep transitive modules",
+      "Check whether intermediate modules are pass-through layers that can be removed",
+      "Introduce interfaces to decouple the deepest modules from their consumers"
+    ]
+  },
+  {
+    "title": "High cyclomatic complexity: GeoapifyService#find_matching_category (53)",
+    "source": "complexity-outliers",
+    "description": "\"GeoapifyService#find_matching_category\" has a cyclomatic complexity of 53 — well above the repo average. Highly branched functions are hard to test fully and are frequent defect sites.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "file": "app/services/geoapify_service.rb",
+        "symbol": "GeoapifyService#find_matching_category",
+        "detail": "cyclomatic complexity 53 at line 824"
+      }
+    ],
+    "suggested_actions": [
+      "Extract guard clauses and nested branches into helper functions",
+      "Replace deep conditionals with table/strategy dispatch where possible",
+      "Add tests covering the distinct branches before refactoring"
+    ]
+  },
+  {
+    "title": "High cyclomatic complexity: Platform::DSL::Executors::Content.enrich_location_with_geoapify (24)",
+    "source": "complexity-outliers",
+    "description": "\"Platform::DSL::Executors::Content.enrich_location_with_geoapify\" has a cyclomatic complexity of 24 — well above the repo average. Highly branched functions are hard to test fully and are frequent defect sites.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "file": "lib/platform/dsl/executors/content.rb",
+        "symbol": "Platform::DSL::Executors::Content.enrich_location_with_geoapify",
+        "detail": "cyclomatic complexity 24 at line 296"
+      }
+    ],
+    "suggested_actions": [
+      "Extract guard clauses and nested branches into helper functions",
+      "Replace deep conditionals with table/strategy dispatch where possible",
+      "Add tests covering the distinct branches before refactoring"
+    ]
+  },
+  {
+    "title": "High cyclomatic complexity: Platform::DSL::Executor.execute (17)",
+    "source": "complexity-outliers",
+    "description": "\"Platform::DSL::Executor.execute\" has a cyclomatic complexity of 17 — well above the repo average. Highly branched functions are hard to test fully and are frequent defect sites.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "file": "lib/platform/dsl/executor.rb",
+        "symbol": "Platform::DSL::Executor.execute",
+        "detail": "cyclomatic complexity 17 at line 28"
+      }
+    ],
+    "suggested_actions": [
+      "Extract guard clauses and nested branches into helper functions",
+      "Replace deep conditionals with table/strategy dispatch where possible",
+      "Add tests covering the distinct branches before refactoring"
+    ]
+  },
+  {
+    "title": "High cyclomatic complexity: Platform::DSL::Executors::TableQuery.apply_operation (16)",
+    "source": "complexity-outliers",
+    "description": "\"Platform::DSL::Executors::TableQuery.apply_operation\" has a cyclomatic complexity of 16 — well above the repo average. Highly branched functions are hard to test fully and are frequent defect sites.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "file": "lib/platform/dsl/executors/table_query.rb",
+        "symbol": "Platform::DSL::Executors::TableQuery.apply_operation",
+        "detail": "cyclomatic complexity 16 at line 124"
+      }
+    ],
+    "suggested_actions": [
+      "Extract guard clauses and nested branches into helper functions",
+      "Replace deep conditionals with table/strategy dispatch where possible",
+      "Add tests covering the distinct branches before refactoring"
+    ]
+  },
+  {
+    "title": "High cyclomatic complexity: Platform::DSL::Executors::Content.execute_create (15)",
+    "source": "complexity-outliers",
+    "description": "\"Platform::DSL::Executors::Content.execute_create\" has a cyclomatic complexity of 15 — well above the repo average. Highly branched functions are hard to test fully and are frequent defect sites.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "file": "lib/platform/dsl/executors/content.rb",
+        "symbol": "Platform::DSL::Executors::Content.execute_create",
+        "detail": "cyclomatic complexity 15 at line 66"
+      }
+    ],
+    "suggested_actions": [
+      "Extract guard clauses and nested branches into helper functions",
+      "Replace deep conditionals with table/strategy dispatch where possible",
+      "Add tests covering the distinct branches before refactoring"
+    ]
+  },
+  {
+    "title": "High cyclomatic complexity: Ai::OpenaiQueue#execute_request (13)",
+    "source": "complexity-outliers",
+    "description": "\"Ai::OpenaiQueue#execute_request\" has a cyclomatic complexity of 13 — well above the repo average. Highly branched functions are hard to test fully and are frequent defect sites.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "file": "app/services/ai/openai_queue.rb",
+        "symbol": "Ai::OpenaiQueue#execute_request",
+        "detail": "cyclomatic complexity 13 at line 85"
+      }
+    ],
+    "suggested_actions": [
+      "Extract guard clauses and nested branches into helper functions",
+      "Replace deep conditionals with table/strategy dispatch where possible",
+      "Add tests covering the distinct branches before refactoring"
+    ]
+  },
+  {
+    "title": "High cyclomatic complexity: Platform::DSL::QualityStandards.full_audit (13)",
+    "source": "complexity-outliers",
+    "description": "\"Platform::DSL::QualityStandards.full_audit\" has a cyclomatic complexity of 13 — well above the repo average. Highly branched functions are hard to test fully and are frequent defect sites.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "file": "lib/platform/dsl/quality_standards.rb",
+        "symbol": "Platform::DSL::QualityStandards.full_audit",
+        "detail": "cyclomatic complexity 13 at line 127"
+      }
+    ],
+    "suggested_actions": [
+      "Extract guard clauses and nested branches into helper functions",
+      "Replace deep conditionals with table/strategy dispatch where possible",
+      "Add tests covering the distinct branches before refactoring"
+    ]
+  },
+  {
+    "title": "High cyclomatic complexity: NewDesignController#build_browse_queries (12)",
+    "source": "complexity-outliers",
+    "description": "\"NewDesignController#build_browse_queries\" has a cyclomatic complexity of 12 — well above the repo average. Highly branched functions are hard to test fully and are frequent defect sites.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "file": "app/controllers/new_design_controller.rb",
+        "symbol": "NewDesignController#build_browse_queries",
+        "detail": "cyclomatic complexity 12 at line 125"
+      }
+    ],
+    "suggested_actions": [
+      "Extract guard clauses and nested branches into helper functions",
+      "Replace deep conditionals with table/strategy dispatch where possible",
+      "Add tests covering the distinct branches before refactoring"
+    ]
+  },
+  {
+    "title": "High cyclomatic complexity: Plan#update_from_local_storage (12)",
+    "source": "complexity-outliers",
+    "description": "\"Plan#update_from_local_storage\" has a cyclomatic complexity of 12 — well above the repo average. Highly branched functions are hard to test fully and are frequent defect sites.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "file": "app/models/plan.rb",
+        "symbol": "Plan#update_from_local_storage",
+        "detail": "cyclomatic complexity 12 at line 542"
+      }
+    ],
+    "suggested_actions": [
+      "Extract guard clauses and nested branches into helper functions",
+      "Replace deep conditionals with table/strategy dispatch where possible",
+      "Add tests covering the distinct branches before refactoring"
+    ]
+  },
+  {
+    "title": "High cyclomatic complexity: Platform::DSL::ValidationResult#to_cli_output (12)",
+    "source": "complexity-outliers",
+    "description": "\"Platform::DSL::ValidationResult#to_cli_output\" has a cyclomatic complexity of 12 — well above the repo average. Highly branched functions are hard to test fully and are frequent defect sites.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "file": "lib/platform/dsl/validation_result.rb",
+        "symbol": "Platform::DSL::ValidationResult#to_cli_output",
+        "detail": "cyclomatic complexity 12 at line 101"
+      }
+    ],
+    "suggested_actions": [
+      "Extract guard clauses and nested branches into helper functions",
+      "Replace deep conditionals with table/strategy dispatch where possible",
+      "Add tests covering the distinct branches before refactoring"
+    ]
+  },
+  {
+    "title": "High cyclomatic complexity: Platform::MCPServer#handle_request (12)",
+    "source": "complexity-outliers",
+    "description": "\"Platform::MCPServer#handle_request\" has a cyclomatic complexity of 12 — well above the repo average. Highly branched functions are hard to test fully and are frequent defect sites.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "file": "lib/platform/mcp_server.rb",
+        "symbol": "Platform::MCPServer#handle_request",
+        "detail": "cyclomatic complexity 12 at line 62"
+      }
+    ],
+    "suggested_actions": [
+      "Extract guard clauses and nested branches into helper functions",
+      "Replace deep conditionals with table/strategy dispatch where possible",
+      "Add tests covering the distinct branches before refactoring"
+    ]
+  },
+  {
+    "title": "High cyclomatic complexity: Ai::AudioTourGenerator#number_to_bosnian_words (11)",
+    "source": "complexity-outliers",
+    "description": "\"Ai::AudioTourGenerator#number_to_bosnian_words\" has a cyclomatic complexity of 11 — well above the repo average. Highly branched functions are hard to test fully and are frequent defect sites.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "file": "app/services/ai/audio_tour_generator.rb",
+        "symbol": "Ai::AudioTourGenerator#number_to_bosnian_words",
+        "detail": "cyclomatic complexity 11 at line 589"
+      }
+    ],
+    "suggested_actions": [
+      "Extract guard clauses and nested branches into helper functions",
+      "Replace deep conditionals with table/strategy dispatch where possible",
+      "Add tests covering the distinct branches before refactoring"
+    ]
+  },
+  {
+    "title": "High cyclomatic complexity: Ai::ExperienceLocationSyncer#sync_locations (11)",
+    "source": "complexity-outliers",
+    "description": "\"Ai::ExperienceLocationSyncer#sync_locations\" has a cyclomatic complexity of 11 — well above the repo average. Highly branched functions are hard to test fully and are frequent defect sites.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "file": "app/services/ai/experience_location_syncer.rb",
+        "symbol": "Ai::ExperienceLocationSyncer#sync_locations",
+        "detail": "cyclomatic complexity 11 at line 30"
+      }
+    ],
+    "suggested_actions": [
+      "Extract guard clauses and nested branches into helper functions",
+      "Replace deep conditionals with table/strategy dispatch where possible",
+      "Add tests covering the distinct branches before refactoring"
+    ]
+  },
+  {
+    "title": "High cyclomatic complexity: Plan.create_from_local_storage (11)",
+    "source": "complexity-outliers",
+    "description": "\"Plan.create_from_local_storage\" has a cyclomatic complexity of 11 — well above the repo average. Highly branched functions are hard to test fully and are frequent defect sites.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "file": "app/models/plan.rb",
+        "symbol": "Plan.create_from_local_storage",
+        "detail": "cyclomatic complexity 11 at line 451"
+      }
+    ],
+    "suggested_actions": [
+      "Extract guard clauses and nested branches into helper functions",
+      "Replace deep conditionals with table/strategy dispatch where possible",
+      "Add tests covering the distinct branches before refactoring"
+    ]
+  },
+  {
+    "title": "High cyclomatic complexity: Platform::DSL::Executors::TableQuery.apply_filter (11)",
+    "source": "complexity-outliers",
+    "description": "\"Platform::DSL::Executors::TableQuery.apply_filter\" has a cyclomatic complexity of 11 — well above the repo average. Highly branched functions are hard to test fully and are frequent defect sites.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "file": "lib/platform/dsl/executors/table_query.rb",
+        "symbol": "Platform::DSL::Executors::TableQuery.apply_filter",
+        "detail": "cyclomatic complexity 11 at line 67"
+      }
+    ],
+    "suggested_actions": [
+      "Extract guard clauses and nested branches into helper functions",
+      "Replace deep conditionals with table/strategy dispatch where possible",
+      "Add tests covering the distinct branches before refactoring"
+    ]
+  }
+]

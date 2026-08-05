@@ -2,6 +2,13 @@ module ApplicationHelper
   # Admins review the walk without standing at the place. An env-var bypass used
   # to cover development, but it only ever lifted the distance check — the deck
   # still needs coordinates to deal from — so it never made a usable dev flow.
+  # Development only. A laptop has no GPS, so working on the walk otherwise
+  # means waiting on a network lookup that often never answers.
+  def dev_position
+    return nil unless Rails.env.development?
+    ENV["DEV_POSITION"].presence
+  end
+
   def geofence_disabled?
     current_user_admin?
   end
@@ -32,8 +39,10 @@ module ApplicationHelper
   # Stamps the catalogue so a browser holding an old copy can tell. Rails builds
   # this from count plus max(updated_at) in one query — seconds alone collide
   # when several places are written inside the same second.
+  # Called by the controller and again by every map on the page; the count and
+  # max behind it are one query too many, let alone several.
   def map_points_version
-    Location.all.cache_key_with_version.parameterize
+    @map_points_version ||= Location.all.cache_key_with_version.parameterize
   end
 
   # Where signing in should land the visitor. A frame is fetched at its own url,

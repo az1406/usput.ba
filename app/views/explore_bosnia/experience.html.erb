@@ -13,7 +13,11 @@
 <%# explore-geo only mounts while the position is missing: it asks once, then
     reloads the deck with the coordinates. %>
 <div class="fixed inset-x-0 bottom-0 top-[calc(5rem+env(safe-area-inset-top))] flex flex-col overflow-hidden pb-[env(safe-area-inset-bottom)]"
-     data-controller="moment-lightbox<%= " explore-geo" if @needs_location %>">
+     data-controller="moment-lightbox<%= " explore-geo" if @needs_location %>"
+     <% if @needs_location %>
+       data-explore-geo-failed-body-value="<%= t("explore_bosnia.needs_location.body") %>"
+       data-explore-geo-retry-label-value="<%= t("explore_bosnia.needs_location.retry") %>"
+     <% end %>>
   <%# Filters and deck swap together, in place: picking one filter must not cost a
       page load, or the next pill is dead until it lands. display:contents keeps
       the frame out of the flex column it wraps. %>

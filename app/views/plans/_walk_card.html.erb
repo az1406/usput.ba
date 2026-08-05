@@ -133,14 +133,7 @@
 
   <% if location.geocoded? %>
     <div class="hidden absolute inset-0 z-40 bg-gray-100 dark:bg-gray-700" data-card-menu-target="panel" data-panel="map">
-      <div class="h-full w-full"
-           data-controller="map"
-           data-map-lat-value="<%= location.lat %>"
-           data-map-lng-value="<%= location.lng %>"
-           data-map-user-location-value="true"
-           data-map-points-value="<%= [ { lat: location.lat.to_f, lng: location.lng.to_f, name: location_name, main: true } ].to_json %>">
-        <div class="h-full w-full" data-map-target="container"></div>
-      </div>
+      <%= render "shared/map_canvas", location: location, height: "h-full", wrapper: "h-full w-full", catalogue: false %>
       <button type="button" data-action="card-menu#back"
               class="absolute right-3 top-3 z-[1000] flex size-9 items-center justify-center rounded-full bg-white/90 text-gray-700 shadow dark:bg-gray-900/80 dark:text-gray-200"
               aria-label="<%= t('common.close') %>">✕</button>

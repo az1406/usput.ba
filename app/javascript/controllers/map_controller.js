@@ -8,9 +8,10 @@ const L = window.L
 // Below this the pins stand alone: a town fits on screen, which is where the
 // operator wants to stop seeing bubbles.
 const CLUSTER_UNTIL_ZOOM = 13
-// Past this nobody is walking, so asking the routing service is a request that
-// was always going to be refused. Show the distance instead.
-const MAX_WALKING_KM = 30
+// Past this the route is asked for by car rather than on foot.
+const WALKING_LIMIT_KM = 30
+const CHIP_MS = 4000
+const FOCUS_ZOOM = 15
 // Every map on the page wants the same catalogue, and the explore reel mounts
 // one per card. Fetch it once per page, and keep it for the session so moving
 // between places does not re-download the country. The version is the newest
@@ -66,13 +67,19 @@ export default class extends Controller {
     points: Array,
     userLocation: Boolean,
     catalogue: Boolean,
-    catalogueVersion: Number,
-    awayLabel: String,
+    // A cache key, not a number: as Number it coerced to NaN and every version
+    // shared one sessionStorage entry.
+    catalogueVersion: String,
+    byFootLabel: String,
+    byCarLabel: String,
     loadFailedLabel: String,
+    noPositionLabel: String,
+    noRouteLabel: String,
   }
 
   connect() {
     this.expanded = false
+    this.selectedId = this.pointsValue.find((point) => point.main)?.id
 
     this.map = L.map(this.containerTarget, { scrollWheelZoom: false })
       .setView([this.latValue, this.lngValue], 15)
@@ -89,13 +96,7 @@ export default class extends Controller {
       // rest, so zooming out groups it instead of leaving one pin behind.
       if (this.catalogueValue) return
 
-      L.circleMarker([point.lat, point.lng], {
-        radius: point.main ? 9 : 7,
-        color: "#ffffff",
-        weight: 2,
-        fillColor: point.main ? "#059669" : "#64748b",
-        fillOpacity: 1,
-      })
+      L.marker([point.lat, point.lng], { icon: this.#iconFor({ selected: point.main }) })
         .addTo(this.map)
         .bindPopup(this.#popupFor(point))
     })
@@ -147,7 +148,6 @@ export default class extends Controller {
       showCoverageOnHover: false,
     })
 
-    this.selectedId = this.pointsValue.find((point) => point.main)?.id
     this.markers = new Map()
 
     points.forEach((point) => {
@@ -205,26 +205,23 @@ export default class extends Controller {
     this.selectedId = id
   }
 
-  // Walking directions to whatever was tapped. Prefer where the traveller
-  // actually is; without a fix, route from the place the page is about, so the
-  // line still answers "how do I get there from here".
+  // Walking directions to whatever was tapped. A route is only honest from
+  // where the traveller actually is, so without a fix there is no line — the
+  // page's own place is not where they are standing.
   #routeTo(point) {
     this.routeTarget = point
     this.#clearPath()
 
     const measured = positionService.measured()
-    if (measured) {
-      this.routeOrigin = [measured.latitude, measured.longitude]
-      this.#drawPath(this.routeOrigin, point)
-      this.#followUser()
+    if (!measured) {
+      this.#focusOn(point, null)
+      this.#showChip(this.noPositionLabelValue, { clearAfterMs: CHIP_MS })
       return
     }
 
-    const origin = this.pointsValue.find((candidate) => candidate.main)
-    if (!origin || origin.id === point.id) return
-
-    this.routeOrigin = [origin.lat, origin.lng]
+    this.routeOrigin = [measured.latitude, measured.longitude]
     this.#drawPath(this.routeOrigin, point)
+    this.#followUser()
   }
 
   #openPanel(id) {
@@ -258,10 +255,6 @@ export default class extends Controller {
       this.routeTarget = target
       this.routeOrigin = here
       this.#drawPath(here, target)
-      // A desktop IP fix can be far off — only zoom to include the user when near.
-      if (this.#distanceKm(here[0], here[1], target.lat, target.lng) < 3) {
-        this.map.fitBounds([here, [target.lat, target.lng]], { padding: [40, 40], maxZoom: 16 })
-      }
     })
   }
 
@@ -270,29 +263,27 @@ export default class extends Controller {
     const held = positionService.measured()
     if (held) return handler(held)
 
-    const stop = positionService.subscribe((coords) => {
-      stop()
-      handler(coords)
-    })
+    const stop = positionService.subscribe(
+      (coords) => {
+        stop()
+        handler(coords)
+      },
+      () => {
+        stop()
+        this.located = false
+        this.#showChip(this.noPositionLabelValue, { clearAfterMs: CHIP_MS })
+      }
+    )
   }
 
-  // The dot walks with you while the map is on screen; the route re-fetches once
-  // you have drifted well off its start. The subscription drops when the map is
-  // hidden, which stops the watcher if nothing else is listening.
+  // The dot walks with you. The route does not re-fetch — navigation is the
+  // hand-off's job, so there is nothing here to keep correcting.
   #followUser() {
     if (this.unfollow) return
 
     this.unfollow = positionService.subscribe((coords) => {
       if (!this.#onScreen()) return this.#stopFollowing()
-      const here = [coords.latitude, coords.longitude]
-      this.userMarker?.setLatLng(here)
-      const target = this.routeTarget
-      if (!target || !this.routeOrigin) return
-      if (this.#distanceKm(here[0], here[1], this.routeOrigin[0], this.routeOrigin[1]) > 0.15) {
-        this.routeOrigin = here
-        this.#clearPath()
-        this.#drawPath(here, target)
-      }
+      this.userMarker?.setLatLng([coords.latitude, coords.longitude])
     })
   }
 
@@ -315,33 +306,32 @@ export default class extends Controller {
     this.routeLayer = this.routeChip = null
   }
 
-  // The real walking route when the proxy can deliver one; a straight dashed
-  // line otherwise — routing degrades, it never breaks the map.
+  // The real walking route when the proxy can deliver one, and no line at all
+  // otherwise — a straight line between two points is not a route.
   async #drawPath(here, target) {
     const km = this.#distanceKm(here[0], here[1], target.lat, target.lng)
-    if (km > MAX_WALKING_KM) return this.#showTooFar(here, target, km)
+    const profile = km > WALKING_LIMIT_KM ? "driving-car" : "foot-walking"
 
     try {
-      const query = new URLSearchParams({ from_lat: here[0], from_lng: here[1], to_lat: target.lat, to_lng: target.lng })
+      const query = new URLSearchParams({ from_lat: here[0], from_lng: here[1], to_lat: target.lat, to_lng: target.lng, profile })
       const response = await fetch(`/route?${query}`, { headers: { Accept: "application/json" } })
       if (!response.ok) throw new Error(`route ${response.status}`)
       const route = await response.json()
-      const firstDraw = !this.routeLayer
       this.routeLayer = L.polyline(route.points, { color: "#2563eb", weight: 4, opacity: 0.85 }).addTo(this.map)
       this.#addRouteChip(route)
-      if (firstDraw) this.map.fitBounds(route.points, { padding: [30, 30], maxZoom: 16 })
+      this.#focusOn(target, profile === "foot-walking" ? route.points : null)
     } catch {
-      // The dashed fallback needs framing as much as a real route does — more,
-      // since routing fails exactly when the two points are far apart.
-      this.routeLayer = L.polyline([here, [target.lat, target.lng]], { color: "#2563eb", weight: 3, opacity: 0.7, dashArray: "6 6" }).addTo(this.map)
-      this.#frame([here, [target.lat, target.lng]])
+      this.#focusOn(target, null)
+      this.#showChip(this.noRouteLabelValue, { clearAfterMs: CHIP_MS })
     }
   }
 
-  // Too far to walk: no line implying a path, just where it is and how far.
-  #showTooFar(here, target, km) {
-    this.#addDistanceChip(km)
-    this.#frame([here, [target.lat, target.lng]])
+  // A walk is worth looking at whole. A drive across the country is not — two
+  // points that far apart zoom out past anything legible, so show the
+  // destination instead.
+  #focusOn(target, points) {
+    if (points) return this.#frame(points)
+    this.map.setView([target.lat, target.lng], FOCUS_ZOOM)
   }
 
   // Phones have less room than the desktop route framing assumes, and two
@@ -354,14 +344,12 @@ export default class extends Controller {
   #addRouteChip(route) {
     const km = (route.distance_m / 1000).toFixed(1)
     const min = Math.max(1, Math.round(route.duration_s / 60))
-    this.#showChip(`${km} km · ${min} min`)
+    const mode = route.profile === "driving-car" ? this.byCarLabelValue : this.byFootLabelValue
+    this.#showChip(`${km} km · ${min} min · ${mode}`)
   }
 
-  #addDistanceChip(km) {
-    this.#showChip(this.awayLabelValue.replace("%{km}", km.toFixed(0)))
-  }
-
-  #showChip(text) {
+  #showChip(text, { clearAfterMs } = {}) {
+    clearTimeout(this.chipTimer)
     this.routeChip?.remove()
     const chip = L.control({ position: "bottomleft" })
     chip.onAdd = () => {
@@ -372,6 +360,12 @@ export default class extends Controller {
     }
     chip.addTo(this.map)
     this.routeChip = chip
+    if (clearAfterMs) this.chipTimer = setTimeout(() => this.#clearChip(), clearAfterMs)
+  }
+
+  #clearChip() {
+    this.routeChip?.remove()
+    this.routeChip = null
   }
 
   #distanceKm(lat1, lng1, lat2, lng2) {
@@ -385,6 +379,8 @@ export default class extends Controller {
   toggleFullscreen() {
     this.expanded = !this.expanded
     if (!this.expanded) this.closePanel()
+    // Expanding is a request to see the place, not just more map.
+    if (this.expanded && this.selectedId) this.#openPanel(this.selectedId)
     const style = this.containerTarget.style
 
     if (this.expanded) {
@@ -402,6 +398,7 @@ export default class extends Controller {
   }
 
   disconnect() {
+    clearTimeout(this.chipTimer)
     this.#stopFollowing()
     document.removeEventListener("keydown", this.onKeydown)
     window.removeEventListener("resize", this.onResize)

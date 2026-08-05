@@ -614,6 +614,12 @@ en:
     has_audio: Audio Tour
     clear_all: Clear All
     active: 'Active filters:'
+  map:
+    by_foot: on foot
+    by_car: by car
+    start_route: Start the route
+    no_position: Location unavailable
+    no_route: Route unavailable
   locations:
     types:
       place: Place

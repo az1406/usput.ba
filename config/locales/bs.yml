@@ -888,6 +888,12 @@ bs:
       add_to_existing_desc: Imate aktivan plan. Dodajte ovo iskustvo.
       add_button: Dodaj u plan
       view_plan: Pogledaj plan
+  map:
+    by_foot: pješke
+    by_car: autom
+    start_route: Pokreni rutu
+    no_position: Lokacija nije dostupna
+    no_route: Ruta nije dostupna
   locations:
     types:
       place: Mjesto

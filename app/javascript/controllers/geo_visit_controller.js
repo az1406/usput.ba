@@ -46,9 +46,14 @@ export default class extends Controller {
 
     // Nothing held yet — the first press on this page waits for one fix.
     navigator.geolocation.getCurrentPosition(
-      (position) => this.evaluate(position.coords.latitude, position.coords.longitude),
+      (position) => {
+        positionService.publish(position)
+        this.evaluate(position.coords.latitude, position.coords.longitude)
+      },
       () => this.showEnableLocation(),
-      { enableHighAccuracy: true, timeout: 10000 }
+      // A fix from moments ago is the same fix; forcing a cold acquisition on
+      // every press is what made the first check-in take ten seconds to fail.
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }
     )
   }
 

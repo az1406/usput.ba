@@ -19,8 +19,9 @@
     <% if logged_in? %>
       <meta name="travel-store-scope" content="<%= travel_store_scope %>">
     <% end %>
-
-    <%= yield :head %>
+    <% if dev_position %>
+      <meta name="dev-position" content="<%= dev_position %>">
+    <% end %>
 
     <%# PWA Manifest %>
     <link rel="manifest" href="/manifest.json">

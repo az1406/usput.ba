@@ -40,9 +40,16 @@ class LocationsController < ApplicationController
   end
 
   def map_points
-    points = Rails.cache.fetch(map_points_cache_key, expires_in: MAP_POINTS_TTL) { Location.map_points }
+    # Cached as the rendered string: a hit is bytes to the socket rather than
+    # 10k hashes re-serialised. The etag lets a browser that already holds this
+    # version be answered with a 304 instead of the payload.
+    return unless stale?(etag: map_points_cache_key, public: true)
 
-    render json: points
+    payload = Rails.cache.fetch(map_points_cache_key, expires_in: MAP_POINTS_TTL) do
+      Location.map_points.to_json
+    end
+
+    render json: payload
   end
 
 

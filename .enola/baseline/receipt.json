@@ -1,0 +1,55 @@
+{
+  "snapshot_id": "sha256:eb61f34e5ee09eca6fa27b4b372282ce5a88e0774b41d2d2be18844fd797979c",
+  "enola_version": "0.3.4",
+  "generated_at": "2026-08-05T10:00:30Z",
+  "duration": "2.131711938s",
+  "repo_path": "/home/muhamed/projects/usput.ba",
+  "git": {
+    "ref": "map-view",
+    "commit": "bfb297cd5dc24f60b23a66be80a65de8a809de66",
+    "dirty": true,
+    "remote": "github.com/az1406/usput.ba"
+  },
+  "extractors": [
+    "ruby"
+  ],
+  "explainers": [
+    "cycles",
+    "layers",
+    "crossrepo",
+    "coverage",
+    "unused-routes",
+    "god-class",
+    "hotspots",
+    "dependency-depth",
+    "exported-surface",
+    "complexity-outliers"
+  ],
+  "renderers": [
+    "llm_context"
+  ],
+  "config_hash": "sha256:4520a5e31965c86607164e24f7591a3f52d8acb7c21d22dc3c32d159a777fe39",
+  "ignore_glob_hash": "sha256:f4bac7d15769ddba4e4b3ae5e28be6f7b394c377b305113b991413cbdb29d002",
+  "output_hashes": {
+    "facts.jsonl": "sha256:06e16e9236791f38a9c8bf1fafa16cd40f8ec111d8139b3bfd16258dbe9b628a",
+    "insights.json": "sha256:38837354876579bbafa4447d8847c7368e9a9a70913acad7ebc4087c7404c741",
+    "llm_context.md": "sha256:ab6851f3b89e6fab95b16c8a5f2ac4b866ff008de5b07bb88b2c1a1e4bb67503"
+  },
+  "fact_count": 2782,
+  "insight_count": 58,
+  "quality": {
+    "files_seen": 2418,
+    "files_parsed": 468,
+    "files_skipped": 0,
+    "dirs_skipped": 5,
+    "skipped_sample": [
+      ".git/ (glob: **/.git/**)",
+      "coverage/ (glob: **/coverage/**)",
+      "log/ (glob: **/log/**)",
+      "tmp/ (glob: **/tmp/**)",
+      "vendor/ (glob: **/vendor/**)"
+    ],
+    "parse_errors": 0,
+    "heuristic_insights": 56
+  }
+}
