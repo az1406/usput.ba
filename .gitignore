@@ -64,3 +64,6 @@ tailwindcss-*
 .byebug_history
 tmp/cache/bootsnap/
 coverage/
+
+# Generated architecture snapshots
+.enola/
