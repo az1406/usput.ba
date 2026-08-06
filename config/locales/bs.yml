@@ -403,6 +403,8 @@ bs:
       login_to_capture: Prijavi se da sačuvaš uspomene na ovom putovanju.
       too_far: Predaleko si (%{distance}). Priđi na manje od %{max} m da označiš posjetu.
       need_location: Ne možemo potvrditi tvoju lokaciju. Uključi lokaciju i pokušaj ponovo.
+      locating: Tražimo te…
+      visit_failed: Nije uspjelo. Pokušaj ponovo.
       empty: Ovaj plan još nema lokacija.
       info: Informacije o lokaciji
       map: Karta
@@ -447,6 +449,7 @@ bs:
       experiences_skipped: '%{count} iskustava je preskočeno jer više ne postoje'
       city_not_found: Mjesto nije pronađeno
       invalid_plan_data: Neispravni podaci plana
+      explore_plan_holds_records: Ovaj plan sadrži posjete i trenutke putnika i ne može se obrisati.
     index:
       title: Planovi Putovanja
       subtitle: Pronađi inspiraciju ili kreiraj vlastiti plan
@@ -895,6 +898,10 @@ bs:
     no_position: Lokacija nije dostupna
     no_route: Ruta nije dostupna
   locations:
+    errors:
+      held_by_travellers:
+        one: Ovo mjesto se ne može obrisati — putnik ovdje ima zabilježenu posjetu ili trenutak.
+        other: Ovo mjesto se ne može obrisati — putnici ovdje imaju %{count} zabilježenih posjeta i trenutaka.
     types:
       place: Mjesto
       guide: Vodič

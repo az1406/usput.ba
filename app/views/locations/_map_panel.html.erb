@@ -1,6 +1,6 @@
 <%# The location beside the map in fullscreen. Locals: location.
     Same card shells and rhythm as locations/show, one column wide. %>
-<turbo-frame id="map_panel">
+<turbo-frame id="<%= local_assigns.fetch(:frame_id, "map_panel") %>">
   <div class="h-full overflow-y-auto bg-gray-50 dark:bg-gray-900">
     <div class="relative">
       <% if location.photos.attached? %>

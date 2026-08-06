@@ -13,12 +13,12 @@ class MomentsController < ApplicationController
     # gets no plan and the form renders as a sign-in link.
     @plan ||= Plan.explore_bosnia_for(current_user) if logged_in?
     @moments = if logged_in?
-      current_user.moments.where(location: @location).with_attached_photo.includes(:plan).chronological
+      current_user.moments.where(location: @location).with_attached_photo.includes(:plan).recent_own
     else
       Moment.none
     end
-    @public_moments = Moment.publicly_visible.where(location: @location)
-                            .with_attached_photo.chronological
+    @public_moments = Moment.where(location: @location)
+                            .with_attached_photo.recent_public
 
     render layout: false
   end
@@ -49,15 +49,13 @@ class MomentsController < ApplicationController
   def publish
     moment = current_user.moments.find_by_public_id!(params[:id])
     moment.update!(visibility: :public_moment)
-    respond_to do |format|
-      format.turbo_stream { render :update, locals: { location: moment.location } } if params[:context].present?
-      format.html { redirect_back fallback_location: plan_path(@plan), notice: t("flash.moment.published") }
-    end
+    respond_with_visibility(moment, t("flash.moment.published"))
   end
 
   def unpublish
-    current_user.moments.find_by_public_id!(params[:id]).update!(visibility: :private_moment)
-    redirect_back fallback_location: plan_path(@plan), notice: t("flash.moment.unpublished")
+    moment = current_user.moments.find_by_public_id!(params[:id])
+    moment.update!(visibility: :private_moment)
+    respond_with_visibility(moment, t("flash.moment.unpublished"))
   end
 
   def destroy
@@ -79,6 +77,30 @@ class MomentsController < ApplicationController
   end
 
   private
+
+  def respond_with_visibility(moment, notice)
+    respond_to do |format|
+      format.turbo_stream { render_visibility_change(moment) } if params[:context].present?
+      format.html { redirect_back fallback_location: plan_path(@plan), notice: notice }
+    end
+  end
+
+  # Where the button was tapped decides what is rewritten: the walk and the reel
+  # redraw the location's whole moment strip, the two grids redraw the one tile.
+  def render_visibility_change(moment)
+    case params[:context]
+    when "browse"
+      render turbo_stream: turbo_stream.replace(helpers.dom_id(moment),
+                                                partial: "new_design/explore/my_moment_card",
+                                                locals: { moment: moment, index: params[:index].to_i })
+    when "profile"
+      render turbo_stream: turbo_stream.replace(helpers.dom_id(moment),
+                                                partial: "travel_profiles/my_moment_tile",
+                                                locals: { moment: moment })
+    else
+      render :update, locals: { location: moment.location }
+    end
+  end
 
   # The location-nested index carries no plan_id: reading a place's moments is
   # not plan-scoped, and a guest in explore mode has no plan to name. Every

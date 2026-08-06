@@ -244,8 +244,8 @@
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowfullscreen>
                 </iframe>
-              <% else %>
-                <a href="<%= @location.video_url %>" target="_blank" class="flex items-center justify-center w-full h-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+              <% elsif (video_href = safe_external_url(@location.video_url)) %>
+                <a href="<%= video_href %>" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center w-full h-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
                   <span class="text-gray-600 dark:text-gray-300"><%= t("locations.show.watch_video", default: "Pogledaj video") %> →</span>
                 </a>
               <% end %>
@@ -496,8 +496,8 @@
                   <span class="truncate"><%= @location.email %></span>
                 </a>
               <% end %>
-              <% if @location.website.present? %>
-                <a href="<%= @location.website %>" target="_blank" class="flex items-center text-gray-700 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400">
+              <% if (website_href = safe_external_url(@location.website)) %>
+                <a href="<%= website_href %>" target="_blank" rel="noopener noreferrer" class="flex items-center text-gray-700 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400">
                   <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path>
                   </svg>

@@ -127,7 +127,7 @@ class ExploreBosniaController < ApplicationController
     scope = scope.where(id: tile_location_ids) if @type_keys.any?
     scope = scope.where.not(id: current_user.plan_visits.select(:location_id)) if skip_visited && logged_in?
     scope = apply_filters(scope)
-    scope = scope.includes(photos_attachments: :blob)
+    scope = scope.with_card_content
                  .near([ @lat, @lng ], RADIUS_KM, units: :km)
                  .order(:id)
 

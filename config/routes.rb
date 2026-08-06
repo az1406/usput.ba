@@ -105,8 +105,9 @@ Rails.application.routes.draw do
     member do
       get :start
     end
-    # Per-user, server-owned "I was here" progress for the walk.
-    resources :visits, only: [ :create, :destroy ], module: :plans
+    # Per-user, server-owned "I was here" progress for the walk. Create only:
+    # a visit is permanent, so there is no route that takes one back.
+    resources :visits, only: [ :create ], module: :plans
     resources :reviews, only: [ :index, :create ]
     # Private photos a logged-in traveller attaches to this plan's locations.
     # The photo is served by our own action rather than Active Storage's route,

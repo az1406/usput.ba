@@ -15,10 +15,8 @@ class VisitedAtAGlanceTest < ActionDispatch::IntegrationTest
   end
 
   teardown do
-    @user&.plan_visits&.destroy_all
-    @user&.plans&.destroy_all
-    [ @visited, @unvisited ].each { |location| location&.destroy }
     @user&.destroy
+    [ @visited, @unvisited ].each { |location| location&.destroy }
   end
 
   test "a visited location's card is ringed and labelled, an unvisited one is not" do

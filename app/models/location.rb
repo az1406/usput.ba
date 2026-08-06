@@ -32,8 +32,13 @@ class Location < ApplicationRecord
   has_many :experience_types, through: :location_experience_types
   has_many :audio_tours, dependent: :destroy
   has_many :photo_suggestions, dependent: :destroy
-  has_many :moments, dependent: :destroy
-  has_many :plan_visits, dependent: :destroy
+  # A traveller's record of having been somewhere, and of what they photographed
+  # there, is theirs — no cascade takes it. Until a location can be retired
+  # rather than removed, destroying one that travellers have reached is refused
+  # instead, because the columns are not nullable and orphaning them is worse.
+  has_many :moments
+  has_many :plan_visits
+  before_destroy :refuse_while_travellers_hold_records, prepend: true
 
   # Location categories (many-to-many - a location can have multiple categories)
   has_many :location_category_assignments, dependent: :destroy
@@ -45,12 +50,12 @@ class Location < ApplicationRecord
   # Validations
   validates :name, presence: true
   validates :email, format: { with: URI::MailTo::EMAIL_REGEXP }, allow_blank: true
-  validates :website, format: { with: URI::DEFAULT_PARSER.make_regexp(%w[http https]), message: "must be a valid URL" }, allow_blank: true
+  validates :website, format: { with: /\A#{URI::DEFAULT_PARSER.make_regexp(%w[http https])}\z/, message: "must be a valid URL" }, allow_blank: true
   validates :phone, format: { with: /\A[\d\s\+\-\(\)]+\z/, message: "must be a valid phone number" }, allow_blank: true
   validates :lat, numericality: { greater_than_or_equal_to: -90, less_than_or_equal_to: 90 }, allow_nil: true
   validates :lng, numericality: { greater_than_or_equal_to: -180, less_than_or_equal_to: 180 }, allow_nil: true
   validates :lat, uniqueness: { scope: :lng, message: "i longitude kombinacija već postoji" }, allow_nil: true
-  validates :video_url, format: { with: URI::DEFAULT_PARSER.make_regexp(%w[http https]), message: "must be a valid URL" }, allow_blank: true
+  validates :video_url, format: { with: /\A#{URI::DEFAULT_PARSER.make_regexp(%w[http https])}\z/, message: "must be a valid URL" }, allow_blank: true
 
   # Mine Checker hard-block (docs/mine_checker/SPEC.md §6): any coordinate
   # change must pass the mine check. Fail-closed — stale data also blocks.
@@ -79,6 +84,15 @@ class Location < ApplicationRecord
   }
   scope :with_tag, ->(tag) { where("tags @> ?", [ tag ].to_json) }
   scope :with_coordinates, -> { where.not(lat: nil, lng: nil) }
+  # Everything a walk card reads past the location's own columns. The card's
+  # readers branch on `loaded?` — a `find_by` would query regardless — so a
+  # surface that deals cards loads through here and the branch finds it in
+  # memory. Reads like the with_attached_* scopes it sits beside.
+  scope :with_card_content, -> {
+    includes(:locale_translations,
+             photos_attachments: :blob,
+             audio_tours: { audio_file_attachment: :blob })
+  }
 
   # Scope for locations with audio tours
   scope :with_audio, -> {
@@ -595,6 +609,8 @@ class Location < ApplicationRecord
 
   # Get audio tour for a specific locale
   def audio_tour_for(locale)
+    return audio_tours.detect { |tour| tour.locale == locale.to_s } if audio_tours.loaded?
+
     audio_tours.find_by(locale: locale.to_s)
   end
 
@@ -604,11 +620,13 @@ class Location < ApplicationRecord
     audio_tour_for(locale) ||
       audio_tour_for(I18n.default_locale) ||
       audio_tour_for("en") ||
-      audio_tours.with_audio.first
+      any_audio_tour
   end
 
   # Check if location has any audio tours
   def has_audio_tours?
+    return audio_tours.any? { |tour| tour.audio_file.attached? } if audio_tours.loaded?
+
     audio_tours.with_audio.exists?
   end
 
@@ -664,6 +682,20 @@ class Location < ApplicationRecord
     end
   end
   private
+
+  def any_audio_tour
+    return audio_tours.detect { |tour| tour.audio_file.attached? } if audio_tours.loaded?
+
+    audio_tours.with_audio.first
+  end
+
+  def refuse_while_travellers_hold_records
+    held = plan_visits.count + moments.count
+    return if held.zero?
+
+    errors.add(:base, I18n.t("locations.errors.held_by_travellers", count: held))
+    throw(:abort)
+  end
 
   def mine_check_required?
     lat.present? && lng.present? && (lat_changed? || lng_changed?)

@@ -1,5 +1,8 @@
 class MapRoutesController < ApplicationController
   CACHE_TTL = 1.hour
+  # ~110 m. At 11 m no two travellers ever shared an entry, so every request was
+  # a 5 s upstream call. Snapped before fetching too, so the line matches the key.
+  ORIGIN_PRECISION = 3
 
   def show
     coordinates = coordinate_params
@@ -25,7 +28,8 @@ class MapRoutesController < ApplicationController
     from_lat, from_lng, to_lat, to_lng = values.map { |value| Float(value) }
     return nil unless from_lat.abs <= 90 && to_lat.abs <= 90 && from_lng.abs <= 180 && to_lng.abs <= 180
 
-    { from_lat: from_lat, from_lng: from_lng, to_lat: to_lat, to_lng: to_lng }
+    { from_lat: from_lat.round(ORIGIN_PRECISION), from_lng: from_lng.round(ORIGIN_PRECISION),
+      to_lat: to_lat, to_lng: to_lng }
   rescue ArgumentError, TypeError
     nil
   end
@@ -34,9 +38,7 @@ class MapRoutesController < ApplicationController
     Maps::RouteFetcher::PROFILES.include?(params[:profile]) ? params[:profile] : Maps::RouteFetcher::WALKING
   end
 
-  # Rounded so nearby requests share a cache entry (~11 m at 4 decimals).
   def cache_key(coordinates, profile)
-    rounded = coordinates.values.map { |value| value.round(4) }.join(",")
-    "map_route/#{profile}/#{rounded}"
+    "map_route/#{profile}/#{coordinates.values.join(",")}"
   end
 end

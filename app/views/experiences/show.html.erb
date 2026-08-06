@@ -341,8 +341,8 @@
                 </a>
               <% end %>
 
-              <% if @experience.contact_website.present? %>
-                <a href="<%= @experience.contact_website.start_with?('http') ? @experience.contact_website : "https://#{@experience.contact_website}" %>"
+              <% if (contact_href = safe_external_url(@experience.contact_website)) %>
+                <a href="<%= contact_href %>"
                    target="_blank"
                    rel="noopener noreferrer"
                    class="flex items-center text-purple-600 dark:text-purple-400 hover:underline">

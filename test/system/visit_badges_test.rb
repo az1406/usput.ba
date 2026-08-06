@@ -15,10 +15,9 @@ class VisitBadgesTest < ApplicationSystemTestCase
   end
 
   teardown do
+    @user&.destroy
     @location&.destroy
     @type&.destroy
-    @user&.plans&.destroy_all
-    @user&.destroy
   end
 
   def login

@@ -25,9 +25,17 @@ class Moment < ApplicationRecord
   # moderation, so a curator must approve it before anyone else can see it.
   before_save :require_moderation_when_published
 
+  # Both a traveller's own collection and a place's shared one grow without
+  # bound, so every surface that lists them renders a recent slice. The whole
+  # set is never a page's worth, and each row drags a photo and its blob.
+  OWN_LIMIT = 12
+  PUBLIC_LIMIT = 24
+
   # Scopes
   scope :chronological, -> { order(created_at: :asc) }
   scope :publicly_visible, -> { visibility_public_moment.approved }
+  scope :recent_own, -> { order(created_at: :desc).limit(OWN_LIMIT) }
+  scope :recent_public, -> { publicly_visible.order(created_at: :desc).limit(PUBLIC_LIMIT) }
 
   # Mirrors Location#display_photos: .variant on a non-image blob raises.
   def displayable?

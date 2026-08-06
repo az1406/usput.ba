@@ -147,6 +147,48 @@ class GuestWalkTest < ActionDispatch::IntegrationTest
     user&.destroy
   end
 
+  # The device's list is the one check-in path that cannot re-verify the 100 m
+  # gate, so it is spent once. Replaying it every sign-in would let a traveller
+  # mark the whole country visited by signing out and back in.
+  test "a second sign-in cannot replay the device's list" do
+    user = User.create!(username: "replaying", password: "password123")
+    second = Location.create!(name: "Second Fort", city: "Mostar", lat: 43.34, lng: 17.81,
+                              suitable_experiences: [ @history.key ])
+    walk = { "visited" => [ { "id" => @location.uuid, "type" => "location" } ] }.to_json
+
+    post login_path, params: { username: user.username, password: "password123", travel_profile_data: walk }
+    delete logout_path
+
+    assert_no_difference "PlanVisit.count" do
+      post login_path, params: {
+        username: user.username, password: "password123",
+        travel_profile_data: { "visited" => [ { "id" => second.uuid, "type" => "location" } ] }.to_json
+      }
+    end
+
+    assert_equal [ @location.id ], user.plan_visits.pluck(:location_id)
+  ensure
+    second&.destroy
+    user&.destroy
+  end
+
+  test "a traveller who already checked in is not importable from the device" do
+    user = User.create!(username: "established", password: "password123")
+    user.plan_visits.create!(plan: Plan.explore_bosnia_for(user), location: @location)
+    other = Location.create!(name: "Far Fort", city: "Bihać", lat: 44.81, lng: 15.87,
+                             suitable_experiences: [ @history.key ])
+
+    assert_no_difference "PlanVisit.count" do
+      post login_path, params: {
+        username: user.username, password: "password123",
+        travel_profile_data: { "visited" => [ { "id" => other.uuid, "type" => "location" } ] }.to_json
+      }
+    end
+  ensure
+    other&.destroy
+    user&.destroy
+  end
+
   test "a bad password imports nothing, even with visits attached" do
     user = User.create!(username: "wrong_key", password: "password123")
 

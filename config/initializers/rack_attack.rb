@@ -28,16 +28,16 @@ class Rack::Attack
   # ----------------------------------------------------------------------------
   # Limit login attempts to 5 per 20 seconds per IP
   throttle("logins/ip", limit: 5, period: 20.seconds) do |req|
-    if req.path == "/session" && req.post?
+    if req.path == "/login" && req.post?
       req.ip
     end
   end
 
-  # Limit login attempts to 5 per minute per email
-  throttle("logins/email", limit: 5, period: 1.minute) do |req|
-    if req.path == "/session" && req.post?
-      # Normalize email to prevent case-based bypass
-      req.params.dig("session", "email")&.downcase&.strip
+  # Limit login attempts to 5 per minute per account
+  throttle("logins/username", limit: 5, period: 1.minute) do |req|
+    if req.path == "/login" && req.post?
+      # Normalize username to prevent case-based bypass
+      req.params["username"]&.downcase&.strip
     end
   end
 
@@ -46,7 +46,7 @@ class Rack::Attack
   # ----------------------------------------------------------------------------
   # Limit signup attempts to 3 per minute per IP
   throttle("signups/ip", limit: 3, period: 1.minute) do |req|
-    if req.path == "/users" && req.post?
+    if req.path == "/register" && req.post?
       req.ip
     end
   end
@@ -126,6 +126,18 @@ class Rack::Attack
   # but sustained sweeping (bulk boundary scraping) gets cut off
   throttle("mine-areas/ip", limit: 60, period: 1.minute) do |req|
     if req.path == "/mine-check/areas"
+      req.ip
+    end
+  end
+
+  # ----------------------------------------------------------------------------
+  # Throttle: Walking-route lookups
+  # ----------------------------------------------------------------------------
+  # Limit route lookups to 30 per minute per IP — a cache miss is an outbound
+  # call to the routing engine on our API key, and the key rounds coordinates to
+  # ~11 m, so an unthrottled caller can force misses indefinitely
+  throttle("map-route/ip", limit: 30, period: 1.minute) do |req|
+    if req.path == "/route"
       req.ip
     end
   end

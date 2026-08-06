@@ -55,7 +55,7 @@ class NewDesignController < ApplicationController
 
   PER_PAGE = 3
 
-  OWN_MOMENTS_LIMIT = 12
+  OWN_MOMENTS_LIMIT = Moment::OWN_LIMIT
 
   def explore
     @query = params[:q]
@@ -168,7 +168,7 @@ class NewDesignController < ApplicationController
     scope = current_user.moments.with_attached_photo.includes(:location, :plan)
     # Moments have no text of their own; Browse matches them via their location.
     scope = scope.where(location_id: base_browse.locations.select(:browsable_id)) if @query.present?
-    scope.order(created_at: :desc).limit(OWN_MOMENTS_LIMIT)
+    scope.recent_own
   end
 
   def build_moments_from_browse(base_browse)

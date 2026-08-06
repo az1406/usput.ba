@@ -41,11 +41,15 @@ class MapPanelTest < ApplicationSystemTestCase
     end
     markers = all(".leaflet-marker-icon:not(.marker-cluster)", minimum: 2, wait: 5)
 
+    # The frame belongs to the map the traveller is standing on, not to the
+    # place the pin names — the deck repeats this component once per card.
+    panel_frame = "map_panel_location_#{@first.id}"
+
     markers.first.click
-    assert_selector "turbo-frame#map_panel h1", wait: 5
+    assert_selector "turbo-frame##{panel_frame} h1", wait: 5
 
     markers.last.click
-    assert_selector "turbo-frame#map_panel h1", wait: 5
+    assert_selector "turbo-frame##{panel_frame} h1", wait: 5
 
     assert page.evaluate_script("window.__stillHere === true"),
            "clicking a second pin reloaded the page instead of rewriting the panel"

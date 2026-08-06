@@ -27,6 +27,7 @@ class GuestVisitsImporter
   end
 
   def call
+    return self if already_claimed?
     return self if location_uuids.empty?
 
     import_visits
@@ -41,6 +42,15 @@ class GuestVisitsImporter
   end
 
   private
+
+  # The device's list is the only check-in path that cannot re-verify the 100 m
+  # gate, so it is spent once: a walk with no owner. An account that already
+  # holds visits has claimed its walk and the server is authoritative from then
+  # on — without this, signing out and back in replays the list unbounded and a
+  # traveller can mark the country visited from an armchair.
+  def already_claimed?
+    @user.plan_visits.exists?
+  end
 
   # Three queries whatever the length of the walk: resolve the uuids, read back
   # what the traveller already has, insert the rest in one statement.

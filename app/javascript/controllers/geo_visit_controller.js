@@ -14,6 +14,7 @@ export default class extends Controller {
     // A guest has no form to submit, so the button reports its own press.
     this.event = this.guestValue ? "click" : "submit"
     this.element.addEventListener(this.event, this.capture)
+    this.element.addEventListener("turbo:submit-end", this.released)
     this.unsubscribe = positionService.subscribe(() => {})
     if (this.guestValue && travelProfileService.isVisited(this.locationIdValue)) this.restoreVisited()
   }
@@ -31,7 +32,15 @@ export default class extends Controller {
 
   disconnect() {
     this.element.removeEventListener(this.event, this.capture)
+    this.element.removeEventListener("turbo:submit-end", this.released)
     this.unsubscribe?.()
+  }
+
+  // A success replaces this control, so only a failed submit gets here — and
+  // without the release every later press was a silent no-op until a reload.
+  released = (event) => {
+    this.sending = false
+    if (event.detail?.success === false) this.showMessage("failed")
   }
 
   capture = (event) => {
@@ -44,7 +53,9 @@ export default class extends Controller {
     if (here) return setTimeout(() => this.evaluate(here.latitude, here.longitude), 0)
     if (!navigator.geolocation) return this.showEnableLocation()
 
-    // Nothing held yet — the first press on this page waits for one fix.
+    // Nothing held yet — the first press on this page waits for one fix, and a
+    // press that shows nothing for ten seconds reads as a dead button.
+    this.showMessage("locating")
     navigator.geolocation.getCurrentPosition(
       (position) => {
         positionService.publish(position)
@@ -116,8 +127,12 @@ export default class extends Controller {
   }
 
   showEnableLocation() {
+    this.showMessage("enableLocation")
+  }
+
+  showMessage(key) {
     if (!this.hasHintTarget) return
-    this.hintTarget.textContent = this.hintTarget.dataset.enableLocation || "Enable location and try again."
+    this.hintTarget.textContent = this.hintTarget.dataset[key] || ""
     this.hintTarget.style.backgroundColor = ""
     this.hintTarget.classList.remove("hidden")
   }

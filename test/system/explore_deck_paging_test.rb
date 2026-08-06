@@ -14,10 +14,9 @@ class ExploreDeckPagingTest < ApplicationSystemTestCase
   end
 
   teardown do
+    @user&.destroy
     @locations.each(&:destroy)
     @type&.destroy
-    @user&.plans&.destroy_all
-    @user&.destroy
   end
 
   def login

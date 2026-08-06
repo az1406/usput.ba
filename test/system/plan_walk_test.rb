@@ -166,6 +166,28 @@ class PlanWalkTest < ApplicationSystemTestCase
       "closing the lightbox must not reach the card underneath"
   end
 
+  # A deck of any length used to build a Leaflet instance, a tile layer and a
+  # document keydown listener per card before the traveller opened anything.
+  test "the walk builds no map until a card's map panel is opened" do
+    second = Location.create!(name: "Second Loc", city: "Sarajevo", lat: 43.90, lng: 18.50)
+    @experience.locations << second
+    login
+    visit start_plan_path(@plan)
+    assert_selector "##{ActionView::RecordIdentifier.dom_id(@location, :step)}", wait: 5
+
+    assert_equal 0, page.evaluate_script("document.querySelectorAll('.leaflet-container').length"),
+      "a hidden card map must not mount Leaflet"
+
+    find("[data-plan-deck-target='card'] button[data-action='card-menu#openFromHandle']", match: :first).click
+    find("button", text: I18n.t("plans.start.map"), match: :first).click
+
+    assert_selector "[data-card-menu-target='panel'][data-panel='map'] .leaflet-container", visible: true, wait: 5
+    assert_equal 1, page.evaluate_script("document.querySelectorAll('.leaflet-container').length"),
+      "only the opened card's map may mount"
+  ensure
+    second&.destroy
+  end
+
   test "visited progress persists when leaving and returning to the walk" do
     login
     visit start_plan_path(@plan)

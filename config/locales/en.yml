@@ -404,6 +404,8 @@ en:
       login_to_capture: Log in to capture moments on this trip.
       too_far: You're too far away (%{distance}). Get within %{max} m to mark the visit.
       need_location: We couldn't get your location. Enable location and try again.
+      locating: Finding you…
+      visit_failed: That didn't go through. Try again.
       empty: This plan has no locations yet.
       info: Location info
       map: Map
@@ -450,6 +452,7 @@ en:
       experiences_skipped: '%{count} experiences were skipped because they no longer exist'
       city_not_found: Place not found
       invalid_plan_data: Invalid plan data provided
+      explore_plan_holds_records: This plan holds travellers' visits and moments and cannot be removed.
     index:
       title: Travel Plans
       subtitle: Find inspiration or create your own plan
@@ -621,6 +624,10 @@ en:
     no_position: Location unavailable
     no_route: Route unavailable
   locations:
+    errors:
+      held_by_travellers:
+        one: This place cannot be removed — a traveller has a visit or a moment recorded here.
+        other: This place cannot be removed — travellers have %{count} visits and moments recorded here.
     types:
       place: Place
       guide: Guide

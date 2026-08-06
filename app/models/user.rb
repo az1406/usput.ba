@@ -16,6 +16,11 @@ class User < ApplicationRecord
   has_many :moments, dependent: :destroy
   has_many :plan_visits, dependent: :destroy
 
+  # The profile blob is written straight from whatever the device sends, so each
+  # list it holds is bounded rather than left to grow a row without limit.
+  MAX_PROFILE_ENTRIES = 200
+  MAX_RECENTLY_VIEWED = 20
+
   # Spam protection constants
   MAX_ACTIVITIES_PER_HOUR = 50
   MAX_ACTIVITIES_PER_DAY = 200
@@ -155,14 +160,14 @@ class User < ApplicationRecord
     merged = {
       "createdAt" => [ current_data["createdAt"], incoming_data["createdAt"] ].compact.min,
       "updatedAt" => Time.current.iso8601,
-      "favorites" => merge_favorites(current_data, incoming_data),
+      "favorites" => merge_favorites(current_data, incoming_data).first(MAX_PROFILE_ENTRIES),
       "recentlyViewed" => (current_data["recentlyViewed"].to_a + incoming_data["recentlyViewed"].to_a)
                            .uniq { |item| item["id"] }
                            .sort_by { |item| item["viewedAt"] || "" }
                            .reverse
-                           .first(20),
-      "badges" => merge_arrays_by_id(current_data["badges"], incoming_data["badges"]),
-      "savedPlans" => merge_arrays_by_id(current_data["savedPlans"], incoming_data["savedPlans"])
+                           .first(MAX_RECENTLY_VIEWED),
+      "badges" => merge_arrays_by_id(current_data["badges"], incoming_data["badges"]).first(MAX_PROFILE_ENTRIES),
+      "savedPlans" => merge_arrays_by_id(current_data["savedPlans"], incoming_data["savedPlans"]).first(MAX_PROFILE_ENTRIES)
     }
 
     update!(travel_profile_data: merged)

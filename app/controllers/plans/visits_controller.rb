@@ -17,13 +17,6 @@ class Plans::VisitsController < ApplicationController
     render_location(location)
   end
 
-  def destroy
-    location = Location.find_by_public_id!(params[:id])
-    current_user.plan_visits.where(plan: @plan, location: location).destroy_all
-
-    render_location(location)
-  end
-
   private
 
   def out_of_range_reason(location)

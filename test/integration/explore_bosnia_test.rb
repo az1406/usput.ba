@@ -22,12 +22,10 @@ class ExploreBosniaTest < ActionDispatch::IntegrationTest
   end
 
   teardown do
+    @user&.destroy
+    @admin&.destroy
     [ @near, @mid, @outside ].each { |location| location&.destroy }
     @history&.destroy
-    @user&.plans&.destroy_all
-    @user&.destroy
-    @admin&.plans&.destroy_all
-    @admin&.destroy
   end
 
   # The deck's keyset cursor interpolates Geocoder's distance expression into
@@ -647,8 +645,6 @@ class ExploreBosniaTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "[data-photo-gallery-target='thumbnail']", count: 1
   ensure
-    other&.moments&.destroy_all
-    other&.plans&.destroy_all
     other&.destroy
   end
 
@@ -824,7 +820,53 @@ class ExploreBosniaTest < ActionDispatch::IntegrationTest
            "the admin bypass must record the visit"
   end
 
+  # The card's name, description and audio-badge reads used find_by/exists?,
+  # which query past a preload, so Bullet never saw the N+1 they caused. A count
+  # is the only guard: it must not move when the deck grows or the locale's
+  # fallback chain deepens (Polish is four deep).
+  test "the deck costs the same whether it deals three cards or ten" do
+    login_as(@user)
+
+    three = deck_queries
+    seed_places(9)
+    ten = deck_queries
+
+    assert_equal three, ten,
+                 "dealing ten cards cost #{ten} queries against #{three} for three — a per-card query is back"
+  ensure
+    destroy_seeded_places
+  end
+
+  test "a deep fallback locale costs the deck nothing extra" do
+    seed_places(9)
+    login_as(@user)
+
+    assert_equal deck_queries(locale: :en), deck_queries(locale: :pl),
+                 "Polish falls back through cs and sk; the chain must resolve in one query, not four"
+  ensure
+    destroy_seeded_places
+  end
+
   private
+
+  def deck_queries(locale: :en)
+    params = { lat: SARAJEVO[:lat], lng: SARAJEVO[:lng], locale: locale }
+    # Warm first: the request that opens a connection pays for schema reads.
+    get explore_bosnia_experience_path("all"), params: params
+
+    count = 0
+    subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |*, payload|
+      next if %w[SCHEMA TRANSACTION].include?(payload[:name]) || payload[:cached]
+
+      count += 1
+    end
+    ActiveRecord::Base.connection.clear_query_cache
+    get explore_bosnia_experience_path("all"), params: params
+    assert_response :success
+    count
+  ensure
+    ActiveSupport::Notifications.unsubscribe(subscriber)
+  end
 
   def admin
     @admin ||= User.create!(username: "chief", password: "password123", user_type: :admin)

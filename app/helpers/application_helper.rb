@@ -185,7 +185,7 @@ module ApplicationHelper
     visited = plan_visit_counts[plan.id].to_i
     return :not_started if visited.zero?
 
-    total = plan.all_locations.size
+    total = plan.all_location_count
     total.positive? && visited >= total ? :finished : :started
   end
 

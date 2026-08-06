@@ -10,6 +10,11 @@ class Plan < ApplicationRecord
   # Visibility enum
   enum :visibility, { private_plan: 0, public_plan: 1 }, prefix: true
 
+  # Preferences the device is allowed to author. The column also carries the
+  # explore marker, which decides which listings a plan appears in and which
+  # plan check-ins ride on, so it is set here and never from a payload.
+  DEVICE_PREFERENCE_KEYS = %w[budget meat_lover custom_title interests].freeze
+
   # Returns custom_title if set, otherwise falls back to title
   def display_title
     custom_title = preferences&.dig("custom_title")
@@ -31,6 +36,12 @@ class Plan < ApplicationRecord
   # plan's owner: anyone viewing a public plan collects their own moments on it.
   has_many :moments, dependent: :destroy
   has_many :plan_visits, dependent: :destroy
+
+  # A check-in and a moment belong to the location, not to the itinerary that
+  # brought the traveller there — so the cascade above must never reach them.
+  # Every traveller's rows, the owner's included, move to that traveller's own
+  # explore plan before the plan goes.
+  before_destroy :rehome_traveller_records, prepend: true
 
   # Setter for experience_days (used by content change proposals)
   # Format: { "1" => ["uuid1", "uuid2"], "2" => ["uuid3"] }
@@ -258,14 +269,27 @@ class Plan < ApplicationRecord
   # Deduplicirano: lokacija dostupna iz dva doživljaja je i dalje jedno mjesto.
   def all_locations
     @all_locations ||= begin
+      by_id = Location.where(id: all_location_ids).with_card_content.index_by(&:id)
+      all_location_ids.filter_map { |id| by_id[id] }
+    end
+  end
+
+  # A progress badge wants the number, not the places, and the ids answer it
+  # without loading a single photo or blob.
+  def all_location_count
+    all_location_ids.size
+  end
+
+  def all_location_ids
+    @all_location_ids ||= begin
       by_day = Hash.new { |hash, day| hash[day] = [] }
 
-      plan_experiences.includes(experience: { locations: { photos_attachments: :blob } }).each do |plan_experience|
-        by_day[plan_experience.day_number].concat(plan_experience.experience.locations)
+      plan_experiences.includes(experience: :experience_locations).each do |plan_experience|
+        by_day[plan_experience.day_number].concat(plan_experience.experience.experience_locations.map(&:location_id))
       end
 
-      plan_locations.includes(location: { photos_attachments: :blob }).each do |plan_location|
-        by_day[plan_location.day_number] << plan_location.location
+      plan_locations.each do |plan_location|
+        by_day[plan_location.day_number] << plan_location.location_id
       end
 
       by_day.keys.sort.flat_map { |day| by_day[day] }.uniq
@@ -459,7 +483,7 @@ class Plan < ApplicationRecord
     end
 
     duration_days = data["duration_days"] || 1
-    preferences = (data["preferences"] || {}).dup
+    preferences = (data["preferences"] || {}).to_h.slice(*DEVICE_PREFERENCE_KEYS)
 
     # Store custom_title in preferences if provided
     if data["custom_title"].present?
@@ -544,7 +568,7 @@ class Plan < ApplicationRecord
     skipped_count = 0
 
     transaction do
-      self.preferences = data["preferences"] if data["preferences"].present?
+      self.preferences = data["preferences"].to_h.slice(*DEVICE_PREFERENCE_KEYS) if data["preferences"].present?
 
       # Handle custom_title - store in preferences if provided at top level
       if data.key?("custom_title")
@@ -612,6 +636,46 @@ class Plan < ApplicationRecord
   end
 
   private
+
+  def rehome_traveller_records
+    travellers = User.where(id: traveller_ids)
+
+    # The explore plan is where every other plan's records are re-homed to, so
+    # it has nowhere of its own to go. It is unreachable from the plan endpoints;
+    # this stops a console or a future caller stranding what it holds.
+    if explore_bosnia? && travellers.exists?
+      errors.add(:base, I18n.t("plans.errors.explore_plan_holds_records"))
+      throw(:abort)
+    end
+
+    travellers.find_each do |traveller|
+      destination = Plan.explore_bosnia_for(traveller)
+      next if destination.id == id
+
+      moments.where(user_id: traveller.id).update_all(plan_id: destination.id)
+      rehome_visits_for(traveller, destination)
+    end
+  end
+
+  def traveller_ids
+    (moments.distinct.pluck(:user_id) + plan_visits.distinct.pluck(:user_id)).uniq
+  end
+
+  def rehome_visits_for(traveller, destination)
+    held = destination.plan_visits.where(user_id: traveller.id).index_by(&:location_id)
+
+    plan_visits.where(user_id: traveller.id).find_each do |visit|
+      duplicate = held[visit.location_id]
+      # Moving it would collide with the uniqueness index, and the row it
+      # duplicates records the same arrival — so only the earlier date survives,
+      # and the copy is left for the cascade.
+      if duplicate
+        duplicate.update_column(:created_at, visit.created_at) if visit.created_at < duplicate.created_at
+      else
+        visit.update_column(:plan_id, destination.id)
+      end
+    end
+  end
 
   def build_days_for_export
     max_day = [

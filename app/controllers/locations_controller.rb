@@ -56,10 +56,17 @@ class LocationsController < ApplicationController
   def map_panel
     location = Location.includes(:reviews).find_by_public_id!(params[:id])
 
-    render partial: "locations/map_panel", locals: { location: location }
+    render partial: "locations/map_panel", locals: { location: location, frame_id: panel_frame_id }
   end
 
   private
+
+  # Matched against the shape dom_id emits rather than echoed, so no arbitrary
+  # string from the query reaches the markup.
+  def panel_frame_id
+    frame = params[:frame].to_s
+    frame.match?(/\Amap_panel_location_\d+\z/) ? frame : "map_panel"
+  end
 
   # Content edits are the only thing that moves the catalogue.
   def map_points_cache_key

@@ -345,6 +345,52 @@ class TravelProfilesControllerTest < ActionDispatch::IntegrationTest
     # (pagination limits to 6 per page - PER_PAGE constant)
   end
 
+  # An exception message names classes, columns and constraints; the caller gets
+  # a translated line and the detail goes to the reporter.
+  test "an unexpected failure does not hand the exception message to the caller" do
+    login_as(@user)
+
+    patch travel_profile_path, params: { travel_profile_data: "[1, 2]" }, as: :json
+
+    assert_response :unprocessable_entity
+    error = response.parsed_body["error"]
+    assert_equal I18n.t("travel_profile.sync_error"), error
+    assert_not_includes error, "TypeError"
+  end
+
+  test "the passport counts every place but lists only a recent slice" do
+    places = (TravelProfilesController::VISITED_LIMIT + 3).times.map do |i|
+      Location.create!(name: "Passport #{i}", city: "Sarajevo", lat: 43.8 + i * 0.01, lng: 18.4 + i * 0.01)
+    end
+    places.each { |place| PlanVisit.create!(user: @user, plan: @plan, location: place) }
+    login_as(@user)
+
+    get profile_page_path
+
+    assert_response :success
+    # The stat is the whole passport; the list below it stops at the cap.
+    assert_select "p.text-3xl", text: places.size.to_s
+    assert_select "a[href=?]", location_path(places.last), count: 1
+    assert_select "a[href=?]", location_path(places.first), count: 0
+  ensure
+    places&.each(&:destroy)
+  end
+
+  test "a place reached on two plans counts and lists once" do
+    other_plan = Plan.create!(title: "Second", city_name: "Sarajevo", user: @user)
+    PlanVisit.create!(user: @user, plan: @plan, location: @location)
+    PlanVisit.create!(user: @user, plan: other_plan, location: @location)
+    login_as(@user)
+
+    get profile_page_path
+
+    assert_response :success
+    assert_select "p.text-3xl", text: "1"
+    assert_select "a[href=?]", location_path(@location), count: 1
+  ensure
+    other_plan&.destroy
+  end
+
   private
 
   def login_as(user)

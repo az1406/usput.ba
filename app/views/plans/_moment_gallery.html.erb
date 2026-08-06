@@ -7,7 +7,7 @@
 <% narrow = context.in?(%w[explore walk])
    columns = narrow ? "grid-cols-3" : "grid-cols-[repeat(auto-fill,minmax(7rem,1fr))]"
    own = moments.to_a.select(&:displayable?).sort_by { |moment| [ moment.visibility_private_moment? ? 0 : 1, -moment.created_at.to_i ] }
-   others = public_moments.select(&:displayable?).reject { |shared| logged_in? && shared.user_id == current_user.id }
+   others = public_moments.to_a.select(&:displayable?).reject { |shared| logged_in? && shared.user_id == current_user.id }
    shown = own + others %>
 
 <div data-controller="photo-gallery" data-photo-gallery-index-value="0">

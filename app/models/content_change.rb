@@ -129,6 +129,9 @@ class ContentChange < ApplicationRecord
     true
   rescue StandardError => e
     Rails.logger.error "Failed to approve content change #{id}: #{e.message}"
+    # A refused destroy explains itself on the record; the admin needs that
+    # reason, not just "approval failed".
+    errors.add(:base, changeable.errors.full_messages.to_sentence) if changeable&.errors&.any?
     false
   end
 

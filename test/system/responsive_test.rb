@@ -25,10 +25,9 @@ class ResponsiveTest < ApplicationSystemTestCase
   end
 
   teardown do
+    @user&.destroy
     @experience&.destroy
     @location&.destroy
-    @user&.plans&.destroy_all
-    @user&.destroy
   end
 
   test "no public page scrolls sideways on a phone" do

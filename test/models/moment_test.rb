@@ -66,12 +66,18 @@ class MomentTest < ActiveSupport::TestCase
     other_plan&.destroy
   end
 
-  test "is destroyed with its plan" do
-    build_moment.save!
+  # A moment is bound to the location, not to the itinerary that brought the
+  # traveller there, so deleting the plan re-homes it instead of taking it.
+  test "outlives its plan on the traveller's explore plan" do
+    moment = build_moment
+    moment.save!
 
-    assert_difference "Moment.count", -1 do
+    assert_no_difference "Moment.count" do
       @plan.destroy
     end
+
+    assert_equal Plan.explore_bosnia_for(@user).id, moment.reload.plan_id
+    assert_equal @location.id, moment.location_id
   end
 
   test "is destroyed with its user" do
@@ -165,17 +171,45 @@ class MomentTest < ActiveSupport::TestCase
     assert_not blob.service.exist?(blob.key), "the file must be deleted from storage"
   end
 
-  test "deleting a moment via its plan also purges the photo" do
+  test "deleting the plan leaves the moment's photo in storage" do
     moment = build_moment
     moment.save!
     blob = moment.photo.blob
 
     perform_enqueued_jobs { @plan.destroy }
 
-    assert_not blob.service.exist?(blob.key), "cascade delete must still purge the file"
+    assert blob.service.exist?(blob.key), "deleting an itinerary must not purge a traveller's photo"
+    assert moment.reload.photo.attached?
+  end
+
+  test "recent_own caps a traveller's collection at the newest slice" do
+    made = (Moment::OWN_LIMIT + 3).times.map { build_moment.tap(&:save!) }
+
+    recent = @user.moments.recent_own.to_a
+
+    assert_equal Moment::OWN_LIMIT, recent.size
+    assert_equal made.last(Moment::OWN_LIMIT).map(&:id).reverse, recent.map(&:id)
+  end
+
+  test "recent_public caps a place's shared moments and hides unapproved ones" do
+    (Moment::PUBLIC_LIMIT + 2).times { publish(build_moment.tap(&:save!)) }
+    pending = build_moment
+    pending.visibility = :public_moment
+    pending.save!
+
+    shared = Moment.where(location: @location).recent_public.to_a
+
+    assert_equal Moment::PUBLIC_LIMIT, shared.size
+    assert_not_includes shared.map(&:id), pending.id
   end
 
   private
+
+  def publish(moment)
+    moment.update!(visibility: :public_moment)
+    moment.update_column(:moderation_status, Moment.moderation_statuses[:approved])
+    moment
+  end
 
   def build_moment(plan: @plan, content_type: "image/jpeg", filename: "moment.jpg")
     moment = @user.moments.build(plan: plan, location: @location)

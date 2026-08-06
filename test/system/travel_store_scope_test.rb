@@ -18,11 +18,10 @@ class TravelStoreScopeTest < ApplicationSystemTestCase
   end
 
   teardown do
-    @location&.destroy
-    @type&.destroy
-    [ @ana, @bob ].each { |user| user&.plans&.destroy_all }
     @ana&.destroy
     @bob&.destroy
+    @location&.destroy
+    @type&.destroy
   end
 
   def login(username)

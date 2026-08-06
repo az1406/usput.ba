@@ -12,11 +12,13 @@ class ExploreBosniaSystemTest < ApplicationSystemTestCase
                             filename: "real_image.jpg", content_type: "image/jpeg")
   end
 
+  # The window is shared across the suite, so the phone sizes below have to go
+  # back or a later test finds the deck card it is looking for sized away.
   teardown do
+    page.driver.browser.manage.window.resize_to(1400, 1400)
+    @user&.destroy
     @location&.destroy
     @type&.destroy
-    @user&.plans&.destroy_all
-    @user&.destroy
   end
 
   def login

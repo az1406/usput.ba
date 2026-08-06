@@ -23,7 +23,7 @@ class Experience < ApplicationRecord
   # Validations
   validates :title, presence: true
   validates :estimated_duration, numericality: { greater_than: 0 }, allow_nil: true
-  validates :contact_website, format: { with: URI::DEFAULT_PARSER.make_regexp(%w[http https]), message: "must be a valid URL" }, allow_blank: true
+  validates :contact_website, format: { with: /\A#{URI::DEFAULT_PARSER.make_regexp(%w[http https])}\z/, message: "must be a valid URL" }, allow_blank: true
 
   # Scopes
   scope :with_locations, -> { joins(:experience_locations).distinct }

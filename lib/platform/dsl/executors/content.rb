@@ -188,7 +188,9 @@ module Platform
             elsif record.respond_to?(:soft_delete)
               record.soft_delete
             else
-              record.destroy
+              # A refused destroy explains itself on the record; reporting
+              # success here would tell the operator the row is gone.
+              raise ExecutionError, record.errors.full_messages.to_sentence unless record.destroy
             end
 
             {

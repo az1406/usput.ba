@@ -14,8 +14,8 @@ class GuestVisitsImporterTest < ActiveSupport::TestCase
   end
 
   teardown do
-    [ @near, @other ].each { |location| location&.destroy }
     @user&.destroy
+    [ @near, @other ].each { |location| location&.destroy }
   end
 
   test "a guest's check-ins become visits on the explore plan" do
@@ -40,15 +40,28 @@ class GuestVisitsImporterTest < ActiveSupport::TestCase
     end
   end
 
-  test "a walk already in progress is joined, not restarted" do
+  test "an explore plan already opened is joined, not restarted" do
     existing = Plan.explore_bosnia_for(@user)
-    @user.plan_visits.create!(plan: existing, location: @near)
 
     assert_no_difference "Plan.count" do
       GuestVisitsImporter.new(user: @user, payload: [ { "id" => @other.uuid } ].to_json).call
     end
 
-    assert_equal [ @near.id, @other.id ].sort, @user.plan_visits.where(plan: existing).pluck(:location_id).sort
+    assert_equal [ @other.id ], @user.plan_visits.where(plan: existing).pluck(:location_id)
+  end
+
+  # The device's list is the one check-in path that cannot re-verify the 100 m
+  # gate. An account holding visits has claimed its walk and the server is
+  # authoritative from then on, or signing out and back in would let a traveller
+  # write visits for places nothing ever stood near.
+  test "an account that already holds a visit imports nothing more" do
+    @user.plan_visits.create!(plan: Plan.explore_bosnia_for(@user), location: @near)
+
+    importer = GuestVisitsImporter.new(user: @user, payload: [ { "id" => @other.uuid } ].to_json).call
+
+    assert importer.success?
+    assert_equal 0, importer.imported_count
+    assert_equal [ @near.id ], @user.plan_visits.pluck(:location_id)
   end
 
   test "a place the traveller already visited is not duplicated" do
@@ -114,7 +127,7 @@ class GuestVisitsImporterTest < ActiveSupport::TestCase
     Plan.explore_bosnia_for(@user) # created on first sign-in either way; not per visit
 
     one = count_queries { GuestVisitsImporter.new(user: @user, payload: [ uuids.first ].to_json).call }
-    @user.plan_visits.destroy_all
+    PlanVisit.where(user: @user).destroy_all
     two = count_queries { GuestVisitsImporter.new(user: @user, payload: uuids.to_json).call }
 
     assert_equal one, two, "the importer must not query per visit"

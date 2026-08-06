@@ -1,7 +1,6 @@
 import { Controller } from "@hotwired/stimulus"
 import { positionService } from "services/position_service"
 import "leaflet"
-import "leaflet.markercluster"
 
 const L = window.L
 
@@ -77,7 +76,21 @@ export default class extends Controller {
     noRouteLabel: String,
   }
 
+  // A deck mounts one of these per card behind a hidden panel. display:none has
+  // no box, so those wait for the panel to open instead of building N maps.
   connect() {
+    if (this.element.getClientRects().length > 0) return this.#build()
+
+    this.revealObserver = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) this.#build()
+    })
+    this.revealObserver.observe(this.element)
+  }
+
+  #build() {
+    if (this.map) return
+    this.revealObserver?.disconnect()
+
     this.expanded = false
     this.selectedId = this.pointsValue.find((point) => point.main)?.id
 
@@ -133,13 +146,18 @@ export default class extends Controller {
     window.addEventListener("resize", this.onResize)
   }
 
-  // The whole catalogue, clustered. Chunked because building the layer in one
-  // go blocks the main thread once the country is in it.
+  // The whole catalogue, clustered. chunkedLoading is read by addLayers alone,
+  // so adding markers one at a time opted out of it and blocked the main thread.
   async #loadCatalogue() {
     const points = await catalogue(this.catalogueVersionValue)
     if (!this.map) return
     if (points === null) return this.#showChip(this.loadFailedLabelValue)
     if (points.length === 0) return
+
+    // Fetched here, not at module top level, where eager controller loading put
+    // the plugin on the home page, the login page and the profile.
+    await import("leaflet.markercluster")
+    if (!this.map) return
 
     this.clusters = L.markerClusterGroup({
       chunkedLoading: true,
@@ -150,7 +168,7 @@ export default class extends Controller {
 
     this.markers = new Map()
 
-    points.forEach((point) => {
+    const markers = points.map((point) => {
       const selected = point.id === this.selectedId
       const marker = L.marker([point.lat, point.lng], {
         icon: this.#iconFor({ selected }),
@@ -166,9 +184,10 @@ export default class extends Controller {
         this.#openPanel(point.id)
       })
       this.markers.set(point.id, marker)
-      this.clusters.addLayer(marker)
+      return marker
     })
 
+    this.clusters.addLayers(markers)
     this.map.addLayer(this.clusters)
   }
 
@@ -228,7 +247,10 @@ export default class extends Controller {
     if (!this.hasPanelTarget) return
 
     this.map.closePopup()
-    this.panelFrameTarget.src = `/locations/${id}/map_panel`
+    // The frame belongs to this map, not to the place shown, so the response
+    // comes back wearing the asking frame's id — a deck has one map per card.
+    const frame = encodeURIComponent(this.panelFrameTarget.id)
+    this.panelFrameTarget.src = `/locations/${id}/map_panel?frame=${frame}`
     this.panelTarget.classList.remove("hidden")
     requestAnimationFrame(() => this.map?.invalidateSize())
   }
@@ -377,6 +399,9 @@ export default class extends Controller {
   }
 
   toggleFullscreen() {
+    // The button is in the markup before the panel that holds it is revealed.
+    if (!this.map) return
+
     this.expanded = !this.expanded
     if (!this.expanded) this.closePanel()
     // Expanding is a request to see the place, not just more map.
@@ -398,6 +423,7 @@ export default class extends Controller {
   }
 
   disconnect() {
+    this.revealObserver?.disconnect()
     clearTimeout(this.chipTimer)
     this.#stopFollowing()
     document.removeEventListener("keydown", this.onKeydown)

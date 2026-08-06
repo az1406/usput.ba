@@ -57,7 +57,7 @@
       <div class="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-white/20">
         <div class="text-center">
           <% if logged_in? %>
-            <p class="text-3xl font-bold"><%= @visited_locations.size %></p>
+            <p class="text-3xl font-bold"><%= @visited_count %></p>
           <% else %>
             <p data-travel-profile-target="visitedCount" class="text-3xl font-bold">0</p>
           <% end %>

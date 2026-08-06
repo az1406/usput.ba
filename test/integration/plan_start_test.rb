@@ -55,6 +55,18 @@ class PlanStartTest < ActionDispatch::IntegrationTest
                   msg: "the stories refresh alongside the step; capture is the + button outside the stream"
   end
 
+  # A visit is permanent — it survives the delete of the plan it was made on, so
+  # there is no route that takes one back either.
+  test "there is no route that un-does a visit" do
+    login_as(@user)
+    @user.plan_visits.create!(plan: @plan, location: @location)
+
+    delete "/plans/#{@plan.uuid}/visits/#{@location.uuid}"
+
+    assert_response :not_found
+    assert_equal 1, @user.plan_visits.count
+  end
+
   test "visited progress survives leaving and returning to the walk" do
     @user.plan_visits.create!(plan: @plan, location: @location)
     login_as(@user)
@@ -214,7 +226,49 @@ class PlanStartTest < ActionDispatch::IntegrationTest
     assert_equal 1, @user.reload.travel_profile_data["stats"]["totalVisits"]
   end
 
+  # Same guard as the deck's: the walk renders the same card, and the readers
+  # behind it query past a preload unless they branch on `loaded?`.
+  test "the walk costs the same whether it stacks one card or twelve" do
+    login_as(@user)
+
+    one = walk_queries
+    11.times do |i|
+      extra = Location.create!(name: "Stop #{i}", city: "Sarajevo", lat: 43.8 + i * 0.01, lng: 18.4)
+      @experience.add_location(extra, position: i + 2)
+    end
+    twelve = walk_queries
+
+    assert_equal 12, @plan.reload.all_location_count
+    assert_equal one, twelve,
+                 "stacking twelve cards cost #{twelve} queries against #{one} for one — a per-card query is back"
+  end
+
+  test "a deep fallback locale costs the walk nothing extra" do
+    login_as(@user)
+
+    assert_equal walk_queries(locale: :en), walk_queries(locale: :pl),
+                 "Polish falls back through cs and sk; the chain must resolve in one query, not four"
+  end
+
   private
+
+  def walk_queries(locale: :en)
+    # Warm first: the request that opens a connection pays for schema reads.
+    get start_plan_path(@plan), params: { locale: locale }
+
+    count = 0
+    subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |*, payload|
+      next if %w[SCHEMA TRANSACTION].include?(payload[:name]) || payload[:cached]
+
+      count += 1
+    end
+    ActiveRecord::Base.connection.clear_query_cache
+    get start_plan_path(@plan), params: { locale: locale }
+    assert_response :success
+    count
+  ensure
+    ActiveSupport::Notifications.unsubscribe(subscriber)
+  end
 
   def login_as(user)
     post login_path, params: { username: user.username, password: "password123" }
