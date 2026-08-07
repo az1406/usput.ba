@@ -1,5 +1,6 @@
 import { Controller } from "@hotwired/stimulus"
 import { positionService } from "services/position_service"
+import { distanceKm, profileFor, fetchRoute, summarise } from "services/route_service"
 
 export default class extends Controller {
   static targets = ["card", "done", "distanceLabel"]
@@ -18,6 +19,7 @@ export default class extends Controller {
     this.unsubscribe = positionService.subscribe(({ latitude, longitude }) => {
       this.refreshDistances(latitude, longitude)
       if (this.browseValue) this.resortAhead(latitude, longitude)
+      this.routeCardInView(latitude, longitude)
     })
   }
 
@@ -58,7 +60,7 @@ export default class extends Controller {
 
   slotDistance(slot, lat, lng) {
     const card = slot.querySelector("[data-plan-deck-target='card']")
-    return this.distance(lat, lng, parseFloat(card?.dataset.planDeckLat), parseFloat(card?.dataset.planDeckLng))
+    return distanceKm(lat, lng, parseFloat(card?.dataset.planDeckLat), parseFloat(card?.dataset.planDeckLng))
   }
 
 
@@ -82,7 +84,7 @@ export default class extends Controller {
     if (!here) return this.show(remaining[0].i)
 
     const nearest = remaining
-      .map((entry) => ({ ...entry, distance: this.distance(here.latitude, here.longitude, parseFloat(entry.card.dataset.planDeckLat), parseFloat(entry.card.dataset.planDeckLng)) }))
+      .map((entry) => ({ ...entry, distance: distanceKm(here.latitude, here.longitude, parseFloat(entry.card.dataset.planDeckLat), parseFloat(entry.card.dataset.planDeckLng)) }))
       .sort((a, b) => a.distance - b.distance)[0]
     this.show(nearest.i)
   }
@@ -90,6 +92,8 @@ export default class extends Controller {
   show(i) {
     this.index = i
     this.render()
+    const here = positionService.current()
+    if (here) this.routeCardInView(here.latitude, here.longitude)
   }
 
   render() {
@@ -103,23 +107,44 @@ export default class extends Controller {
   }
 
 
+  // The straight line is what a card can afford to show for every place at once.
+  // The real road distance costs an upstream routing call, so only the card the
+  // traveller is actually looking at gets one, and only once.
+  async routeCardInView(lat, lng) {
+    const card = this.cardInView()
+    const label = card?.querySelector("[data-plan-deck-target='distanceLabel']")
+    if (!card || !label || label.dataset.routed) return
+
+    const to = { lat: parseFloat(card.dataset.planDeckLat), lng: parseFloat(card.dataset.planDeckLng) }
+    if (Number.isNaN(to.lat) || Number.isNaN(to.lng)) return
+
+    label.dataset.routed = "pending"
+    const profile = profileFor(distanceKm(lat, lng, to.lat, to.lng))
+    const route = await fetchRoute({ fromLat: lat, fromLng: lng, toLat: to.lat, toLng: to.lng, profile })
+
+    // A refused or throttled lookup leaves the straight line standing, and
+    // clears the flag so moving somewhere else can try again.
+    if (!route) return delete label.dataset.routed
+
+    label.dataset.routed = "true"
+    label.textContent = summarise(route, { byFoot: label.dataset.byFoot, byCar: label.dataset.byCar })
+  }
+
+  cardInView() {
+    if (!this.browseValue) return this.cardTargets[this.index]
+    const slots = this.slots()
+    return slots[this.currentSlot(slots)]?.querySelector("[data-plan-deck-target='card']")
+  }
+
   refreshDistances(lat, lng) {
     this.distanceLabelTargets.forEach((label) => {
       const card = label.closest("[data-plan-deck-target='card']")
       const template = label.dataset.kmTemplate
-      if (!card || !template) return
-      const km = this.distance(lat, lng, parseFloat(card.dataset.planDeckLat), parseFloat(card.dataset.planDeckLng))
+      // A card showing a real road distance keeps it; overwriting would flip it
+      // back to the straight line on the next position update.
+      if (!card || !template || label.dataset.routed) return
+      const km = distanceKm(lat, lng, parseFloat(card.dataset.planDeckLat), parseFloat(card.dataset.planDeckLng))
       label.textContent = template.replace("{km}", km.toFixed(1))
     })
-  }
-
-
-  distance(lat1, lng1, lat2, lng2) {
-    if (Number.isNaN(lat2) || Number.isNaN(lng2)) return Infinity
-    const toRad = (deg) => (deg * Math.PI) / 180
-    const dLat = toRad(lat2 - lat1)
-    const dLng = toRad(lng2 - lng1)
-    const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2
-    return 2 * 6371 * Math.asin(Math.sqrt(a))
   }
 }

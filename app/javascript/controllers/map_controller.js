@@ -1,5 +1,6 @@
 import { Controller } from "@hotwired/stimulus"
 import { positionService } from "services/position_service"
+import { distanceKm, profileFor, summarise } from "services/route_service"
 import "leaflet"
 
 const L = window.L
@@ -7,8 +8,6 @@ const L = window.L
 // Below this the pins stand alone: a town fits on screen, which is where the
 // operator wants to stop seeing bubbles.
 const CLUSTER_UNTIL_ZOOM = 13
-// Past this the route is asked for by car rather than on foot.
-const WALKING_LIMIT_KM = 30
 const CHIP_MS = 4000
 const FOCUS_ZOOM = 15
 // Every map on the page wants the same catalogue, and the explore reel mounts
@@ -331,8 +330,7 @@ export default class extends Controller {
   // The real walking route when the proxy can deliver one, and no line at all
   // otherwise — a straight line between two points is not a route.
   async #drawPath(here, target) {
-    const km = this.#distanceKm(here[0], here[1], target.lat, target.lng)
-    const profile = km > WALKING_LIMIT_KM ? "driving-car" : "foot-walking"
+    const profile = profileFor(distanceKm(here[0], here[1], target.lat, target.lng))
 
     try {
       const query = new URLSearchParams({ from_lat: here[0], from_lng: here[1], to_lat: target.lat, to_lng: target.lng, profile })
@@ -364,10 +362,7 @@ export default class extends Controller {
   }
 
   #addRouteChip(route) {
-    const km = (route.distance_m / 1000).toFixed(1)
-    const min = Math.max(1, Math.round(route.duration_s / 60))
-    const mode = route.profile === "driving-car" ? this.byCarLabelValue : this.byFootLabelValue
-    this.#showChip(`${km} km · ${min} min · ${mode}`)
+    this.#showChip(summarise(route, { byFoot: this.byFootLabelValue, byCar: this.byCarLabelValue }))
   }
 
   #showChip(text, { clearAfterMs } = {}) {
@@ -390,13 +385,6 @@ export default class extends Controller {
     this.routeChip = null
   }
 
-  #distanceKm(lat1, lng1, lat2, lng2) {
-    const toRad = (deg) => (deg * Math.PI) / 180
-    const dLat = toRad(lat2 - lat1)
-    const dLng = toRad(lng2 - lng1)
-    const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2
-    return 2 * 6371 * Math.asin(Math.sqrt(a))
-  }
 
   toggleFullscreen() {
     // The button is in the markup before the panel that holds it is revealed.

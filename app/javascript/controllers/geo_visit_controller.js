@@ -1,6 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 import { travelProfileService } from "services/travel_profile_service"
 import { positionService } from "services/position_service"
+import { distanceKm } from "services/route_service"
 
 // One number for both sides of the press: how old a fix may be to be asked for,
 // and to be accepted. Asking for a fix this old and then refusing it for being
@@ -76,9 +77,9 @@ export default class extends Controller {
   }
 
   evaluate(lat, lng) {
-    const distanceKm = this.distance(lat, lng, this.latValue, this.lngValue)
-    if (distanceKm <= 0.1) return this.guestValue ? this.recordGuestVisit() : this.submitWith(lat, lng)
-    this.showHint(distanceKm, this.bearing(lat, lng, this.latValue, this.lngValue))
+    const km = distanceKm(lat, lng, this.latValue, this.lngValue)
+    if (km <= 0.1) return this.guestValue ? this.recordGuestVisit() : this.submitWith(lat, lng)
+    this.showHint(km, this.bearing(lat, lng, this.latValue, this.lngValue))
   }
 
   submitWith(lat, lng) {
@@ -111,23 +112,23 @@ export default class extends Controller {
     scope?.querySelectorAll("[data-visited-hide]").forEach(el => el.classList.add("hidden"))
   }
 
-  showHint(distanceKm, direction) {
+  showHint(km, direction) {
     if (!this.hasHintTarget) return
-    const band = this.warmthBand(distanceKm)
-    const distance = distanceKm >= 1 ? `${distanceKm.toFixed(1)} km` : `${Math.round(distanceKm * 1000)} m`
+    const band = this.warmthBand(km)
+    const distance = km >= 1 ? `${km.toFixed(1)} km` : `${Math.round(km * 1000)} m`
     this.hintTarget.textContent = `${band.emoji} ${band.label} · ${distance} · ${direction}`
     this.hintTarget.style.backgroundColor = band.tint
     this.hintTarget.classList.remove("hidden")
   }
 
-  warmthBand(distanceKm) {
+  warmthBand(km) {
     // Cold → warm as the metres fall. HOT (<100 m) never reaches here —
     // evaluate() checks in at that range. Labels are localized via data-warmth;
     // tints are inline so Tailwind's purge can't drop dynamic colour classes.
     const labels = this.hintTarget.dataset.warmth
       ? this.hintTarget.dataset.warmth.split(",")
       : ["Freezing", "Cold", "Cool", "Warm"]
-    const index = distanceKm > 5 ? 0 : distanceKm > 1 ? 1 : distanceKm > 0.5 ? 2 : 3
+    const index = km > 5 ? 0 : km > 1 ? 1 : km > 0.5 ? 2 : 3
     const emoji = ["❄️", "🧊", "🌤️", "🔥"][index]
     const tint = ["rgba(37,99,235,.75)", "rgba(14,165,233,.75)", "rgba(234,179,8,.8)", "rgba(220,38,38,.85)"][index]
     return { label: labels[index], emoji, tint }
@@ -153,13 +154,5 @@ export default class extends Controller {
       ? this.hintTarget.dataset.directions.split(",")
       : ["N", "NE", "E", "SE", "S", "SW", "W", "NW"])
     return compass[Math.round(degrees / 45) % 8]
-  }
-
-  distance(lat1, lng1, lat2, lng2) {
-    const toRad = (deg) => (deg * Math.PI) / 180
-    const dLat = toRad(lat2 - lat1)
-    const dLng = toRad(lng2 - lng1)
-    const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2
-    return 2 * 6371 * Math.asin(Math.sqrt(a))
   }
 }

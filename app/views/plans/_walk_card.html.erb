@@ -27,7 +27,9 @@
     <% if distance_km.present? %>
       <p class="text-xs font-medium text-white/80 drop-shadow"
          data-plan-deck-target="distanceLabel"
-         data-km-template="<%= t('explore_bosnia.km_away', km: '{km}') %>"><%= t("explore_bosnia.km_away", km: number_with_precision(distance_km, precision: 1)) %></p>
+         data-km-template="<%= t('explore_bosnia.km_away', km: '{km}') %>"
+         data-by-foot="<%= t('map.by_foot') %>"
+         data-by-car="<%= t('map.by_car') %>"><%= t("explore_bosnia.km_away", km: number_with_precision(distance_km, precision: 1)) %></p>
     <% end %>
   </div>
 

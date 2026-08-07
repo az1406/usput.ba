@@ -36,13 +36,15 @@
       <%# One id per card, like every other frame the deck repeats. %>
       <turbo-frame id="<%= dom_id(location, :map_panel) %>" data-map-target="panelFrame" class="block h-full"></turbo-frame>
     </aside>
-    <%# Navigation is Google's job; this is the door to it. The same emerald CTA
-        the map panel uses for this action; the ring keeps it off arbitrary
-        tiles, and bottom-8 clears the Leaflet attribution. %>
+    <%# Navigation is Google's job; this is the door to it. Same emerald CTA as
+        the home page. `text-white!` is load-bearing: this anchor sits inside
+        .leaflet-container, whose stylesheet colours every link #0078A8 at a
+        higher specificity than a Tailwind class, so plain text-white loses and
+        the label renders blue on green. bottom-8 clears the attribution. %>
     <a href="https://www.google.com/maps/dir/?api=1&destination=<%= location.lat %>,<%= location.lng %>&travelmode=walking"
        target="_blank" rel="noopener noreferrer"
-       class="absolute bottom-8 right-2 z-[1000] flex items-center gap-1.5 rounded-full bg-gradient-to-r from-emerald-500 to-teal-600 px-4 py-2 text-sm font-semibold text-white shadow-lg ring-1 ring-white/60 transition-all hover:from-emerald-600 hover:to-teal-700 hover:shadow-xl dark:ring-white/20">
-      <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+       class="absolute bottom-8 right-2 z-[1000] inline-flex items-center justify-center bg-emerald-600 hover:bg-emerald-700 text-white! px-5 py-2.5 text-sm rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+      <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
       </svg>
       <%= t("map.start_route") %>
