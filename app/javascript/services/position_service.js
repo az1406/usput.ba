@@ -9,13 +9,30 @@ const COARSE_TIMEOUT_MS = 8000
 // A laptop has no GPS, so every fix is a network lookup. Reusing one the device
 // already holds is the difference between instant and a round-trip.
 const MAX_REUSE_MS = 60000
+// The check-in gate is 100 m, so a fix whose own error bar is wider than that
+// cannot decide it. A laptop reports wifi fixes in the hundreds or thousands.
+const GATE_ACCURACY_M = 100
+// Only long enough to bridge a provider stall, never long enough to be a
+// different place: the explore deck freezes whatever it is first handed.
+const REMEMBERED_MAX_AGE_MS = 120000
 
 export class PositionService {
   constructor() {
     this.subscribers = new Set()
     this.failureSubscribers = new Set()
-    this.last = this.stored()
+    this.#restore()
     this.#useDevPosition()
+  }
+
+  // Coarse always: it says where the device was, so it can never decide a gate.
+  #restore() {
+    const held = this.stored()
+    if (!held) return
+
+    this.last = held
+    if (!held.at || Date.now() - held.at > REMEMBERED_MAX_AGE_MS) return
+    this.fixedAt = held.at
+    this.coarse = true
   }
 
   #useDevPosition() {
@@ -39,14 +56,13 @@ export class PositionService {
     return this.last
   }
 
-  // A fix the watcher actually produced this session, at any age. A remembered
-  // position is a guess about where the device was last, not where it is.
+  // Measured this session, or remembered recently. Orients; never gates.
   measured() {
     return this.fixedAt ? this.last : null
   }
 
-  // Measured, recent, and not the coarse fallback. A wifi-derived fix orders a
-  // deck honestly but is nowhere near good enough for a 100 m gate.
+  // Measured, recent, and accurate enough to decide the gate. A wifi-derived
+  // fix orders a deck honestly but is nowhere near good enough for 100 m.
   fresh(maxAgeMs = 15000) {
     if (!this.fixedAt || this.coarse) return null
     return Date.now() - this.fixedAt <= maxAgeMs ? this.last : null
@@ -56,8 +72,6 @@ export class PositionService {
   subscribe(callback, onFailure) {
     this.subscribers.add(callback)
     if (onFailure) this.failureSubscribers.add(onFailure)
-    // Only a measured fix is worth acting on: a remembered one would relabel a
-    // whole deck with distances from wherever the device was last.
     const held = this.measured()
     if (held) callback(held)
     // start() will not re-ask a device that already failed.
@@ -86,7 +100,8 @@ export class PositionService {
   // this service outlives a page, so a once-only seed left every navigation
   // after the first waiting on the slow watcher alone.
   seedCoarse() {
-    if (this.fixedAt || this.coarseInFlight) return
+    // Guarding on any fix let a coarse or restored one suppress its replacement.
+    if ((this.fixedAt && !this.coarse) || this.coarseInFlight) return
     this.coarseInFlight = true
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -145,7 +160,10 @@ export class PositionService {
   publish({ coords: { latitude, longitude, accuracy }, timestamp }, { coarse = false } = {}) {
     this.last = { latitude, longitude, accuracy }
     this.fixedAt = timestamp || Date.now()
-    this.coarse = coarse
+    // The reading decides this, not the caller. The high-accuracy watcher
+    // returns wifi-grade fixes on a laptop too, and a caller publishing one as
+    // fine relabelled it for every surface that asks.
+    this.coarse = coarse || !(accuracy <= GATE_ACCURACY_M)
     this.lastFailure = null
     this.persist()
     this.subscribers.forEach((callback) => callback(this.last))
@@ -153,7 +171,7 @@ export class PositionService {
 
   persist() {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.last))
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...this.last, at: this.fixedAt }))
     } catch {
       // A full or blocked store is not worth failing a walk over.
     }

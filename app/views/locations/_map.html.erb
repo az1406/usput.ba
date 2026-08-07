@@ -3,5 +3,7 @@
   <h3 class="mb-4 text-lg font-bold text-gray-900 dark:text-white">
     <%= t("locations.show.map", default: "Na karti") %>
   </h3>
-  <%= render "shared/map_canvas", location: location %>
+  <%# Taller than the deck's canvas: on this page the map is the only place
+      surface, and it carries the directions hand-off. %>
+  <%= render "shared/map_canvas", location: location, height: "h-80 sm:h-96" %>
 </div>

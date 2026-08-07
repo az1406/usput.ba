@@ -405,6 +405,7 @@ en:
       too_far: You're too far away (%{distance}). Get within %{max} m to mark the visit.
       need_location: We couldn't get your location. Enable location and try again.
       locating: Finding you…
+      imprecise: We can't place you accurately enough yet. Wait a moment and try again.
       visit_failed: That didn't go through. Try again.
       empty: This plan has no locations yet.
       info: Location info

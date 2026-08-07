@@ -2,6 +2,12 @@ import { Controller } from "@hotwired/stimulus"
 import { travelProfileService } from "services/travel_profile_service"
 import { positionService } from "services/position_service"
 
+// One number for both sides of the press: how old a fix may be to be asked for,
+// and to be accepted. Asking for a fix this old and then refusing it for being
+// that old is what left the button doing nothing. A cold acquisition on every
+// press is what made the first check-in take ten seconds to fail.
+const REUSE_MS = 30000
+
 export default class extends Controller {
   static targets = ["hint", "control"]
   static values = {
@@ -49,7 +55,7 @@ export default class extends Controller {
 
     // Out of this event first: requestSubmit() is ignored while the submit it
     // would re-trigger is still being dispatched.
-    const here = positionService.fresh()
+    const here = positionService.fresh(REUSE_MS)
     if (here) return setTimeout(() => this.evaluate(here.latitude, here.longitude), 0)
     if (!navigator.geolocation) return this.showEnableLocation()
 
@@ -59,12 +65,13 @@ export default class extends Controller {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         positionService.publish(position)
-        this.evaluate(position.coords.latitude, position.coords.longitude)
+        // maximumAge can hand back the coarse seed, so re-ask rather than trust.
+        const measured = positionService.fresh(REUSE_MS)
+        if (measured) return this.evaluate(measured.latitude, measured.longitude)
+        this.showMessage("imprecise")
       },
       () => this.showEnableLocation(),
-      // A fix from moments ago is the same fix; forcing a cold acquisition on
-      // every press is what made the first check-in take ten seconds to fail.
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: REUSE_MS }
     )
   }
 

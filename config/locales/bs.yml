@@ -404,6 +404,7 @@ bs:
       too_far: Predaleko si (%{distance}). Priđi na manje od %{max} m da označiš posjetu.
       need_location: Ne možemo potvrditi tvoju lokaciju. Uključi lokaciju i pokušaj ponovo.
       locating: Tražimo te…
+      imprecise: Još te ne možemo dovoljno precizno locirati. Sačekaj trenutak i pokušaj ponovo.
       visit_failed: Nije uspjelo. Pokušaj ponovo.
       empty: Ovaj plan još nema lokacija.
       info: Informacije o lokaciji
