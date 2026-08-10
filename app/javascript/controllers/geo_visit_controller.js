@@ -11,11 +11,10 @@ const REUSE_MS = 30000
 
 export default class extends Controller {
   static targets = ["hint", "control"]
-  // The gate's numbers come from the server — RecordsVisits owns them, and both
-  // sides of the press have to widen by the same figure or they reach opposite
-  // verdicts. Accuracy decides how wide the gate is, never whether there is one.
+  // The geofence comes from the server — RecordsVisits owns it, so the browser
+  // and the server cannot reach opposite verdicts on one press.
   static values = {
-    lat: Number, lng: Number, guest: Boolean, geofenceM: Number, maxToleranceM: Number,
+    lat: Number, lng: Number, guest: Boolean, geofenceM: Number,
     locationId: String, locationName: String, locationCity: String, locationTags: Array
   }
 
@@ -60,7 +59,7 @@ export default class extends Controller {
     // Out of this event first: requestSubmit() is ignored while the submit it
     // would re-trigger is still being dispatched.
     const here = positionService.recent(REUSE_MS)
-    if (here) return setTimeout(() => this.evaluate(here.latitude, here.longitude, here.accuracy), 0)
+    if (here) return setTimeout(() => this.evaluate(here.latitude, here.longitude), 0)
     if (!navigator.geolocation) return this.showEnableLocation()
 
     // Nothing fresh enough held. A traveller standing still is the case that
@@ -74,29 +73,24 @@ export default class extends Controller {
       // reading's own error, so a coarse fix produces an honest distance rather
       // than a refusal. Only a total absence of position has nothing to say.
       const here = measured || positionService.current()
-      if (here) return this.evaluate(here.latitude, here.longitude, here.accuracy)
+      if (here) return this.evaluate(here.latitude, here.longitude)
 
       this.showEnableLocation()
     })
   }
 
-  evaluate(lat, lng, accuracy) {
+  evaluate(lat, lng) {
     const km = distanceKm(lat, lng, this.latValue, this.lngValue)
-    const tolerance = Math.min(Number(accuracy) || 0, this.maxToleranceMValue)
-    if (km * 1000 <= this.geofenceMValue + tolerance) {
-      return this.guestValue ? this.recordGuestVisit() : this.submitWith(lat, lng, tolerance)
+    if (km * 1000 <= this.geofenceMValue) {
+      return this.guestValue ? this.recordGuestVisit() : this.submitWith(lat, lng)
     }
     this.showHint(km, this.bearing(lat, lng, this.latValue, this.lngValue))
   }
 
-  // The accuracy goes with the coordinates: the server widens its gate by the
-  // same figure, so the two sides cannot reach opposite verdicts on one press.
-  submitWith(lat, lng, tolerance) {
+  submitWith(lat, lng) {
     const form = this.element.querySelector("form")
     form.querySelector('input[name="user_lat"]').value = lat
     form.querySelector('input[name="user_lng"]').value = lng
-    const accuracy = form.querySelector('input[name="user_accuracy"]')
-    if (accuracy) accuracy.value = tolerance
     this.sending = true
     form.requestSubmit()
   }

@@ -10,31 +10,8 @@ module RecordsVisits
   # Matches the warm/cold meter, which checks in at 100 m and has no band above
   # it — a looser gate here would make the meter lie.
   MAX_VISIT_DISTANCE_KM = 0.1
-  # A reading carries its own error bar, and refusing every one wider than the
-  # geofence refused every device without GPS. So the gate widens by the
-  # reading's own accuracy, capped. The browser applies the identical rule
-  # before submitting — when the two sides disagreed, the client offered a
-  # check-in that the server then refused, which is two contradictory messages
-  # on the one card close enough for the disagreement to show.
-  # A multiple of the geofence, never a fixed distance. Written flat, a 500 m
-  # tolerance would swallow a 10 m geofence whole and the tightening would mean
-  # nothing on any device without good GPS. Expressed as a multiple, changing
-  # MAX_VISIT_DISTANCE_KM alone moves both numbers together.
-  ACCURACY_TOLERANCE_MULTIPLE = 5
-
-  private
-
-  def visit_in_range?(location, lat, lng, accuracy_m = 0)
-    helpers.geofence_disabled? || location.distance_from(lat, lng) <= visit_allowance_km(accuracy_m)
-  end
-
-  def visit_allowance_km(accuracy_m)
-    tolerance = [ [ accuracy_m.to_f, 0 ].max / 1000, max_accuracy_tolerance_km ].min
-    MAX_VISIT_DISTANCE_KM + tolerance
-  end
-
-  def max_accuracy_tolerance_km
-    MAX_VISIT_DISTANCE_KM * ACCURACY_TOLERANCE_MULTIPLE
+  def visit_in_range?(location, lat, lng)
+    helpers.geofence_disabled? || location.distance_from(lat, lng) <= MAX_VISIT_DISTANCE_KM
   end
 
   def visit_coordinates_required?

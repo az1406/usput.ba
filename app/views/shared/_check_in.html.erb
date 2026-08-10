@@ -20,16 +20,15 @@
 <% if logged_in? && geofence_disabled? %>
   <div class="<%= wrapper_class %>">
     <%= button_to plan_visits_path(plan),
-          params: { location_id: location.uuid, user_lat: 0, user_lng: 0, user_accuracy: 0, context: context }.compact,
+          params: { location_id: location.uuid, user_lat: 0, user_lng: 0, context: context }.compact,
           class: button_class do %><%= label %><% end %>
   </div>
 <% else %>
-  <%# The gate's numbers are defined once, on the server, and handed to the
-      browser. Written in both places they drift, and a browser that offers a
-      check-in the server refuses is two contradictory messages on one press. %>
+  <%# The geofence is defined once, on the server, and handed to the browser.
+      Written in both places they drift, and a browser that offers a check-in
+      the server refuses is two contradictory messages on one press. %>
   <% attributes = { controller: "geo-visit", geo_visit_lat_value: location.lat, geo_visit_lng_value: location.lng,
-                    geo_visit_geofence_m_value: (RecordsVisits::MAX_VISIT_DISTANCE_KM * 1000).round,
-                    geo_visit_max_tolerance_m_value: (RecordsVisits::MAX_VISIT_DISTANCE_KM * RecordsVisits::ACCURACY_TOLERANCE_MULTIPLE * 1000).round }
+                    geo_visit_geofence_m_value: (RecordsVisits::MAX_VISIT_DISTANCE_KM * 1000).round }
      attributes.merge!(geo_visit_guest_value: true,
                        geo_visit_location_id_value: location.uuid,
                        geo_visit_location_name_value: location.name,
@@ -41,7 +40,7 @@
         <button type="button" class="<%= button_class %>" data-action="geo-visit#capture"><%= label %></button>
       <% else %>
         <%= button_to plan_visits_path(plan),
-              params: { location_id: location.uuid, user_lat: "", user_lng: "", user_accuracy: "", context: context }.compact,
+              params: { location_id: location.uuid, user_lat: "", user_lng: "", context: context }.compact,
               class: button_class do %><%= label %><% end %>
       <% end %>
     </div>
