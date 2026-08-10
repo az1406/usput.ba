@@ -39,6 +39,9 @@ class ExploreBosniaController < ApplicationController
 
     @lat, @lng = origin
     @needs_location = @lat.nil?
+    # Either the deck said the browser never answered, or the origin came from
+    # the request's address rather than from the traveller's device.
+    @approximate_origin = params[:approx] == "1" || (@lat.present? && params[:lat].blank?)
     return if @needs_location
 
     # An absent filter is a first visit and takes the default; an empty one is a
@@ -65,13 +68,21 @@ class ExploreBosniaController < ApplicationController
 
   private
 
+  # Client-first with an IP fallback, which is the standard shape for this: the
+  # browser's answer is authoritative and arrives late, so the request's own
+  # address carries the deck until it does — and carries it permanently for the
+  # traveller whose browser never answers. City-level accuracy orders a deck
+  # honestly; it decides no check-in, because the gate reads the browser only.
   def origin
     lat = params[:lat].presence&.to_f
     lng = params[:lng].presence&.to_f
     return [ lat, lng ] if lat && lng
-    # A denied location prompt is a dead end for a traveller, but an admin is
-    # here to review the walk — deal from the default rather than stopping them.
-    current_user_admin? ? DEFAULT_ORIGIN : [ nil, nil ]
+
+    approximate_origin || (current_user_admin? ? DEFAULT_ORIGIN : [ nil, nil ])
+  end
+
+  def approximate_origin
+    @approximate_origin_coordinates ||= Maps::IpPosition.call(request.remote_ip)
   end
 
   def apply_filters(scope)

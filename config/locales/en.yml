@@ -73,10 +73,15 @@ en:
         low: $ Low
         medium: $$ Medium
         high: $$$ High
-    km_away: '%{km} km away'
+    km_away: '%{km} km straight line'
     deck_hint: Scroll down for the next place
     deck_end: No more places nearby.
     deck_all_visited: You have visited every place nearby. Try a different filter.
+    moved_prompt: These are from where you were
+    update_location: Update my location
+    approximate_origin:
+      body: We could not read your location, so these are places around Sarajevo rather than around you.
+      retry: Use my location
     needs_location:
       title: We need your location
       body: This deals you the closest places, so it needs to know where you are. Allow location and try

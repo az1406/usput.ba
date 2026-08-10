@@ -1,6 +1,6 @@
 import { Controller } from "@hotwired/stimulus"
 import { positionService } from "services/position_service"
-import { distanceKm, profileFor, summarise } from "services/route_service"
+import { distanceKm, profileFor, summarise, fetchRoute } from "services/route_service"
 import "leaflet"
 
 const L = window.L
@@ -332,18 +332,18 @@ export default class extends Controller {
   async #drawPath(here, target) {
     const profile = profileFor(distanceKm(here[0], here[1], target.lat, target.lng))
 
-    try {
-      const query = new URLSearchParams({ from_lat: here[0], from_lng: here[1], to_lat: target.lat, to_lng: target.lng, profile })
-      const response = await fetch(`/route?${query}`, { headers: { Accept: "application/json" } })
-      if (!response.ok) throw new Error(`route ${response.status}`)
-      const route = await response.json()
-      this.routeLayer = L.polyline(route.points, { color: "#2563eb", weight: 4, opacity: 0.85 }).addTo(this.map)
-      this.#addRouteChip(route)
-      this.#focusOn(target, profile === "foot-walking" ? route.points : null)
-    } catch {
+    // Through the service like every other caller: this is the app's only
+    // request to the routing upstream, so it is the only place that has to be
+    // counted when the quota is the question.
+    const route = await fetchRoute({ fromLat: here[0], fromLng: here[1], toLat: target.lat, toLng: target.lng, profile })
+    if (!route) {
       this.#focusOn(target, null)
-      this.#showChip(this.noRouteLabelValue, { clearAfterMs: CHIP_MS })
+      return this.#showChip(this.noRouteLabelValue, { clearAfterMs: CHIP_MS })
     }
+
+    this.routeLayer = L.polyline(route.points, { color: "#2563eb", weight: 4, opacity: 0.85 }).addTo(this.map)
+    this.#addRouteChip(route)
+    this.#focusOn(target, profile === "foot-walking" ? route.points : null)
   }
 
   // A walk is worth looking at whole. A drive across the country is not — two

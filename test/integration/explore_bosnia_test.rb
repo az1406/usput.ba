@@ -926,4 +926,74 @@ class ExploreBosniaTest < ActionDispatch::IntegrationTest
     ActiveSupport::Notifications.subscribed(counter, "sql.active_record") { yield }
     count
   end
+  # The deck can be re-dealt without a page load, so the control that asks for a
+  # new position has to be inside the deck for its action to resolve at all.
+  test "the deck carries the update-location control" do
+    get explore_bosnia_experience_path("all", **SARAJEVO)
+
+    assert_response :success
+    assert_select "[data-controller~='plan-deck'] [data-action~='plan-deck#updateLocation']", 1
+  end
+
+  # Naming a travel mode beside a straight-line number read as a road distance.
+  test "a card names the measure it is quoting" do
+    get explore_bosnia_experience_path("all", **SARAJEVO)
+
+    assert_response :success
+    assert_select "[data-plan-deck-target='distanceLabel']" do |labels|
+      assert labels.any?, "expected the deck to render distance labels"
+      labels.each do |label|
+        assert_match(/straight line/, label.text)
+        assert_no_match(/by car|by foot/, label.text)
+      end
+    end
+  end
+
+  # A browser that never answers used to leave the traveller on a card asking
+  # for a location that was never coming; the deck deals from the default and
+  # says so instead.
+  test "an approximate origin deals a real deck and admits the order is not the traveller's" do
+    get explore_bosnia_experience_path("all", **SARAJEVO, approx: "1")
+
+    assert_response :success
+    assert_select "[data-plan-deck-target='card']"
+    assert_select "body", text: /#{Regexp.escape(I18n.t("explore_bosnia.approximate_origin.body"))}/
+  end
+
+  test "without coordinates the deck offers the default origin to fall back to" do
+    get explore_bosnia_experience_path("all")
+
+    assert_response :success
+    assert_select "[data-explore-geo-fallback-lat-value]", 1
+  end
+  # Client-first with an IP fallback: the deck must not wait on a browser that
+  # may never answer, so the request's own address carries it until one does.
+  test "an unlocated request is dealt from the address it arrived on" do
+    Maps::IpPosition.stub(:call, [ 43.85, 18.41 ]) do
+      get explore_bosnia_experience_path("all")
+    end
+
+    assert_response :success
+    assert_select "[data-plan-deck-target='card']"
+    assert_select "body", text: /#{Regexp.escape(I18n.t("explore_bosnia.approximate_origin.body"))}/
+  end
+
+  # A private address describes the server, not the traveller.
+  test "a loopback address resolves to no position" do
+    assert_nil Maps::IpPosition.call("127.0.0.1")
+    assert_nil Maps::IpPosition.call("10.0.0.4")
+    assert_nil Maps::IpPosition.call("not-an-address")
+    assert_nil Maps::IpPosition.call(nil)
+  end
+
+  # The browser's answer is authoritative and must not be overridden by the
+  # coarser one, nor labelled approximate.
+  test "explicit coordinates beat the address they arrived on" do
+    Maps::IpPosition.stub(:call, [ 0.0, 0.0 ]) do
+      get explore_bosnia_experience_path("all", **SARAJEVO)
+    end
+
+    assert_response :success
+    assert_select "body", text: /#{Regexp.escape(I18n.t("explore_bosnia.approximate_origin.body"))}/, count: 0
+  end
 end

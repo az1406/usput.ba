@@ -8,6 +8,13 @@ import { distanceKm } from "services/route_service"
 // that old is what left the button doing nothing. A cold acquisition on every
 // press is what made the first check-in take ten seconds to fail.
 const REUSE_MS = 30000
+// The geofence, and how far a reading's own error may stretch it. Accuracy
+// decides how wide the gate is rather than whether there is one: a fix that
+// cannot resolve a hundred metres can still tell a traveller standing at the
+// place apart from one in the next town, and refusing it outright meant a
+// laptop — or a position set in developer tools — could never check in.
+const GEOFENCE_M = 100
+const MAX_TOLERANCE_M = 500
 
 export default class extends Controller {
   static targets = ["hint", "control"]
@@ -56,29 +63,33 @@ export default class extends Controller {
 
     // Out of this event first: requestSubmit() is ignored while the submit it
     // would re-trigger is still being dispatched.
-    const here = positionService.fresh(REUSE_MS)
-    if (here) return setTimeout(() => this.evaluate(here.latitude, here.longitude), 0)
+    const here = positionService.recent(REUSE_MS)
+    if (here) return setTimeout(() => this.evaluate(here.latitude, here.longitude, here.accuracy), 0)
     if (!navigator.geolocation) return this.showEnableLocation()
 
-    // Nothing held yet — the first press on this page waits for one fix, and a
-    // press that shows nothing for ten seconds reads as a dead button.
+    // Nothing fresh enough held. A traveller standing still is the case that
+    // gets here: the watcher reports on movement, so the fix it gave on arrival
+    // only ages, and refusing it leaves nothing to press. The service acquires
+    // rather than reusing, and a press that shows nothing meanwhile reads as a
+    // dead button.
     this.showMessage("locating")
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        positionService.publish(position)
-        // maximumAge can hand back the coarse seed, so re-ask rather than trust.
-        const measured = positionService.fresh(REUSE_MS)
-        if (measured) return this.evaluate(measured.latitude, measured.longitude)
-        this.showMessage("imprecise")
-      },
-      () => this.showEnableLocation(),
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: REUSE_MS }
-    )
+    positionService.acquire(REUSE_MS).then((measured) => {
+      // Anything at all is enough to answer with: the gate widens by the
+      // reading's own error, so a coarse fix produces an honest distance rather
+      // than a refusal. Only a total absence of position has nothing to say.
+      const here = measured || positionService.current()
+      if (here) return this.evaluate(here.latitude, here.longitude, here.accuracy)
+
+      this.showEnableLocation()
+    })
   }
 
-  evaluate(lat, lng) {
+  evaluate(lat, lng, accuracy) {
     const km = distanceKm(lat, lng, this.latValue, this.lngValue)
-    if (km <= 0.1) return this.guestValue ? this.recordGuestVisit() : this.submitWith(lat, lng)
+    const tolerance = Math.min(Number(accuracy) || 0, MAX_TOLERANCE_M)
+    if (km * 1000 <= GEOFENCE_M + tolerance) {
+      return this.guestValue ? this.recordGuestVisit() : this.submitWith(lat, lng)
+    }
     this.showHint(km, this.bearing(lat, lng, this.latValue, this.lngValue))
   }
 
@@ -114,6 +125,9 @@ export default class extends Controller {
 
   showHint(km, direction) {
     if (!this.hasHintTarget) return
+    // The same straight line the cards quote, so the press and the card above it
+    // can never disagree. The gate is the same measure too: a geofence is a
+    // radius, not a route.
     const band = this.warmthBand(km)
     const distance = km >= 1 ? `${km.toFixed(1)} km` : `${Math.round(km * 1000)} m`
     this.hintTarget.textContent = `${band.emoji} ${band.label} · ${distance} · ${direction}`

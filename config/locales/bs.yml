@@ -72,10 +72,15 @@ bs:
         low: $ Nisko
         medium: $$ Srednje
         high: $$$ Visoko
-    km_away: '%{km} km od vas'
+    km_away: '%{km} km zračne linije'
     deck_hint: Skrolaj dolje za sljedeće mjesto
     deck_end: Nema više mjesta u blizini.
     deck_all_visited: Posjetio si sva mjesta u blizini. Probaj drugi filter.
+    moved_prompt: Ovo su mjesta odakle si bio
+    update_location: Osvježi moju lokaciju
+    approximate_origin:
+      body: Nismo mogli očitati tvoju lokaciju, pa su ovo mjesta oko Sarajeva, a ne oko tebe.
+      retry: Koristi moju lokaciju
     needs_location:
       title: Trebamo tvoju lokaciju
       body: Ovdje dijelimo najbliža mjesta, pa moramo znati gdje si. Dozvoli lokaciju i pokušaj ponovo.

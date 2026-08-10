@@ -17,11 +17,24 @@
      <% if @needs_location %>
        data-explore-geo-failed-body-value="<%= t("explore_bosnia.needs_location.body") %>"
        data-explore-geo-retry-label-value="<%= t("explore_bosnia.needs_location.retry") %>"
+       data-explore-geo-fallback-lat-value="<%= ExploreBosniaController::DEFAULT_ORIGIN.first %>"
+       data-explore-geo-fallback-lng-value="<%= ExploreBosniaController::DEFAULT_ORIGIN.last %>"
      <% end %>>
   <%# Filters and deck swap together, in place: picking one filter must not cost a
       page load, or the next pill is dead until it lands. display:contents keeps
       the frame out of the flex column it wraps. %>
   <%= turbo_frame_tag "explore_deck", data: { turbo_action: "advance" }, class: "contents" do %>
+  <%# The deck dealt from the country's default because the browser never
+      answered. Saying so beats quoting distances from a city the traveller may
+      not be in; the link drops the coordinates so the ask starts over. %>
+  <% if @approximate_origin %>
+    <div class="mx-4 mt-2 flex items-center justify-between gap-3 rounded-xl bg-amber-50 px-4 py-2 text-sm text-amber-900 dark:bg-amber-900/30 dark:text-amber-200">
+      <span><%= t("explore_bosnia.approximate_origin.body") %></span>
+      <%= link_to t("explore_bosnia.approximate_origin.retry"),
+            explore_bosnia_experience_path(@category, **filter_params),
+            class: "shrink-0 font-semibold underline" %>
+    </div>
+  <% end %>
   <%# Desktop keeps the filters open beside the deck — the convention for this
       many facets. Narrow screens get the same panel behind a toggle. %>
   <div class="px-4 py-2 lg:hidden" data-controller="deck-filters">
@@ -62,6 +75,24 @@
       <div class="relative flex min-h-0 flex-1 flex-col">
         <div class="flex-1 snap-y snap-mandatory overflow-y-auto overscroll-y-contain scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
              data-controller="plan-deck" data-plan-deck-browse-value="true">
+          <%# Inside the deck so the action resolves against it, and sticky
+              rather than a snap slot so it never becomes a card you scroll past.
+              The traveller asks for a new position; nothing tracks them between
+              asks. %>
+          <div class="sticky top-0 z-30 flex justify-end px-4 pt-2">
+            <%# Hidden until the deck is provably out of date. It says why the
+                button is worth pressing, which the button alone cannot. %>
+            <span data-plan-deck-target="movedPrompt"
+                  class="hidden mr-2 self-center rounded-full bg-amber-100 px-3 py-1.5 text-xs font-medium text-amber-900 shadow dark:bg-amber-900/50 dark:text-amber-100">
+              <%= t("explore_bosnia.moved_prompt") %>
+            </span>
+            <button type="button" data-action="plan-deck#updateLocation"
+                    class="inline-flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-xs font-semibold text-gray-700 shadow backdrop-blur transition-colors hover:bg-white disabled:opacity-50 dark:bg-gray-900/80 dark:text-gray-200 dark:hover:bg-gray-900">
+              <svg class="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              <%= t("explore_bosnia.update_location") %>
+            </button>
+          </div>
+
           <% if @needs_location %>
             <%# Nothing can be dealt without a position; the prompt is a deck slot
                 like any other, and explore-geo reloads once the fix lands. %>
