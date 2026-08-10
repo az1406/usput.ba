@@ -88,15 +88,19 @@ export default class extends Controller {
     const km = distanceKm(lat, lng, this.latValue, this.lngValue)
     const tolerance = Math.min(Number(accuracy) || 0, MAX_TOLERANCE_M)
     if (km * 1000 <= GEOFENCE_M + tolerance) {
-      return this.guestValue ? this.recordGuestVisit() : this.submitWith(lat, lng)
+      return this.guestValue ? this.recordGuestVisit() : this.submitWith(lat, lng, tolerance)
     }
     this.showHint(km, this.bearing(lat, lng, this.latValue, this.lngValue))
   }
 
-  submitWith(lat, lng) {
+  // The accuracy goes with the coordinates: the server widens its gate by the
+  // same figure, so the two sides cannot reach opposite verdicts on one press.
+  submitWith(lat, lng, tolerance) {
     const form = this.element.querySelector("form")
     form.querySelector('input[name="user_lat"]').value = lat
     form.querySelector('input[name="user_lng"]').value = lng
+    const accuracy = form.querySelector('input[name="user_accuracy"]')
+    if (accuracy) accuracy.value = tolerance
     this.sending = true
     form.requestSubmit()
   }

@@ -273,4 +273,49 @@ class PlanStartTest < ActionDispatch::IntegrationTest
   def login_as(user)
     post login_path, params: { username: user.username, password: "password123" }
   end
+  # The browser widens its gate by the reading's own error before it submits, so
+  # the server has to widen by the same figure. When they disagreed, the client
+  # offered a check-in the server refused and the traveller got two
+  # contradictory messages on the one card close enough to show it.
+  test "an imprecise reading widens the gate rather than being refused" do
+    login_as(@user)
+    # ~190 m north: outside the bare geofence, inside a 200 m error bar.
+    north = @location.lat + 0.0017
+
+    post plan_visits_path(@plan),
+         params: { location_id: @location.uuid, user_lat: north, user_lng: @location.lng, user_accuracy: 200 },
+         as: :turbo_stream
+
+    assert_response :success
+    assert @user.plan_visits.exists?(plan: @plan, location: @location),
+           "a reading whose own error covers the gap must check the traveller in"
+  end
+
+  test "a precise reading is still held to the geofence" do
+    login_as(@user)
+    north = @location.lat + 0.0017
+
+    post plan_visits_path(@plan),
+         params: { location_id: @location.uuid, user_lat: north, user_lng: @location.lng, user_accuracy: 5 },
+         as: :turbo_stream
+
+    assert_response :success
+    assert_not @user.plan_visits.exists?(plan: @plan, location: @location),
+               "a five-metre fix cannot excuse a 190 m gap"
+  end
+
+  # Quoting the bare geofence while refusing at a widened one is a message the
+  # traveller cannot act on.
+  test "the refusal quotes the allowance it actually applied" do
+    login_as(@user)
+    far = @location.lat + 0.02
+
+    post plan_visits_path(@plan),
+         params: { location_id: @location.uuid, user_lat: far, user_lng: @location.lng, user_accuracy: 300 },
+         as: :turbo_stream
+
+    assert_response :success
+    assert_match(/400/, response.body,
+                 "the quoted maximum must be the geofence plus the applied tolerance")
+  end
 end

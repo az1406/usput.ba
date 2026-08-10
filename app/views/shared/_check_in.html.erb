@@ -20,7 +20,7 @@
 <% if logged_in? && geofence_disabled? %>
   <div class="<%= wrapper_class %>">
     <%= button_to plan_visits_path(plan),
-          params: { location_id: location.uuid, user_lat: 0, user_lng: 0, context: context }.compact,
+          params: { location_id: location.uuid, user_lat: 0, user_lng: 0, user_accuracy: 0, context: context }.compact,
           class: button_class do %><%= label %><% end %>
   </div>
 <% else %>
@@ -36,7 +36,7 @@
         <button type="button" class="<%= button_class %>" data-action="geo-visit#capture"><%= label %></button>
       <% else %>
         <%= button_to plan_visits_path(plan),
-              params: { location_id: location.uuid, user_lat: "", user_lng: "", context: context }.compact,
+              params: { location_id: location.uuid, user_lat: "", user_lng: "", user_accuracy: "", context: context }.compact,
               class: button_class do %><%= label %><% end %>
       <% end %>
     </div>

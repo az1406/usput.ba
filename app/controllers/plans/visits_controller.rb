@@ -24,10 +24,15 @@ class Plans::VisitsController < ApplicationController
 
     lat = params[:user_lat].to_f
     lng = params[:user_lng].to_f
+    accuracy = params[:user_accuracy].to_f
     return t("plans.start.need_location") if lat.zero? && lng.zero? && visit_coordinates_required?
-    return nil if visit_in_range?(location, lat, lng)
+    return nil if visit_in_range?(location, lat, lng, accuracy)
 
-    t("plans.start.too_far", distance: format_distance(location.distance_from(lat, lng)), max: (MAX_VISIT_DISTANCE_KM * 1000).to_i)
+    # The figure quoted is the allowance actually applied, not the bare geofence:
+    # telling a traveller to get within 100 m while refusing them at 140 is a
+    # message they cannot act on.
+    t("plans.start.too_far", distance: format_distance(location.distance_from(lat, lng)),
+                             max: (visit_allowance_km(accuracy) * 1000).round)
   end
 
   def format_distance(km)
