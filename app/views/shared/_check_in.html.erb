@@ -24,7 +24,12 @@
           class: button_class do %><%= label %><% end %>
   </div>
 <% else %>
-  <% attributes = { controller: "geo-visit", geo_visit_lat_value: location.lat, geo_visit_lng_value: location.lng }
+  <%# The gate's numbers are defined once, on the server, and handed to the
+      browser. Written in both places they drift, and a browser that offers a
+      check-in the server refuses is two contradictory messages on one press. %>
+  <% attributes = { controller: "geo-visit", geo_visit_lat_value: location.lat, geo_visit_lng_value: location.lng,
+                    geo_visit_geofence_m_value: (RecordsVisits::MAX_VISIT_DISTANCE_KM * 1000).round,
+                    geo_visit_max_tolerance_m_value: (RecordsVisits::MAX_VISIT_DISTANCE_KM * RecordsVisits::ACCURACY_TOLERANCE_MULTIPLE * 1000).round }
      attributes.merge!(geo_visit_guest_value: true,
                        geo_visit_location_id_value: location.uuid,
                        geo_visit_location_name_value: location.name,

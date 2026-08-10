@@ -8,18 +8,14 @@ import { distanceKm } from "services/route_service"
 // that old is what left the button doing nothing. A cold acquisition on every
 // press is what made the first check-in take ten seconds to fail.
 const REUSE_MS = 30000
-// The geofence, and how far a reading's own error may stretch it. Accuracy
-// decides how wide the gate is rather than whether there is one: a fix that
-// cannot resolve a hundred metres can still tell a traveller standing at the
-// place apart from one in the next town, and refusing it outright meant a
-// laptop — or a position set in developer tools — could never check in.
-const GEOFENCE_M = 100
-const MAX_TOLERANCE_M = 500
 
 export default class extends Controller {
   static targets = ["hint", "control"]
+  // The gate's numbers come from the server — RecordsVisits owns them, and both
+  // sides of the press have to widen by the same figure or they reach opposite
+  // verdicts. Accuracy decides how wide the gate is, never whether there is one.
   static values = {
-    lat: Number, lng: Number, guest: Boolean,
+    lat: Number, lng: Number, guest: Boolean, geofenceM: Number, maxToleranceM: Number,
     locationId: String, locationName: String, locationCity: String, locationTags: Array
   }
 
@@ -86,8 +82,8 @@ export default class extends Controller {
 
   evaluate(lat, lng, accuracy) {
     const km = distanceKm(lat, lng, this.latValue, this.lngValue)
-    const tolerance = Math.min(Number(accuracy) || 0, MAX_TOLERANCE_M)
-    if (km * 1000 <= GEOFENCE_M + tolerance) {
+    const tolerance = Math.min(Number(accuracy) || 0, this.maxToleranceMValue)
+    if (km * 1000 <= this.geofenceMValue + tolerance) {
       return this.guestValue ? this.recordGuestVisit() : this.submitWith(lat, lng, tolerance)
     }
     this.showHint(km, this.bearing(lat, lng, this.latValue, this.lngValue))

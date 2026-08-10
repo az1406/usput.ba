@@ -16,7 +16,11 @@ module RecordsVisits
   # before submitting — when the two sides disagreed, the client offered a
   # check-in that the server then refused, which is two contradictory messages
   # on the one card close enough for the disagreement to show.
-  MAX_ACCURACY_TOLERANCE_KM = 0.5
+  # A multiple of the geofence, never a fixed distance. Written flat, a 500 m
+  # tolerance would swallow a 10 m geofence whole and the tightening would mean
+  # nothing on any device without good GPS. Expressed as a multiple, changing
+  # MAX_VISIT_DISTANCE_KM alone moves both numbers together.
+  ACCURACY_TOLERANCE_MULTIPLE = 5
 
   private
 
@@ -25,8 +29,12 @@ module RecordsVisits
   end
 
   def visit_allowance_km(accuracy_m)
-    tolerance = [ [ accuracy_m.to_f, 0 ].max / 1000, MAX_ACCURACY_TOLERANCE_KM ].min
+    tolerance = [ [ accuracy_m.to_f, 0 ].max / 1000, max_accuracy_tolerance_km ].min
     MAX_VISIT_DISTANCE_KM + tolerance
+  end
+
+  def max_accuracy_tolerance_km
+    MAX_VISIT_DISTANCE_KM * ACCURACY_TOLERANCE_MULTIPLE
   end
 
   def visit_coordinates_required?
