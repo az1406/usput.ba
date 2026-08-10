@@ -80,13 +80,16 @@ class MomentsController < ApplicationController
 
   def respond_with_visibility(moment, notice)
     respond_to do |format|
-      format.turbo_stream { render_visibility_change(moment) } if params[:context].present?
+      format.turbo_stream { render_visibility_change(moment) }
       format.html { redirect_back fallback_location: plan_path(@plan), notice: notice }
     end
   end
 
   # Where the button was tapped decides what is rewritten: the walk and the reel
   # redraw the location's whole moment strip, the two grids redraw the one tile.
+  # An absent context is the strip, not a reload: the gallery drops the param
+  # when its frame was loaded without one, and reloading mid-walk to publish a
+  # photo loses the traveller's place in the deck.
   def render_visibility_change(moment)
     case params[:context]
     when "browse"
