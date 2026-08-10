@@ -55,7 +55,7 @@ class LocationsControllerTest < ActionDispatch::IntegrationTest
 
   # === Show action tests ===
 
-  test "map_points returns every mappable place as a coordinate and a category" do
+  test "map_points returns every mappable place as a coordinate" do
     get map_points_locations_path, headers: { Accept: "application/json" }
 
     assert_response :success
@@ -72,9 +72,11 @@ class LocationsControllerTest < ActionDispatch::IntegrationTest
   test "map_points carries no names or photos" do
     get map_points_locations_path, headers: { Accept: "application/json" }
 
-    assert_equal %w[category id lat lng], JSON.parse(response.body).first.keys.sort
+    assert_equal %w[id lat lng], JSON.parse(response.body).first.keys.sort
   end
 
+  # The category the payload used to carry was read by nothing, so the two joins
+  # that fetched it were paid on every catalogue build for no reader.
   test "map_points survives a place with no category" do
     uncategorised = Location.create!(name: "No Category", city: "Mostar", lat: 43.34, lng: 17.81)
 
@@ -82,7 +84,6 @@ class LocationsControllerTest < ActionDispatch::IntegrationTest
 
     point = JSON.parse(response.body).find { |candidate| candidate["id"] == uncategorised.uuid }
     assert point, "an uncategorised place must still reach the map"
-    assert_nil point["category"]
 
     uncategorised.destroy
   end

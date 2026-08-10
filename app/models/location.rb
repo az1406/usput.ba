@@ -431,15 +431,8 @@ class Location < ApplicationRecord
   def self.map_points
     places
       .where.not(lat: nil, lng: nil)
-      .joins(<<~SQL.squish)
-        LEFT JOIN location_category_assignments
-          ON location_category_assignments.location_id = locations.id
-         AND location_category_assignments.primary = TRUE
-        LEFT JOIN location_categories
-          ON location_categories.id = location_category_assignments.location_category_id
-      SQL
-      .pluck(:uuid, :lat, :lng, "location_categories.key")
-      .map { |uuid, lat, lng, key| { id: uuid, lat: lat.to_f, lng: lng.to_f, category: key } }
+      .pluck(:uuid, :lat, :lng)
+      .map { |uuid, lat, lng| { id: uuid, lat: lat.to_f, lng: lng.to_f } }
   end
 
   def primary_category
