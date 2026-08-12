@@ -1,9 +1,11 @@
 import { Controller } from "@hotwired/stimulus"
 import { positionService } from "services/position_service"
 import { distanceKm, profileFor, summarise, fetchRoute } from "services/route_service"
-import "leaflet"
+import { loadLeaflet } from "services/leaflet_service"
 
-const L = window.L
+// Assigned by the first build on the page, and read by every method below —
+// all of which run downstream of one.
+let L = null
 
 // Below this the pins stand alone: a town fits on screen, which is where the
 // operator wants to stop seeing bubbles.
@@ -86,10 +88,18 @@ export default class extends Controller {
     this.revealObserver.observe(this.element)
   }
 
-  #build() {
-    if (this.map) return
-    this.revealObserver?.disconnect()
+  async #build() {
+    if (this.map || this.building) return
+    this.building = true
 
+    L = await loadLeaflet()
+    this.building = false
+    // A card can be swiped away, or the panel closed, while the library is in
+    // flight; building into a detached element leaves a map nothing disconnects.
+    // The observer stays live on a failed load, so re-opening the panel retries.
+    if (!L || this.map || !this.element.isConnected) return
+
+    this.revealObserver?.disconnect()
     this.expanded = false
     this.selectedId = this.pointsValue.find((point) => point.main)?.id
 
