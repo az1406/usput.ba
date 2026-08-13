@@ -140,13 +140,13 @@ module Curator
     # one click away.
     def archive
       @location.archive!
-      record_activity("archived", recordable: @location, metadata: { type: "Location", name: @location.name })
+      record_activity("archive_location", recordable: @location, metadata: { type: "Location", name: @location.name })
       redirect_to curator_location_path(@location), notice: t("curator.locations.archived"), status: :see_other
     end
 
     def restore
       @location.restore!
-      record_activity("restored", recordable: @location, metadata: { type: "Location", name: @location.name })
+      record_activity("restore_location", recordable: @location, metadata: { type: "Location", name: @location.name })
       redirect_to curator_location_path(@location), notice: t("curator.locations.restored"), status: :see_other
     end
 
