@@ -904,6 +904,9 @@ bs:
     no_position: Lokacija nije dostupna
     no_route: Ruta nije dostupna
   locations:
+    not_found: Lokacija nije pronađena. Istraži druga odredišta.
+    retired: To mjesto se više ne nudi. Istraži druga odredišta.
+    explore_others: Istraži druga mjesta
     errors:
       held_by_travellers:
         one: Ovo mjesto se ne može obrisati — putnik ovdje ima zabilježenu posjetu ili trenutak.
@@ -1163,6 +1166,16 @@ bs:
       updated: Lokacija uspješno ažurirana
       deleted: Lokacija uspješno obrisana
       confirm_delete: Jesi li siguran da želiš obrisati %{name}?
+      confirm_delete_with_memories:
+        one: "Obrisati %{name}? Putnik ovdje ima 1 zabilježenu posjetu ili trenutak koji će također biti obrisan. Ovo se ne može poništiti — arhiviraj umjesto toga da sačuvaš."
+        other: "Obrisati %{name}? Putnici ovdje imaju %{count} zabilježenih posjeta i trenutaka koji će svi biti obrisani. Ovo se ne može poništiti — arhiviraj umjesto toga da ih sačuvaš."
+      archive: Arhiviraj
+      restore: Vrati
+      confirm_archive: "Arhivirati %{name}? Prestaje se nuditi putnicima; sve što su ovdje zabilježili ostaje sačuvano."
+      archived: Lokacija arhivirana — putnici je više ne vide, a njihove uspomene su sačuvane
+      restored: Lokacija vraćena — putnici je ponovo mogu pronaći
+      show_archived: Arhivirane
+      show_live: Aktivne
       tags: Oznake
       tags_placeholder: npr. priroda, istorijsko, za porodice
       tags_hint: Razdvoji oznake zarezom

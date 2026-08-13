@@ -33,9 +33,10 @@ class Location < ApplicationRecord
   has_many :audio_tours, dependent: :destroy
   has_many :photo_suggestions, dependent: :destroy
   # A traveller's record of having been somewhere, and of what they photographed
-  # there, is theirs — no cascade takes it. Until a location can be retired
-  # rather than removed, destroying one that travellers have reached is refused
-  # instead, because the columns are not nullable and orphaning them is worse.
+  # there, is theirs — no cascade takes it. Retiring a place is the ordinary way
+  # out of the catalogue and keeps these; destroying one is refused unless the
+  # caller has said, through destroy_with_traveller_records!, that taking them is
+  # the point. The columns are not nullable, so orphaning is never an option.
   has_many :moments
   has_many :plan_visits
   before_destroy :refuse_while_travellers_hold_records, prepend: true
@@ -84,6 +85,12 @@ class Location < ApplicationRecord
   }
   scope :with_tag, ->(tag) { where("tags @> ?", [ tag ].to_json) }
   scope :with_coordinates, -> { where.not(lat: nil, lng: nil) }
+  # Retired from the catalogue. Deliberately not a default scope: 165 symbols
+  # depend on this model, and the curator surfaces that retire a place are the
+  # same ones that have to keep seeing it to bring it back. The traveller-facing
+  # readers ask for not_archived by name; Browse.syncable? does the rest.
+  scope :archived, -> { where.not(archived_at: nil) }
+  scope :not_archived, -> { where(archived_at: nil) }
   # Everything a walk card reads past the location's own columns. The card's
   # readers branch on `loaded?` — a `find_by` would query regardless — so a
   # surface that deals cards loads through here and the branch finds it in
@@ -430,9 +437,46 @@ class Location < ApplicationRecord
   # LEFT JOIN: an uncategorised place still belongs on the map.
   def self.map_points
     places
+      .not_archived
       .where.not(lat: nil, lng: nil)
       .pluck(:uuid, :lat, :lng)
       .map { |uuid, lat, lng| { id: uuid, lat: lat.to_f, lng: lng.to_f } }
+  end
+
+  def archived?
+    archived_at.present?
+  end
+
+  def archive!
+    update!(archived_at: Time.current)
+  end
+
+  # The name the platform content executor reaches for before it falls back to
+  # destroying. Nothing answered it until now, so a delete instruction from the
+  # AI content tool hard-deleted a place; retiring one is what it should mean.
+  alias_method :soft_delete, :archive!
+
+  def restore!
+    update!(archived_at: nil)
+  end
+
+  def held_records_count
+    plan_visits.count + moments.count
+  end
+
+  # The one way past refuse_while_travellers_hold_records. Every other destroy
+  # path — console, a future controller, the content executor's fallback — still
+  # refuses, which is what keeps this the deliberate choice rather than the
+  # ambient behaviour of deleting a place.
+  def destroy_with_traveller_records!
+    transaction do
+      moments.destroy_all
+      plan_visits.destroy_all
+      @destroying_traveller_records = true
+      destroy!
+    end
+  ensure
+    @destroying_traveller_records = false
   end
 
   def primary_category
@@ -683,7 +727,9 @@ class Location < ApplicationRecord
   end
 
   def refuse_while_travellers_hold_records
-    held = plan_visits.count + moments.count
+    return if @destroying_traveller_records
+
+    held = held_records_count
     return if held.zero?
 
     errors.add(:base, I18n.t("locations.errors.held_by_travellers", count: held))

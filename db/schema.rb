@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_21_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_13_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -193,6 +193,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_21_120000) do
     t.index ["user_id"], name: "index_curator_reviews_on_user_id"
   end
 
+  create_table "events", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.integer "duration"
+    t.text "info"
+    t.bigint "location_id", null: false
+    t.datetime "starts_at"
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.string "uuid", limit: 36, null: false
+    t.index ["location_id"], name: "index_events_on_location_id"
+    t.index ["starts_at"], name: "index_events_on_starts_at"
+    t.index ["uuid"], name: "index_events_on_uuid", unique: true
+  end
+
   create_table "experience_categories", force: :cascade do |t|
     t.boolean "active", default: true
     t.datetime "created_at", null: false
@@ -253,11 +268,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_21_120000) do
   create_table "experiences", force: :cascade do |t|
     t.boolean "ai_generated", default: false, null: false
     t.decimal "average_rating", precision: 3, scale: 2, default: "0.0"
+    t.string "bike_type"
     t.string "contact_email"
     t.string "contact_name"
     t.string "contact_phone"
     t.string "contact_website"
     t.datetime "created_at", null: false
+    t.string "cycling_difficulty"
+    t.decimal "cycling_distance_km", precision: 6, scale: 2
+    t.integer "cycling_elevation_gain"
+    t.string "cycling_route_type"
     t.text "description"
     t.decimal "distance_km", precision: 6, scale: 2
     t.integer "elevation_gain_m"
@@ -351,6 +371,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_21_120000) do
 
   create_table "locations", force: :cascade do |t|
     t.boolean "ai_generated", default: false, null: false
+    t.datetime "archived_at"
     t.jsonb "audio_tour_metadata"
     t.decimal "average_rating", precision: 3, scale: 2, default: "0.0"
     t.integer "budget", default: 0
@@ -374,6 +395,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_21_120000) do
     t.string "video_url"
     t.string "website"
     t.index ["ai_generated"], name: "index_locations_on_ai_generated"
+    t.index ["archived_at"], name: "index_locations_on_archived_at", where: "(archived_at IS NOT NULL)"
     t.index ["average_rating"], name: "index_locations_on_average_rating"
     t.index ["budget"], name: "index_locations_on_budget"
     t.index ["city"], name: "index_locations_on_city"
@@ -578,6 +600,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_21_120000) do
   add_foreign_key "curator_applications", "users", column: "reviewed_by_id"
   add_foreign_key "curator_reviews", "content_changes"
   add_foreign_key "curator_reviews", "users"
+  add_foreign_key "events", "locations"
   add_foreign_key "experience_category_types", "experience_categories"
   add_foreign_key "experience_category_types", "experience_types"
   add_foreign_key "experience_locations", "experiences"

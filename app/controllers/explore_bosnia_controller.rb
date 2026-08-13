@@ -134,7 +134,7 @@ class ExploreBosniaController < ApplicationController
   # a cursor. One row past the page is fetched and dropped, so "is there more"
   # comes from a place that exists rather than from this page being full.
   def dealt_locations(skip_visited: true, cursor: nil)
-    scope = Location.with_coordinates
+    scope = Location.with_coordinates.not_archived
     scope = scope.where(id: tile_location_ids) if @type_keys.any?
     scope = scope.where.not(id: current_user.plan_visits.select(:location_id)) if skip_visited && logged_in?
     scope = apply_filters(scope)

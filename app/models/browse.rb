@@ -244,7 +244,7 @@ class Browse < ApplicationRecord
     def syncable?(record)
       case record
       when Location
-        true # Sync all locations (places and contacts)
+        !record.archived? # Retiring a place takes it out of the index, like unpublishing does
       when Experience
         true # Always sync experiences
       when Plan
