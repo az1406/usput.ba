@@ -24,7 +24,7 @@ class MomentsController < ApplicationController
   end
 
   def create
-    @moment = current_user.moments.build(moment_params)
+    @moment = current_user.moments.build(moment_params.merge(photo: CameraPhoto.as_jpeg(params.dig(:moment, :photo))))
     @moment.plan = @plan
     @moment.location = Location.find_by_public_id!(params[:moment][:location_id])
 

@@ -17,6 +17,8 @@ class Moment < ApplicationRecord
   end
 
   # Validations
+  ACCEPTABLE_PHOTO_TYPES = %w[image/jpeg image/png image/gif image/webp].freeze
+
   validates :note, length: { maximum: 1000 }
   validate :photo_present
   validate :acceptable_photo
@@ -60,8 +62,7 @@ class Moment < ApplicationRecord
       return
     end
 
-    acceptable_types = [ "image/jpeg", "image/png", "image/gif", "image/webp" ]
-    unless acceptable_types.include?(photo.blob.content_type)
+    unless ACCEPTABLE_PHOTO_TYPES.include?(photo.blob.content_type)
       errors.add(:photo, "must be JPEG, PNG, GIF, or WebP")
     end
   end
