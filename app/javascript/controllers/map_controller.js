@@ -13,13 +13,18 @@ const CLUSTER_UNTIL_ZOOM = 13
 const CHIP_MS = 4000
 const FOCUS_ZOOM = 15
 // Every map on the page wants the same catalogue, and the explore reel mounts
-// one per card. Fetch it once per page, and keep it for the session so moving
-// between places does not re-download the country. The version is the newest
-// content edit, so a stale copy is simply a key nobody asks for.
+// one per card. Fetch it once and keep it, so moving between places does not
+// re-download the country. The memo is keyed by version — the newest content
+// edit — because this lives at module scope and so outlives every Turbo
+// navigation: memoising on presence alone made a curator's new place invisible
+// until a hard reload, pins and clusters alike.
 let cataloguePromise = null
+let catalogueVersion = null
 
 function catalogue(version) {
-  if (cataloguePromise) return cataloguePromise
+  if (cataloguePromise && catalogueVersion === version) return cataloguePromise
+
+  catalogueVersion = version
 
   const key = `usput_map_points/${version}`
   const held = sessionStorage.getItem(key)
@@ -49,6 +54,7 @@ function catalogue(version) {
       // null is "we could not load", [] is "there is nothing" — the map says
       // different things about each, and a retry is only sane for the first.
       cataloguePromise = null
+      catalogueVersion = null
       return null
     })
 
