@@ -1,0 +1,32 @@
+<%# The desktop bar: one dropdown per group from curator_nav_groups. %>
+<div class="hidden md:ml-10 md:flex md:items-baseline md:space-x-1">
+  <%= link_to t("curator.nav.dashboard"), curator_root_path,
+      class: "rounded-md px-3 py-2 text-sm font-medium #{request.path == curator_root_path ? 'bg-emerald-800 dark:bg-gray-900 text-white' : 'text-emerald-100 dark:text-gray-300 hover:bg-emerald-600 dark:hover:bg-gray-700'}" %>
+
+  <% curator_nav_groups.each do |group| %>
+    <% active = curator_nav_group_active?(group)
+       button_class = if group[:admin]
+         active ? "bg-red-700 dark:bg-red-900 text-white" : "text-red-200 dark:text-red-300 hover:bg-red-600 dark:hover:bg-red-800"
+       else
+         active ? "bg-emerald-800 dark:bg-gray-900 text-white" : "text-emerald-100 dark:text-gray-300 hover:bg-emerald-600 dark:hover:bg-gray-700"
+       end %>
+    <div data-controller="dropdown" class="relative">
+      <button data-action="click->dropdown#toggle" type="button"
+          class="inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium <%= button_class %>">
+        <%= curator_nav_label(group) %>
+        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
+      </button>
+      <div data-dropdown-target="menu" class="hidden absolute left-0 z-10 mt-1 <%= group[:admin] ? "w-44" : "w-48" %> origin-top-left rounded-md bg-white dark:bg-gray-800 py-1 shadow-lg ring-1 ring-black/5 dark:ring-gray-700">
+        <% group[:items].each do |item| %>
+          <% if item[:divider] %>
+            <div class="border-t border-gray-200 dark:border-gray-700 my-1"></div>
+          <% end %>
+          <% current = request.path.start_with?(item[:path])
+             highlight = group[:admin] ? "bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 font-medium" : "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 font-medium" %>
+          <%= link_to curator_nav_label(item), item[:path],
+              class: "block #{"whitespace-nowrap " if group[:admin]}px-4 py-2 text-sm #{current ? highlight : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}" %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>
