@@ -67,6 +67,10 @@ class Browse < ApplicationRecord
     conditions << "(browsable_type = 'Plan' AND city_name = ?)"
     values << city_name
 
+    # Moments in the city
+    conditions << "(browsable_type = 'Moment' AND city_name = ?)"
+    values << city_name
+
     # Experiences with ANY location in the city
     if experience_ids_in_city.any?
       conditions << "(browsable_type = 'Experience' AND browsable_id IN (?))"
@@ -170,6 +174,11 @@ class Browse < ApplicationRecord
       .pluck(:plan_id)
       .uniq
 
+    # Derived like the two above; a moment's own lat/lng are copies.
+    nearby_moment_ids = Moment
+      .where(location_id: nearby_location_ids)
+      .pluck(:id)
+
     # Build conditions dynamically to avoid IN (NULL) issues
     conditions = []
     values = []
@@ -188,6 +197,12 @@ class Browse < ApplicationRecord
     if nearby_plan_ids.any?
       conditions << "(browsable_type = 'Plan' AND browsable_id IN (?))"
       values << nearby_plan_ids
+    end
+
+    # Moments taken at locations within bounding box
+    if nearby_moment_ids.any?
+      conditions << "(browsable_type = 'Moment' AND browsable_id IN (?))"
+      values << nearby_moment_ids
     end
 
     where(conditions.join(" OR "), *values)
@@ -215,6 +230,10 @@ class Browse < ApplicationRecord
 
   def plan?
     browsable_type == "Plan"
+  end
+
+  def moment?
+    browsable_type == "Moment"
   end
 
   # Class methods for syncing data
@@ -271,6 +290,9 @@ class Browse < ApplicationRecord
 
         # Sync all public plans
         Plan.public_plans.find_each { |plan| sync_record(plan) }
+
+        # Sync all approved public moments
+        Moment.publicly_visible.find_each { |moment| sync_record(moment) }
       end
     end
   end

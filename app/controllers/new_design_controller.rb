@@ -166,9 +166,18 @@ class NewDesignController < ApplicationController
     return Moment.none unless logged_in?
 
     scope = current_user.moments.with_attached_photo.includes(:location, :plan)
-    # Moments have no text of their own; Browse matches them via their location.
-    scope = scope.where(location_id: base_browse.locations.select(:browsable_id)) if @query.present?
+    # A moment's note is indexed, but only once public and approved — a
+    # traveller's own list includes private ones, so location is the only
+    # handle that narrows the whole set.
+    scope = scope.where(location_id: base_browse.locations.select(:browsable_id)) if filters_active?
     scope.recent_own
+  end
+
+  # Unfiltered, a traveller keeps seeing every moment they own, including ones
+  # at places since retired that browse no longer indexes.
+  def filters_active?
+    @query.present? || @city_name.present? || @season.present? || @budget.present? ||
+      @min_rating.present? || @origin.present? || (@lat.present? && @lng.present?)
   end
 
   def build_moments_from_browse(base_browse)
