@@ -775,7 +775,8 @@ class ExploreBosniaTest < ActionDispatch::IntegrationTest
     get explore_bosnia_experience_path("history", **SARAJEVO)
 
     assert_response :success
-    assert_select "[data-geo-visit-target='hint'][data-warmth=?]", I18n.t("plans.start.warmth"), minimum: 1
+    assert_select "[data-geo-visit-target='hint'][data-out-of-range=?]",
+      I18n.t("plans.start.out_of_range", m: (RecordsVisits::MAX_VISIT_DISTANCE_KM * 1000).round), minimum: 1
     assert_select "[data-geo-visit-target='hint'][data-enable-location=?]", I18n.t("plans.start.need_location"), minimum: 1
   end
 

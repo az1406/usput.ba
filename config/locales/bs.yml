@@ -401,9 +401,9 @@ bs:
       back: Nazad na plan
       subtitle: Prevuci mjesto udesno kada ga posjetiš da sačuvaš uspomenu.
       visited: Posjećeno
-      mark_visited: Provjeri jesam li tu
       compass: S,SI,I,JI,J,JZ,Z,SZ
-      warmth: Ledeno,Hladno,Prohladno,Toplo
+      mark_visited: Označi kao posjećeno
+      out_of_range: Priđi na %{m} m da označiš kao posjećeno
       add_moment_prompt: Želiš li podijeliti svoj momenat s drugim putnicima iz ovog kraja?
       login_to_capture: Prijavi se da sačuvaš uspomene na ovom putovanju.
       too_far: Predaleko si (%{distance}). Priđi na manje od %{max} m da označiš posjetu.
@@ -643,7 +643,6 @@ bs:
     import: Import Profila
     add_favorite: Dodaj u omiljene
     remove_favorite: Ukloni iz omiljenih
-    mark_visited: Označi kao posjećeno
     avatar:
       remove: Ukloni sliku
       remove_confirm: Da li ste sigurni da želite ukloniti profilnu sliku?

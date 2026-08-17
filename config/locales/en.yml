@@ -404,7 +404,6 @@ en:
       back: Back to plan
       subtitle: Swipe a place right once you've been there to keep a moment.
       visited: Visited
-      mark_visited: Check if I'm here
       add_moment_prompt: Would you share your moment with other travellers from this area?
       login_to_capture: Log in to capture moments on this trip.
       too_far: You're too far away (%{distance}). Get within %{max} m to mark the visit.
@@ -421,7 +420,8 @@ en:
       no_shared_moments: Be the first to share a moment here!
       deck_done: You've seen them all. Nice!
       compass: N,NE,E,SE,S,SW,W,NW
-      warmth: Freezing,Cold,Cool,Warm
+      mark_visited: Mark as visited
+      out_of_range: Get within %{m} m to mark as visited
     moments:
       title: Moments
       privacy_note: Your photos are private — only you can see them, on this plan.
@@ -833,7 +833,6 @@ en:
     import: Import Profile
     add_favorite: Add to favorites
     remove_favorite: Remove from favorites
-    mark_visited: Mark as visited
     avatar:
       remove: Remove image
       remove_confirm: Are you sure you want to remove the profile picture?

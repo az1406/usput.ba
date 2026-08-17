@@ -152,7 +152,7 @@ class PlanStartTest < ActionDispatch::IntegrationTest
     assert_redirected_to "/explore"
   end
 
-  test "the walk renders a deck of location cards with the check-in relabelled" do
+  test "the walk renders a deck of location cards labelled for the outcome, not the check" do
     login_as(@user)
 
     get start_plan_path(@plan)
@@ -160,7 +160,7 @@ class PlanStartTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "div[data-controller=plan-deck]", count: 1
     assert_select "[data-plan-deck-target=card]", count: @plan.all_locations.size
-    assert_includes response.body, "Check if I&#39;m here"
+    assert_includes response.body, I18n.t("plans.start.mark_visited")
   end
 
   test "another traveller's private moment never surfaces as a shared moment on the walk" do

@@ -122,24 +122,10 @@ export default class extends Controller {
     // The same straight line the cards quote, so the press and the card above it
     // can never disagree. The gate is the same measure too: a geofence is a
     // radius, not a route.
-    const band = this.warmthBand(km)
     const distance = km >= 1 ? `${km.toFixed(1)} km` : `${Math.round(km * 1000)} m`
-    this.hintTarget.textContent = `${band.emoji} ${band.label} · ${distance} · ${direction}`
-    this.hintTarget.style.backgroundColor = band.tint
+    const instruction = this.hintTarget.dataset.outOfRange || ""
+    this.hintTarget.textContent = `${instruction} · ${distance} · ${direction}`
     this.hintTarget.classList.remove("hidden")
-  }
-
-  warmthBand(km) {
-    // Cold → warm as the metres fall. HOT (<100 m) never reaches here —
-    // evaluate() checks in at that range. Labels are localized via data-warmth;
-    // tints are inline so Tailwind's purge can't drop dynamic colour classes.
-    const labels = this.hintTarget.dataset.warmth
-      ? this.hintTarget.dataset.warmth.split(",")
-      : ["Freezing", "Cold", "Cool", "Warm"]
-    const index = km > 5 ? 0 : km > 1 ? 1 : km > 0.5 ? 2 : 3
-    const emoji = ["❄️", "🧊", "🌤️", "🔥"][index]
-    const tint = ["rgba(37,99,235,.75)", "rgba(14,165,233,.75)", "rgba(234,179,8,.8)", "rgba(220,38,38,.85)"][index]
-    return { label: labels[index], emoji, tint }
   }
 
   showEnableLocation() {
@@ -149,7 +135,6 @@ export default class extends Controller {
   showMessage(key) {
     if (!this.hasHintTarget) return
     this.hintTarget.textContent = this.hintTarget.dataset[key] || ""
-    this.hintTarget.style.backgroundColor = ""
     this.hintTarget.classList.remove("hidden")
   }
 
