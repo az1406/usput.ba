@@ -401,7 +401,6 @@ bs:
       back: Nazad na plan
       subtitle: Prevuci mjesto udesno kada ga posjetiš da sačuvaš uspomenu.
       visited: Posjećeno
-      compass: S,SI,I,JI,J,JZ,Z,SZ
       mark_visited: Označi kao posjećeno
       out_of_range: Priđi na %{m} m da označiš kao posjećeno
       add_moment_prompt: Želiš li podijeliti svoj momenat s drugim putnicima iz ovog kraja?

@@ -419,7 +419,6 @@ en:
       shared_moments_here: Travellers' moments
       no_shared_moments: Be the first to share a moment here!
       deck_done: You've seen them all. Nice!
-      compass: N,NE,E,SE,S,SW,W,NW
       mark_visited: Mark as visited
       out_of_range: Get within %{m} m to mark as visited
     moments:

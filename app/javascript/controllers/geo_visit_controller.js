@@ -84,7 +84,7 @@ export default class extends Controller {
     if (km * 1000 <= this.geofenceMValue) {
       return this.guestValue ? this.recordGuestVisit() : this.submitWith(lat, lng)
     }
-    this.showHint(km, this.bearing(lat, lng, this.latValue, this.lngValue))
+    this.showMessage("outOfRange")
   }
 
   submitWith(lat, lng) {
@@ -117,17 +117,6 @@ export default class extends Controller {
     scope?.querySelectorAll("[data-visited-hide]").forEach(el => el.classList.add("hidden"))
   }
 
-  showHint(km, direction) {
-    if (!this.hasHintTarget) return
-    // The same straight line the cards quote, so the press and the card above it
-    // can never disagree. The gate is the same measure too: a geofence is a
-    // radius, not a route.
-    const distance = km >= 1 ? `${km.toFixed(1)} km` : `${Math.round(km * 1000)} m`
-    const instruction = this.hintTarget.dataset.outOfRange || ""
-    this.hintTarget.textContent = `${instruction} · ${distance} · ${direction}`
-    this.hintTarget.classList.remove("hidden")
-  }
-
   showEnableLocation() {
     this.showMessage("enableLocation")
   }
@@ -136,16 +125,5 @@ export default class extends Controller {
     if (!this.hasHintTarget) return
     this.hintTarget.textContent = this.hintTarget.dataset[key] || ""
     this.hintTarget.classList.remove("hidden")
-  }
-
-  bearing(lat1, lng1, lat2, lng2) {
-    const toRad = (deg) => (deg * Math.PI) / 180
-    const y = Math.sin(toRad(lng2 - lng1)) * Math.cos(toRad(lat2))
-    const x = Math.cos(toRad(lat1)) * Math.sin(toRad(lat2)) - Math.sin(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.cos(toRad(lng2 - lng1))
-    const degrees = (Math.atan2(y, x) * 180 / Math.PI + 360) % 360
-    const compass = (this.hasHintTarget && this.hintTarget.dataset.directions
-      ? this.hintTarget.dataset.directions.split(",")
-      : ["N", "NE", "E", "SE", "S", "SW", "W", "NW"])
-    return compass[Math.round(degrees / 45) % 8]
   }
 }
