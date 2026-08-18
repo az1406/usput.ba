@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_13_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_18_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -317,6 +317,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_13_120000) do
     t.index ["feature_key", "key", "value"], name: "index_flipper_gates_on_feature_key_and_key_and_value", unique: true
   end
 
+  create_table "likes", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "likeable_id", null: false
+    t.string "likeable_type", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["likeable_type", "likeable_id"], name: "index_likes_on_likeable"
+    t.index ["user_id", "likeable_type", "likeable_id"], name: "index_likes_on_user_and_likeable", unique: true
+    t.index ["user_id"], name: "index_likes_on_user_id"
+  end
+
   create_table "locales", force: :cascade do |t|
     t.boolean "active", default: true
     t.boolean "ai_supported", default: true
@@ -420,6 +431,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_13_120000) do
 
   create_table "moments", force: :cascade do |t|
     t.datetime "created_at", null: false
+    t.integer "likes_count", default: 0, null: false
     t.bigint "location_id", null: false
     t.integer "moderation_status", default: 0, null: false
     t.text "note"
@@ -606,6 +618,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_13_120000) do
   add_foreign_key "experience_locations", "experiences"
   add_foreign_key "experience_locations", "locations"
   add_foreign_key "experiences", "experience_categories"
+  add_foreign_key "likes", "users"
   add_foreign_key "location_category_assignments", "location_categories"
   add_foreign_key "location_category_assignments", "locations"
   add_foreign_key "location_experience_types", "experience_types"

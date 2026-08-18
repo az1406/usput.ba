@@ -8,6 +8,8 @@ class Moment < ApplicationRecord
   belongs_to :plan
   belongs_to :location
 
+  has_many :likes, as: :likeable, dependent: :destroy
+
   enum :visibility, { private_moment: 0, public_moment: 1 }, prefix: true
   enum :moderation_status, { pending: 0, approved: 1, rejected: 2 }
 
@@ -27,21 +29,32 @@ class Moment < ApplicationRecord
   # moderation, so a curator must approve it before anyone else can see it.
   before_save :require_moderation_when_published
 
-  # Both a traveller's own collection and a place's shared one grow without
-  # bound, so every surface that lists them renders a recent slice. The whole
-  # set is never a page's worth, and each row drags a photo and its blob.
-  OWN_LIMIT = 12
-  PUBLIC_LIMIT = 24
+  # One page of a moments grid. Each row drags a photo and its blob, so a
+  # surface asks for a page rather than the lot.
+  PAGE_SIZE = 12
 
   # Scopes
   scope :chronological, -> { order(created_at: :asc) }
+  scope :newest_first, -> { order(created_at: :desc) }
   scope :publicly_visible, -> { visibility_public_moment.approved }
-  scope :recent_own, -> { order(created_at: :desc).limit(OWN_LIMIT) }
-  scope :recent_public, -> { publicly_visible.order(created_at: :desc).limit(PUBLIC_LIMIT) }
+  # Paged surfaces take newest_first: a limit and a page both set LIMIT.
+  scope :recent_own, -> { newest_first.limit(PAGE_SIZE) }
+  scope :recent_public, -> { publicly_visible.newest_first.limit(PAGE_SIZE) }
 
   # Mirrors Location#display_photos: .variant on a non-image blob raises.
   def displayable?
     photo.attached? && photo.blob&.variable?
+  end
+
+  # No audience, no reaction: private is seen by one, pending by none.
+  def likeable?
+    visibility_public_moment? && approved?
+  end
+
+  def liked_by?(user)
+    return false if user.nil?
+
+    likes.exists?(user_id: user.id)
   end
 
   private

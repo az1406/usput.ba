@@ -55,8 +55,6 @@ class NewDesignController < ApplicationController
 
   PER_PAGE = 3
 
-  OWN_MOMENTS_LIMIT = Moment::OWN_LIMIT
-
   def explore
     @query = params[:q]
     @types = Array(params[:types]).reject(&:blank?)
@@ -77,13 +75,14 @@ class NewDesignController < ApplicationController
     @experiences_page = (params[:experiences_page] || 1).to_i
     @plans_page = (params[:plans_page] || 1).to_i
     @moments_page = (params[:moments_page] || 1).to_i
+    @my_moments_page = (params[:my_moments_page] || 1).to_i
 
     # Initialize empty result sets
     @locations = Location.none.page(1)
     @experiences = Experience.none.page(1)
     @plans = Plan.none.page(1)
     @moments = Moment.none.page(1)
-    @my_moments = Moment.none
+    @my_moments = Moment.none.page(1)
 
     # Determine which types to search
     search_types = @types.presence || %w[location experience plan moment]
@@ -116,6 +115,8 @@ class NewDesignController < ApplicationController
       render partial: "new_design/explore/plans_items", locals: { plans: @plans }, layout: false
     when "moments"
       render partial: "new_design/explore/moments_items", locals: { moments: @moments }, layout: false
+    when "my_moments"
+      render partial: "new_design/explore/my_moments_items", locals: { moments: @my_moments }, layout: false
     end
   end
 
@@ -163,14 +164,14 @@ class NewDesignController < ApplicationController
   # Browse indexes only public moments, so own ones are read from the
   # association and kept beside the public results, never merged into them.
   def build_own_moments(base_browse)
-    return Moment.none unless logged_in?
+    return Moment.none.page(1) unless logged_in?
 
     scope = current_user.moments.with_attached_photo.includes(:location, :plan)
     # A moment's note is indexed, but only once public and approved — a
     # traveller's own list includes private ones, so location is the only
     # handle that narrows the whole set.
     scope = scope.where(location_id: base_browse.locations.select(:browsable_id)) if filters_active?
-    scope.recent_own
+    scope.newest_first.page(@my_moments_page).per(PER_PAGE)
   end
 
   # Unfiltered, a traveller keeps seeing every moment they own, including ones

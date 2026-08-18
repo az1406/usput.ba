@@ -215,6 +215,14 @@
     </div>
   <% end %>
 
+  <div class="mt-8 bg-gray-100 py-8 dark:bg-gray-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <turbo-frame id="<%= dom_id(@location, :moments_frame) %>"
+                   src="<%= @moments_plan ? plan_moments_path(@moments_plan, location_id: @location.uuid, context: "location") : location_moments_path(@location.uuid, context: "location") %>"
+                   loading="lazy"></turbo-frame>
+    </div>
+  </div>
+
   <%# Content %>
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <div class="grid gap-8 lg:grid-cols-3">
@@ -370,14 +378,6 @@
               <%= @location.translate(:historical_context, I18n.locale) %>
             </p>
           <% end %>
-        </div>
-
-        <%# Moments — your own plus everyone's public ones. Loads on scroll so
-            the page above it is not held up. %>
-        <div class="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg mb-6">
-          <turbo-frame id="<%= dom_id(@location, :moments_frame) %>"
-                       src="<%= @moments_plan ? plan_moments_path(@moments_plan, location_id: @location.uuid, context: "location") : location_moments_path(@location.uuid, context: "location") %>"
-                       loading="lazy"></turbo-frame>
         </div>
 
         <%# Reviews Section %>

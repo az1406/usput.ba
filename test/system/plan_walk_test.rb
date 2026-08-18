@@ -56,6 +56,9 @@ class PlanWalkTest < ApplicationSystemTestCase
     browser = page.driver.browser
     browser.execute_cdp("Browser.grantPermissions", origin: "#{uri.scheme}://#{uri.host}:#{uri.port}", permissions: [ "geolocation" ])
     browser.execute_cdp("Emulation.setGeolocationOverride", latitude: location.lat.to_f, longitude: location.lng.to_f, accuracy: 5)
+    # The position service starts watching on connect, so the override has to be
+    # in place before the page is: setting it afterwards races the first fix.
+    page.refresh
   end
 
   test "the deck shows every plan stop, in plan order" do
@@ -121,8 +124,11 @@ class PlanWalkTest < ApplicationSystemTestCase
     @user.update!(user_type: :admin)
     login
     visit start_plan_path(@plan)
+    # Pinned well away from the place: an admin needs no geofence, and the
+    # machine's real position should not be what decides that.
+    stand_at(Location.new(lat: 45.0, lng: 20.0))
 
-    click_button "Check if I'm here"
+    click_button I18n.t("plans.start.mark_visited")
 
     assert_text "Visited", wait: 5
   end
@@ -132,7 +138,7 @@ class PlanWalkTest < ApplicationSystemTestCase
     visit start_plan_path(@plan)
     stand_at(@location)
 
-    click_button "Check if I'm here"
+    click_button I18n.t("plans.start.mark_visited")
     assert_text "Visited", wait: 5
 
     open_moments_panel
@@ -192,7 +198,7 @@ class PlanWalkTest < ApplicationSystemTestCase
     login
     visit start_plan_path(@plan)
     stand_at(@location)
-    click_button "Check if I'm here"
+    click_button I18n.t("plans.start.mark_visited")
     assert_text "Visited", wait: 5
 
     visit plan_path(@plan)

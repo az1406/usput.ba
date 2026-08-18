@@ -214,6 +214,62 @@ class NewDesignControllerTest < ActionDispatch::IntegrationTest
     user&.destroy
   end
 
+  test "a traveller's own moments arrive three at a time, like the public ones beside them" do
+    user = User.create!(username: "band_pager", password: "password123")
+    5.times { own_moment_for(user, @location) }
+    login_as(user)
+
+    get explore_path, params: { types: [ "moment" ] }
+
+    assert_response :success
+    assert_select "[data-load-more-resource-type-value=?]", "my_moments", count: 1
+    assert_select "turbo-frame[id^=?]", "moment_", { count: 3 },
+      "the band renders one page, not the whole collection"
+  ensure
+    Moment.destroy_all
+    user&.destroy
+  end
+
+  test "the next page of own moments comes back without a rendered position" do
+    user = User.create!(username: "band_page_two", password: "password123")
+    5.times { own_moment_for(user, @location) }
+    login_as(user)
+
+    get explore_path, params: { types: [ "moment" ], partial: "my_moments", my_moments_page: 2 },
+        xhr: true
+
+    assert_response :success
+    assert_select "turbo-frame[id^=?]", "moment_", { count: 2 }, "page two holds the remainder"
+    assert_select "button[data-index]", { count: 0 },
+      "an appended tile cannot know its offset, so it must not claim one"
+  ensure
+    Moment.destroy_all
+    user&.destroy
+  end
+
+  # Asking each moment whether it is liked is the N+1 this guards: the cost is
+  # one query for the whole page, so more moments must not mean more queries.
+  test "the moment band's query count does not grow with the number of moments" do
+    user = User.create!(username: "band_counter", password: "password123")
+    3.times { own_moment_for(user, @location) }
+    login_as(user)
+    get explore_path, params: { types: [ "moment" ] } # warm the caches
+
+    three = count_moment_queries(user)
+
+    20.times { own_moment_for(user, @location) }
+    get explore_path, params: { types: [ "moment" ] } # warm again, so both counts are measured alike
+    twenty_three = count_moment_queries(user)
+
+    marginal = (twenty_three - three) / 20.0
+    assert_operator marginal, :<=, 0.1,
+      "twenty more moments cost #{twenty_three - three} more queries; the page still renders three, " \
+      "so the per-moment cost must be flat"
+  ensure
+    Moment.destroy_all
+    user&.destroy
+  end
+
   test "explore shows a traveller their own private moment, which the public grid never gets" do
     user = User.create!(username: "band_owner", password: "password123")
     moment = own_moment_for(user, @location)
@@ -224,8 +280,16 @@ class NewDesignControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "turbo-frame##{ActionView::RecordIdentifier.dom_id(moment)}", { count: 1 },
       "the traveller's own private moment must appear in their band"
-    assert_select "form[action=?]", publish_plan_moment_path(@plan, moment), count: 1
-    assert_select "form[action=?]", plan_moment_path(@plan, moment), count: 1
+    # Publishing and deleting moved into the gallery caption, so the tile carries
+    # the routes for the caption to adopt rather than forms of its own.
+    assert_select "button[data-moment-visibility-url=?]", publish_plan_moment_path(@plan, moment), count: 1
+    assert_select "button[data-moment-delete-url=?]", plan_moment_path(@plan, moment), count: 1
+    assert_select "form[action=?]", plan_moment_path(@plan, moment), count: 0
+    # Edit is a signpost to the viewer, not a second surface: the tile carries the
+    # note route for the caption to adopt, and no link goes anywhere else.
+    assert_select "button[data-moment-note-url=?]", plan_moment_path(@plan, moment), count: 1
+    # A private moment has an audience of one, so it offers no reaction at all.
+    assert_select "button[data-moment-like-url]", count: 0
   ensure
     Moment.destroy_all
     user&.destroy
@@ -235,7 +299,7 @@ class NewDesignControllerTest < ActionDispatch::IntegrationTest
   # profile payload on screen instead of opening the profile.
   test "see-all-your-moments goes to the profile page, not the JSON endpoint" do
     user = User.create!(username: "band_all_link", password: "password123")
-    NewDesignController::OWN_MOMENTS_LIMIT.times { own_moment_for(user, @location) }
+    Moment::PAGE_SIZE.times { own_moment_for(user, @location) }
     login_as(user)
 
     get explore_path, params: { types: [ "moment" ] }
@@ -604,6 +668,17 @@ class NewDesignControllerTest < ActionDispatch::IntegrationTest
     moment.photo.attach(io: File.open(file_fixture("real_image.jpg")), filename: "m.jpg", content_type: "image/jpeg")
     moment.save!
     moment
+  end
+
+  def count_moment_queries(_user)
+    count = 0
+    counter = ->(_name, _start, _finish, _id, payload) do
+      count += 1 unless payload[:name] == "SCHEMA" || payload[:cached]
+    end
+    ActiveSupport::Notifications.subscribed(counter, "sql.active_record") do
+      get explore_path, params: { types: [ "moment" ] }
+    end
+    count
   end
 
   def login_as(user)

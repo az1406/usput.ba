@@ -18,6 +18,19 @@ class ExploreCategoryCombineTest < ApplicationSystemTestCase
     [ @food, @nature ].each { |type| type&.destroy }
   end
 
+  # Without this the browser answers with the machine's real position, and the
+  # deck orders correctly from an origin the test never meant — which is why the
+  # nearest place led only on the runs where geolocation had not resolved yet.
+  def stand_at(location)
+    uri = URI.parse(page.current_url)
+    browser = page.driver.browser
+    browser.execute_cdp("Browser.grantPermissions", origin: "#{uri.scheme}://#{uri.host}:#{uri.port}",
+                        permissions: [ "geolocation" ])
+    browser.execute_cdp("Emulation.setGeolocationOverride", latitude: location.lat.to_f,
+                        longitude: location.lng.to_f, accuracy: 5)
+    page.refresh
+  end
+
   def open_filters
     # The rail is desktop-only; the mobile toggle hides the same partial.
     toggle = all("button", text: I18n.t("explore_bosnia.filters.title")).first
@@ -31,6 +44,7 @@ class ExploreCategoryCombineTest < ApplicationSystemTestCase
 
   test "a second category widens the deck instead of replacing the first" do
     visit explore_bosnia_experience_path("food_drinks", lat: 43.8563, lng: 18.4131)
+    stand_at(@near)
     assert_text "Near Kafana", wait: 5
 
     open_filters
@@ -45,6 +59,7 @@ class ExploreCategoryCombineTest < ApplicationSystemTestCase
 
   test "entering on all categories, a press picks that one" do
     visit explore_bosnia_experience_path("all", lat: 43.8563, lng: 18.4131)
+    stand_at(@near)
     assert_text "Near Kafana", wait: 5
     assert_text "Far Fortress", wait: 5
 

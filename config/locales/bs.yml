@@ -103,6 +103,10 @@ bs:
       plan: Planovi
       moment: Uspomene
     moment_by: objavio/la %{user}
+    moment_like_add: Sviđa mi se
+    moment_like_undo: Ukloni sviđanje
+    moment_download: Preuzmi fotografiju
+    moment_like_sign_in: Prijavi se da označiš da ti se sviđa
     moments_home_subtitle: Fotografije koje su putnici podijelili sa svojih putovanja
     nearby: U blizini
     more_filters: Više filtera
@@ -425,6 +429,11 @@ bs:
       share: Podijeli ovu uspomenu
       share_prompt: Želiš li podijeliti ovu uspomenu s drugim putnicima?
       make_private: Vrati na privatno
+      edit_moment: Uredi uspomenu
+      note_label: Tvoja bilješka
+      note_save: Sačuvaj bilješku
+      note_saved: Bilješka sačuvana
+      note_failed: Bilješka nije sačuvana
       public: Javno
       pending: Čeka pregled
       add_for_plan: Dodaj uspomene
@@ -878,6 +887,7 @@ bs:
       one: 1 lokacija
       other: '%{count} lokacija'
     show:
+      photos: Fotografije lokacija
       about: O iskustvu
       locations: Lokacije u iskustvu
       info: Informacije
@@ -934,6 +944,8 @@ bs:
       whatsapp: WhatsApp
       viber: Viber
     show:
+      photos: Fotografije
+      view_all: Pogledaj sve
       audio_tour: Audio Tura
       audio_tour_subtitle: Slušaj priču o ovoj lokaciji
       audio_not_supported: Tvoj preglednik ne podržava audio player.
@@ -1047,6 +1059,7 @@ bs:
   curator:
     title: Kurator Panel
     nav:
+      admin_photo_suggestions: Fotografije
       dashboard: Pregled
       locations: Lokacije
       experiences: Iskustva

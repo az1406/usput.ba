@@ -41,6 +41,7 @@ class ExploreBosniaSystemTest < ApplicationSystemTestCase
 
   def visit_deck
     visit explore_bosnia_experience_path("history", lat: @location.lat, lng: @location.lng)
+    stand_at(@location)
   end
 
   # Same CDP override the walk's system test uses.
@@ -49,6 +50,9 @@ class ExploreBosniaSystemTest < ApplicationSystemTestCase
     browser = page.driver.browser
     browser.execute_cdp("Browser.grantPermissions", origin: "#{uri.scheme}://#{uri.host}:#{uri.port}", permissions: [ "geolocation" ])
     browser.execute_cdp("Emulation.setGeolocationOverride", latitude: location.lat.to_f, longitude: location.lng.to_f, accuracy: 5)
+    # The position service starts watching on connect, so the override has to be
+    # in place before the page is: set afterwards, the machine's real position wins.
+    page.refresh
   end
 
   test "the check-in button stamps the card visited" do
