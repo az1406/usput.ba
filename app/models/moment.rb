@@ -43,6 +43,15 @@ class Moment < ApplicationRecord
     photo.attached? && photo.blob&.variable?
   end
 
+  # The badge's colour, ordered the same way its words are. Spelled out in full
+  # because Tailwind only generates class names it can read in the source — a
+  # built-up string would leave the badge with no background and no error.
+  def status_classes
+    return "bg-gray-900/80 text-yellow-200" if visibility_private_moment?
+
+    approved? ? "bg-emerald-900/80 text-emerald-100" : "bg-amber-900/80 text-amber-100"
+  end
+
   # Private wins first: publishing is what sends a moment to moderation, so a
   # private moment can also be pending — reading approval first would label it
   # pending when what the traveller needs to know is that it is private.
