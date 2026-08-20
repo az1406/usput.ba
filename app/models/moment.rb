@@ -37,18 +37,29 @@ class Moment < ApplicationRecord
   scope :chronological, -> { order(created_at: :asc) }
   scope :newest_first, -> { order(created_at: :desc) }
   scope :publicly_visible, -> { visibility_public_moment.approved }
-  # Paged surfaces take newest_first: a limit and a page both set LIMIT.
-  scope :recent_own, -> { newest_first.limit(PAGE_SIZE) }
-  scope :recent_public, -> { publicly_visible.newest_first.limit(PAGE_SIZE) }
 
   # Mirrors Location#display_photos: .variant on a non-image blob raises.
   def displayable?
     photo.attached? && photo.blob&.variable?
   end
 
+  # Private wins first: publishing is what sends a moment to moderation, so a
+  # private moment can also be pending — reading approval first would label it
+  # pending when what the traveller needs to know is that it is private.
+  def status_key
+    return "plans.start.story_private" if visibility_private_moment?
+
+    approved? ? "plans.start.story_public" : "plans.start.story_pending"
+  end
+
   # No audience, no reaction: private is seen by one, pending by none.
   def likeable?
     visibility_public_moment? && approved?
+  end
+
+  # A link is only worth offering where a stranger opening it finds the moment.
+  def shareable?
+    likeable?
   end
 
   def liked_by?(user)
