@@ -29,6 +29,11 @@ class MapPanelTest < ApplicationSystemTestCase
 
     find("[data-map-target='fullscreenButton']").click
 
+    # The map draws its markers once the tiles settle, and under a full-suite
+    # load that outlasts the two-second look below — which would then find no
+    # marker and no cluster, give up on the first pass, and fail on an empty map.
+    assert_selector ".leaflet-marker-icon", wait: 10
+
     # Both places may start inside one cluster; clicking it zooms in and splits
     # them, which is also how a traveller reaches them.
     3.times do
@@ -39,17 +44,17 @@ class MapPanelTest < ApplicationSystemTestCase
       cluster.click
       sleep 0.6
     end
-    markers = all(".leaflet-marker-icon:not(.marker-cluster)", minimum: 2, wait: 5)
+    markers = all(".leaflet-marker-icon:not(.marker-cluster)", minimum: 2)
 
     # The frame belongs to the map the traveller is standing on, not to the
     # place the pin names — the deck repeats this component once per card.
     panel_frame = "map_panel_location_#{@first.id}"
 
     markers.first.click
-    assert_selector "turbo-frame##{panel_frame} h1", wait: 5
+    assert_selector "turbo-frame##{panel_frame} h1"
 
     markers.last.click
-    assert_selector "turbo-frame##{panel_frame} h1", wait: 5
+    assert_selector "turbo-frame##{panel_frame} h1"
 
     assert page.evaluate_script("window.__stillHere === true"),
            "clicking a second pin reloaded the page instead of rewriting the panel"

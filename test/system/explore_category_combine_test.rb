@@ -28,7 +28,26 @@ class ExploreCategoryCombineTest < ApplicationSystemTestCase
                         permissions: [ "geolocation" ])
     browser.execute_cdp("Emulation.setGeolocationOverride", latitude: location.lat.to_f,
                         longitude: location.lng.to_f, accuracy: 5)
-    page.refresh
+    # A plain refresh reloads the coordinates the first ask already handed into
+    # the url — the machine's own — so the override would never be consulted.
+    visit_without_position(uri)
+  end
+
+  def visit_without_position(uri)
+    query = URI.decode_www_form(uri.query.to_s).reject { |key, _| %w[lat lng approx].include?(key) }
+    visit [ uri.path, query.any? ? URI.encode_www_form(query) : nil ].compact.join("?")
+    wait_for_position
+  end
+
+  # The page asks again with no coordinates in the url, and hands the answer back
+  # by re-pointing the deck. Landing mid-click, that re-point replaces the deck a
+  # filter press just asked for.
+  def wait_for_position
+    deadline = Time.now + Capybara.default_max_wait_time
+
+    sleep 0.1 until page.evaluate_script("new URL(window.location.href).searchParams.has('lat')") ||
+                    Time.now > deadline
+    settle_deck
   end
 
   def open_filters
@@ -45,29 +64,32 @@ class ExploreCategoryCombineTest < ApplicationSystemTestCase
   test "a second category widens the deck instead of replacing the first" do
     visit explore_bosnia_experience_path("food_drinks", lat: 43.8563, lng: 18.4131)
     stand_at(@near)
-    assert_text "Near Kafana", wait: 5
+    assert_text "Near Kafana"
 
     open_filters
     choose_category("sport_nature")
 
     # Both tiles are now asked for, so both places belong in the deck — and the
     # nearest of the two leads it.
-    assert_text "Far Fortress", wait: 5
-    assert_text "Near Kafana", wait: 5
+    assert_text "Far Fortress"
+    assert_text "Near Kafana"
+    # Read the order only once the frame has stopped re-rendering: a filter
+    # change re-points it, and the card read in between is the previous deck's.
+    settle_deck
     assert_equal "Near Kafana", first("[data-plan-deck-target='card'] h2").text
   end
 
   test "entering on all categories, a press picks that one" do
     visit explore_bosnia_experience_path("all", lat: 43.8563, lng: 18.4131)
     stand_at(@near)
-    assert_text "Near Kafana", wait: 5
-    assert_text "Far Fortress", wait: 5
+    assert_text "Near Kafana"
+    assert_text "Far Fortress"
 
     open_filters
     choose_category("sport_nature")
 
     # Nothing is preselected, so the press is a choice of one category.
-    assert_text "Far Fortress", wait: 5
+    assert_text "Far Fortress"
     assert_no_text "Near Kafana"
   end
 end

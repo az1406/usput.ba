@@ -20,13 +20,7 @@ class ExploreDeckPagingTest < ApplicationSystemTestCase
   end
 
   def login
-    visit login_path
-    within "form" do
-      fill_in "username", with: "sys_pager"
-      fill_in "password", with: "password123"
-      click_button
-    end
-    assert_no_current_path login_path, wait: 5
+    sign_in_as("sys_pager")
   end
 
   # Without this the browser answers with the machine's own position and the deck
