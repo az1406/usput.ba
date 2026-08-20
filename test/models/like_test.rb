@@ -34,6 +34,16 @@ class LikeTest < ActiveSupport::TestCase
     end
   end
 
+  test "a like reaches the moment's search row" do
+    # The helper publishes with update_columns, so the row the app would have
+    # indexed on save does not exist yet.
+    Browse.sync_record(@moment)
+
+    assert_difference -> { Browse.find_by(browsable: @moment).reviews_count }, 1 do
+      @reader.likes.create!(likeable: @moment)
+    end
+  end
+
   test "the same traveller cannot like one moment twice" do
     @reader.likes.create!(likeable: @moment)
     second = @reader.likes.build(likeable: @moment)
