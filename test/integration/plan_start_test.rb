@@ -165,14 +165,17 @@ class PlanStartTest < ActionDispatch::IntegrationTest
 
   test "another traveller's private moment never surfaces as a shared moment on the walk" do
     stranger = User.create!(username: "stranger", password: "password123")
-    Moment.create!(user: stranger, plan: @plan, location: @location,
-                   photo: fixture_file_upload("test/fixtures/files/real_image.jpg", "image/jpeg"))
+    hidden = Moment.create!(user: stranger, plan: @plan, location: @location,
+                            photo: fixture_file_upload("test/fixtures/files/real_image.jpg", "image/jpeg"))
     login_as(@user)
 
     get start_plan_path(@plan)
 
     assert_response :success
-    assert_select "[data-moment-lightbox-url]", count: 0,
+    # By its own id and by the byline a shared tile carries: the old assertion
+    # named an attribute that no longer exists anywhere, so it could not fail.
+    assert_no_match hidden.public_id, response.body
+    assert_select "[data-moment-author]", count: 0,
       msg: "a private moment must not leak onto the card as a shared moment"
   ensure
     stranger&.destroy
