@@ -106,6 +106,9 @@ bs:
     moment_like_add: Sviđa mi se
     moment_like_undo: Ukloni sviđanje
     moment_download: Preuzmi fotografiju
+    moment_share: Podijeli ovaj trenutak
+    moment_share_copied: Link kopiran
+    moment_share_failed: Nije moguće kopirati link
     moment_like_sign_in: Prijavi se da označiš da ti se sviđa
     moments_home_subtitle: Fotografije koje su putnici podijelili sa svojih putovanja
     nearby: U blizini
@@ -1344,6 +1347,10 @@ bs:
         approval_failed: Nije uspjelo primjenjivanje promjene sadržaja
         rejection_failed: Nije uspjelo odbijanje promjene sadržaja
         already_reviewed: Ova promjena sadržaja je već pregledana
+  pagination:
+    aria_label: Paginacija
+    previous_short: Nazad
+    next_short: Naprijed
   travel_profile:
     checking_location: Provjeravamo vašu lokaciju...
     visit_recorded: Posjeta uspješno zabilježena!

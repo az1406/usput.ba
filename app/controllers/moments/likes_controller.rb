@@ -55,6 +55,10 @@ class Moments::LikesController < ApplicationController
       turbo_stream.replace(helpers.dom_id(@moment),
                            partial: "new_design/explore/my_moment_card",
                            locals: { moment: @moment })
+    elsif scope == "profile"
+      turbo_stream.replace(helpers.dom_id(@moment),
+                           partial: "travel_profiles/my_moment_tile",
+                           locals: { moment: @moment })
     else
       turbo_stream.replace(helpers.dom_id(@moment, :public),
                            partial: "new_design/explore/moment_card",

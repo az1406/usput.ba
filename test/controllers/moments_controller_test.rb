@@ -167,7 +167,39 @@ class MomentsControllerTest < ActionDispatch::IntegrationTest
     assert moment.reload.visibility_private_moment?, "only the owner may publish"
   end
 
+  test "a public moment's tile carries the link that opens it" do
+    moment = publish_moment
+
+    get location_moments_path(@location.uuid, context: "location")
+
+    assert_response :success
+    tile = css_select("[data-moment-id='#{moment.public_id}']").first
+    assert_equal moment_url(moment), tile["data-moment-share-url"]
+  end
+
+  test "a private moment's tile carries no link to share" do
+    login_as(@owner)
+    moment = @owner.moments.build(plan: @plan, location: @location)
+    moment.photo.attach(io: File.open(file_fixture("test_image.jpg")), filename: "m.jpg", content_type: "image/jpeg")
+    moment.save!
+
+    get location_moments_path(@location.uuid, context: "location")
+
+    assert_response :success
+    tile = css_select("[data-moment-id='#{moment.public_id}']").first
+    assert_nil tile["data-moment-share-url"]
+  end
+
   private
+
+  def publish_moment
+    moment = @owner.moments.build(plan: @plan, location: @location)
+    moment.photo.attach(io: File.open(file_fixture("test_image.jpg")), filename: "m.jpg", content_type: "image/jpeg")
+    moment.save!
+    moment.update!(visibility: :public_moment)
+    moment.update!(moderation_status: :approved)
+    moment
+  end
 
   def login_as(user)
     post login_path, params: { username: user.username, password: "password123" }

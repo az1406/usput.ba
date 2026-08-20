@@ -3,6 +3,11 @@
 class MomentsController < ApplicationController
   include ServesMomentPhotos
 
+  # Surfaces that draw a moment as its own tile in a grid: the answer rewrites or
+  # removes that tile. Everywhere else the moment lives inside a place's strip,
+  # which is redrawn whole.
+  TILE_CONTEXTS = %w[browse caption profile my_moments].freeze
+
   before_action :require_login, except: :index
   before_action :set_plan
 
@@ -92,7 +97,7 @@ class MomentsController < ApplicationController
     respond_to do |format|
       format.html { redirect_back fallback_location: plan_path(@plan), notice: t("flash.moment.destroyed") }
       format.turbo_stream do
-        if params[:context] == "browse"
+        if TILE_CONTEXTS.include?(params[:context])
           render turbo_stream: turbo_stream.remove(card)
         else
           render :update, locals: { location: location }
@@ -126,7 +131,7 @@ class MomentsController < ApplicationController
   # "caption" rewrites the same tile as "browse": the caption reads that tile.
   def render_visibility_change(moment)
     case params[:context]
-    when "browse", "caption"
+    when "browse", "caption", "my_moments"
       render turbo_stream: turbo_stream.replace(helpers.dom_id(moment),
                                                 partial: "new_design/explore/my_moment_card",
                                                 locals: { moment: moment })

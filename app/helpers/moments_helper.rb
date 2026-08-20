@@ -4,6 +4,8 @@ module MomentsHelper
   # Travels with the markup so swiping costs no request.
   def moment_caption_data(moment, download_url:, scope:, owned: false)
     data = {
+      # The tile is what a shared link addresses, so it carries the id.
+      moment_id: moment.public_id,
       moment_author: t("explore.moment_by", user: moment.user.username),
       moment_place: moment.location.name,
       moment_place_url: location_path(moment.location),
@@ -11,6 +13,13 @@ module MomentsHelper
       moment_download_url: download_url,
       moment_owned: owned.to_s
     }
+
+    # Two different things that happen to be the same url. The address is what the
+    # viewer puts in the bar, and a private moment has one because its owner can
+    # open it; the share link is only offered where a stranger following it finds
+    # the moment.
+    data[:moment_page_url] = moment_url(moment) if moment.shareable? || owned
+    data[:moment_share_url] = moment_url(moment) if moment.shareable?
 
     data.merge!(like_data(moment, scope)) if moment.likeable?
     data.merge!(visibility_data(moment)) if owned

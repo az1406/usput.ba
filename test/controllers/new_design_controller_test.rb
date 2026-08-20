@@ -198,6 +198,36 @@ class NewDesignControllerTest < ActionDispatch::IntegrationTest
     user&.destroy
   end
 
+  test "relevance ranks a moment by its own likes, not the rating of its place" do
+    user = User.create!(username: "likes_ranker", password: "password123")
+    liker = User.create!(username: "likes_giver", password: "password123")
+    # Own places: relevance leads with the rating, so the liked moment has to
+    # sit at the weaker of the two for the likes to be what moves it.
+    weaker = Location.create!(name: "Ranker Weaker", city: "Tuzla", lat: 44.53, lng: 18.67,
+                              location_type: :place, average_rating: 3.0, reviews_count: 2)
+    stronger = Location.create!(name: "Ranker Stronger", city: "Tuzla", lat: 44.54, lng: 18.68,
+                                location_type: :place, average_rating: 5.0, reviews_count: 9)
+
+    quiet = publish_moment(user, stronger)
+    liked = publish_moment(user, weaker)
+    liker.likes.create!(likeable: liked)
+
+    get explore_path, params: { types: [ "moment" ] }
+
+    assert_response :success
+    # Scoped to the public-moments grid: the same place links from elsewhere on
+    # the page.
+    places = css_select('[data-load-more-resource-type-value="moments"] a[href]').map { |link| link["href"] }
+    assert_includes places, location_path(weaker)
+    assert_operator places.index(location_path(weaker)), :<,
+                    places.index(location_path(stronger))
+  ensure
+    Like.destroy_all
+    Moment.destroy_all
+    [ user, liker ].compact.each(&:destroy)
+    [ weaker, stronger ].compact.each(&:destroy)
+  end
+
   test "explore does not surface a pending or private moment" do
     user = User.create!(username: "private_sharer", password: "password123")
     moment = user.moments.build(plan: @plan, location: @mostar_location)
@@ -661,6 +691,83 @@ class NewDesignControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.content_type, "text/html"
   end
 
+  test "a moment's own address opens the viewer on it, in the moments view" do
+    user = User.create!(username: "addressed", password: "password123")
+    named = publish_moment(user, @location)
+    sync_browse_records
+
+    get moment_path(named.public_id)
+
+    assert_response :success
+    # The named moment leads its band, because the viewer opens on index 0.
+    assert_select "[data-photo-gallery-open-on-connect-value='true']" do |bands|
+      assert_equal 1, bands.size
+      thumbnails = bands.first.css("[data-photo-gallery-target='thumbnail']")
+      assert_equal moment_url(named), thumbnails.first["data-moment-page-url"]
+    end
+  end
+
+  test "a moment's address is the moments view, paged exactly as it is at /explore" do
+    user = User.create!(username: "pager", password: "password123")
+    5.times { publish_moment(user, @location) }
+    named = publish_moment(user, @location)
+    sync_browse_records
+
+    get moment_path(named.public_id)
+    from_address = css_select("[data-photo-gallery-target='thumbnail']").size
+
+    get explore_path, params: { types: [ "moment" ] }
+    from_explore = css_select("[data-photo-gallery-target='thumbnail']").size
+
+    # One moments view: arriving by a moment's url must not change the page size.
+    assert_equal from_explore, from_address
+    assert_equal NewDesignController::PER_PAGE, from_address
+  end
+
+  test "someone else's private moment sends you to the moments view instead" do
+    owner = User.create!(username: "addr_owner", password: "password123")
+    stranger = User.create!(username: "addr_stranger", password: "password123")
+    hidden = own_moment_for(owner, @location)
+    visible = publish_moment(owner, @location)
+    sync_browse_records
+    login_as(stranger)
+
+    get moment_path(hidden.public_id)
+
+    # The address is not theirs to keep: it becomes the moments view's own url.
+    assert_redirected_to explore_path(types: [ "moment" ])
+    follow_redirect!
+    assert_select "[data-photo-gallery-open-on-connect-value='true']", count: 0
+    assert_select "#public_moment_#{hidden.id}", count: 0
+    assert_select "#public_moment_#{visible.id}"
+  end
+
+  test "an id that never existed answers exactly as a private moment does" do
+    user = User.create!(username: "addr_ghost", password: "password123")
+    visible = publish_moment(user, @location)
+    sync_browse_records
+
+    get moment_path("no-such-moment")
+
+    # Identical to the private case above, which is what stops the url saying
+    # whether a private moment exists.
+    assert_redirected_to explore_path(types: [ "moment" ])
+    follow_redirect!
+    assert_select "#public_moment_#{visible.id}"
+  end
+
+  test "a moment's address previews as the moment, not as the search page" do
+    user = User.create!(username: "addr_preview", password: "password123")
+    named = publish_moment(user, @location)
+    named.update!(note: "The bridge at dusk")
+    sync_browse_records
+
+    get moment_path(named.public_id)
+
+    assert_select "meta[property='og:type'][content='article']", count: 1
+    assert_select "meta[property='og:description'][content=?]", "The bridge at dusk"
+  end
+
   private
 
   def own_moment_for(user, location)
@@ -691,5 +798,14 @@ class NewDesignControllerTest < ActionDispatch::IntegrationTest
     Browse.sync_record(@mostar_location) if @mostar_location&.persisted?
     Browse.sync_record(@experience) if @experience&.persisted?
     Browse.sync_record(@plan) if @plan&.persisted?
+  end
+
+  def publish_moment(user, location)
+    moment = user.moments.build(plan: @plan, location: location)
+    moment.photo.attach(io: File.open(file_fixture("real_image.jpg")), filename: "m.jpg", content_type: "image/jpeg")
+    moment.save!
+    moment.update!(visibility: :public_moment)
+    moment.update!(moderation_status: :approved)
+    moment
   end
 end

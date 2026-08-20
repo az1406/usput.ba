@@ -11,14 +11,19 @@ export default class extends Controller {
     "slide", "counter", "dot", "thumbnail", "slider", "lightbox", "lightboxImage",
     "lightboxCounter", "lightboxThumbnail",
     "captionAuthor", "captionPlace", "captionPlaceName", "captionNote", "captionLike",
-    "captionLikeCount", "captionDownload", "captionVisibility", "captionVisibilityButton",
+    "captionLikeCount", "captionDownload", "captionShare", "captionVisibility", "captionVisibilityButton",
     "captionDelete", "captionNoteForm", "captionNoteField", "captionStatus"
   ]
   static values = {
     index: { type: Number, default: 0 },
     lightboxOpen: { type: Boolean, default: false },
     // The whole collection: counting tiles would call three of forty "everything".
-    total: { type: Number, default: 0 }
+    total: { type: Number, default: 0 },
+    // A moment's own address renders the band with the viewer already open on it.
+    openOnConnect: { type: Boolean, default: false },
+    // Where the url goes once that viewer is shut: arriving straight at a moment
+    // leaves no surface url behind it to restore.
+    returnUrl: { type: String, default: "" }
   }
 
   // Unpaged galleries have no total, where tiles and collection are the same.
@@ -37,14 +42,33 @@ export default class extends Controller {
     this.element.addEventListener("turbo:submit-end", this.boundWriteBack)
 
     // Turbo snapshots the body as it is; an open viewer would cache unscrollable.
-    this.boundBeforeCache = this.closeLightbox.bind(this)
+    // The url goes back first: leaving with the moment's address still in the bar
+    // overwrites this surface's history entry, and coming back lands on the
+    // moment rather than the moments you were looking at.
+    this.boundBeforeCache = () => { this.restoreUrl(); this.leavingPage = true; this.closeLightbox() }
+
+    // Before a visit rather than only before the cache: a link pressed inside the
+    // viewer starts navigating while the moment's address is still in the bar,
+    // and a replaceState landing after that would rewrite the url Turbo just set.
+    this.boundBeforeVisit = () => { this.restoreUrl(); this.leavingPage = true }
+    document.addEventListener("turbo:before-visit", this.boundBeforeVisit)
     document.addEventListener("turbo:before-cache", this.boundBeforeCache)
 
     // Enable swipe on mobile
     this.setupSwipe()
+
+    if (this.openOnConnectValue) {
+      // Seeded before opening: showMomentInUrl only records a return url when it
+      // finds none, and the one in the bar is the moment's own.
+      if (this.returnUrlValue) this.urlBeforeViewer = this.returnUrlValue
+      this.openLightbox()
+    }
   }
 
   disconnect() {
+    this.restoreUrl()
+    this.leavingPage = true
+    document.removeEventListener("turbo:before-visit", this.boundBeforeVisit)
     document.removeEventListener("keydown", this.boundKeyHandler)
     document.removeEventListener("turbo:before-cache", this.boundBeforeCache)
     document.removeEventListener("turbo:before-stream-render", this.boundWriteBack)
@@ -194,6 +218,7 @@ export default class extends Controller {
     }
 
     this.indexValue = index
+    if (this.lightboxOpenValue) this.showMomentInUrl()
   }
 
   // Reads the tile, so swiping issues no request.
@@ -207,9 +232,48 @@ export default class extends Controller {
     this.captionNoteTarget.textContent = moment.momentNote || ""
     this.captionNoteTarget.hidden = !moment.momentNote
     this.captionDownloadTarget.href = moment.momentDownloadUrl || "#"
+    this.fillShare(moment)
 
     this.fillLike(moment)
     this.fillOwnerControls(moment)
+  }
+
+  // A private or unapproved moment carries no url, because a stranger following
+  // one would find nothing.
+  fillShare(moment) {
+    if (!this.hasCaptionShareTarget) return
+
+    const url = moment.momentShareUrl
+    this.shareUrl = url || null
+    this.captionShareTarget.classList.toggle("hidden", !url)
+    this.captionShareTarget.classList.toggle("flex", Boolean(url))
+  }
+
+  // Share sheet where the browser has one, clipboard where it does not. Both
+  // say so in the caption's own status line rather than an alert.
+  async shareMoment() {
+    if (!this.shareUrl) return
+
+    try {
+      if (navigator.share) {
+        await navigator.share({ url: this.shareUrl })
+        return
+      }
+
+      await navigator.clipboard.writeText(this.shareUrl)
+      this.sayStatus(this.captionShareTarget.dataset.copiedLabel)
+    } catch (error) {
+      // A dismissed share sheet rejects, and that is not a failure to report.
+      if (error?.name !== "AbortError") this.sayStatus(this.captionShareTarget.dataset.failedLabel)
+    }
+  }
+
+  sayStatus(message) {
+    if (!this.hasCaptionStatusTarget || !message) return
+
+    this.captionStatusTarget.textContent = message
+    this.captionStatusTarget.classList.remove("hidden")
+    this.clearStatusLater()
   }
 
   // A tile that is not yours carries none of these urls.
@@ -305,6 +369,7 @@ export default class extends Controller {
     }
 
     this.fillCaption(thumb)
+    this.showMomentInUrl()
   }
 
   // Whichever control was clicked, the thumbnail is its frame's.
@@ -321,6 +386,14 @@ export default class extends Controller {
     return thumb.dataset.photoGalleryFullUrl || img.src
   }
 
+  // The deleted moment is the one on screen, so the viewer has nothing left to
+  // show. A failed delete leaves it open: the moment is still there.
+  closeOnDelete(event) {
+    if (event.detail?.success === false) return
+
+    this.closeLightbox()
+  }
+
   // Close lightbox mode
   closeLightbox() {
     if (!this.hasLightboxTarget) return
@@ -329,6 +402,28 @@ export default class extends Controller {
     this.hideLightbox()
     this.clearThumbnailRings()
     document.body.classList.remove("overflow-hidden")
+    this.restoreUrl()
+  }
+
+  // Replaced, not pushed: a pushed entry sends the back button through Turbo's
+  // restoration, which re-renders the surface from a snapshot taken before any
+  // load-more and loses the moments the traveller scrolled to. The address is
+  // what a link needs; a history entry is not.
+  showMomentInUrl() {
+    if (this.leavingPage) return
+
+    const url = this.thumbnailTargets[this.indexValue]?.dataset?.momentPageUrl
+    if (!url) return this.restoreUrl()
+
+    if (this.urlBeforeViewer === undefined) this.urlBeforeViewer = window.location.href
+    window.history.replaceState(window.history.state, "", url)
+  }
+
+  restoreUrl() {
+    if (this.leavingPage || this.urlBeforeViewer === undefined) return
+
+    window.history.replaceState(window.history.state, "", this.urlBeforeViewer)
+    this.urlBeforeViewer = undefined
   }
 
   // Galleries that render inside a card use a <dialog> so the top layer lifts

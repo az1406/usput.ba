@@ -45,6 +45,7 @@ Rails.application.routes.draw do
   # Travel profile page (accessible to everyone, syncs for logged-in users)
   get "profile", to: "travel_profiles#page", as: :profile_page
   get "profile/plans", to: "travel_profiles#my_plans", as: :profile_plans
+  get "profile/moments", to: "travel_profiles#my_moments", as: :profile_moments
   # No :show — it rendered the whole profile blob as JSON and nothing consumed it;
   # the client reads its own copy back through :sync.
   resource :travel_profile, only: [ :update ], controller: "travel_profiles" do
@@ -88,9 +89,14 @@ Rails.application.routes.draw do
     resources :reviews, only: [ :index, :create ]
   end
 
+  # A moment's own address renders the moments view with that moment open — the
+  # same view, not one that resembles it, so the count, the order and the paging
+  # agree however you arrived. The url is the moment's; the surface is the one it
+  # belongs to.
+  get "moments/:id", to: "new_design#explore", as: :moment, defaults: { types: [ "moment" ] }
+
   # A moment is reacted to from wherever it is browsed, which is not the plan
-  # that captured it — so the like hangs off the moment itself. No :show: the
-  # moment view is the shared gallery's caption, not a page.
+  # that captured it — so the like hangs off the moment itself.
   resources :moments, only: [] do
     resource :like, only: [ :create, :destroy ], module: :moments
   end

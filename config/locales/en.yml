@@ -108,6 +108,9 @@ en:
     moment_like_add: Like this moment
     moment_like_undo: Remove like
     moment_download: Download photo
+    moment_share: Share this moment
+    moment_share_copied: Link copied
+    moment_share_failed: Could not copy the link
     moment_like_sign_in: Sign in to like this moment
     moments_home_subtitle: Photos travellers shared from their trips
     nearby: Nearby
@@ -816,6 +819,10 @@ en:
     invalid_credentials: Invalid username or password.
     curator_required: You need curator privileges to access this page.
     admin_required: You need administrator privileges to access this page.
+  pagination:
+    aria_label: Pagination
+    previous_short: Previous
+    next_short: Next
   profile:
     my_moments:
       title: Your Moments
