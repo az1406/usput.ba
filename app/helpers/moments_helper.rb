@@ -10,6 +10,7 @@ module MomentsHelper
       moment_place: moment.location.name,
       moment_place_url: location_path(moment.location),
       moment_note: moment.note.presence,
+      moment_uploaded: moment_uploaded_at(moment),
       moment_download_url: download_url,
       moment_owned: owned.to_s
     }
@@ -24,6 +25,11 @@ module MomentsHelper
     data.merge!(like_data(moment, scope)) if moment.likeable?
     data.merge!(visibility_data(moment)) if owned
     { data: data.compact }
+  end
+
+  # created_at, not taken_at: a traveller can upload a photo from years ago.
+  def moment_uploaded_at(moment)
+    l(moment.created_at.to_date, format: :long)
   end
 
   private

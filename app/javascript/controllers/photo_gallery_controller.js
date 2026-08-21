@@ -10,7 +10,7 @@ export default class extends Controller {
   static targets = [
     "slide", "counter", "dot", "thumbnail", "slider", "lightbox", "lightboxImage",
     "lightboxCounter", "lightboxThumbnail",
-    "captionAuthor", "captionPlace", "captionPlaceName", "captionNote", "captionLike",
+    "captionAuthor", "captionPlace", "captionPlaceName", "captionNote", "captionUploaded", "captionLike",
     "captionLikeCount", "captionDownload", "captionShare", "captionVisibility", "captionVisibilityButton",
     "captionDelete", "captionNoteForm", "captionNoteField", "captionStatus"
   ]
@@ -231,6 +231,8 @@ export default class extends Controller {
     this.captionPlaceTarget.href = moment.momentPlaceUrl || "#"
     this.captionNoteTarget.textContent = moment.momentNote || ""
     this.captionNoteTarget.hidden = !moment.momentNote
+    this.captionUploadedTarget.textContent = moment.momentUploaded || ""
+    this.captionUploadedTarget.hidden = !moment.momentUploaded
     this.captionDownloadTarget.href = moment.momentDownloadUrl || "#"
     this.fillShare(moment)
 
