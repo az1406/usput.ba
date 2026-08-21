@@ -236,9 +236,7 @@ class NewDesignController < ApplicationController
   end
 
   def build_moments_from_browse(base_browse)
-    # Relevance leads with the place's rating, which every moment at a place
-    # shares — their own likes are the only thing that separates them. Id breaks
-    # the remaining ties so a page boundary lands in the same place twice.
+    # reorder replaces the caller's by_relevance: a moment ranks on its own likes.
     moment_rows = base_browse.moments
     moment_rows = moment_rows.reorder(reviews_count: :desc, id: :desc) if @sort == "relevance"
     matching_ids = lead_with_named(moment_rows.pluck(:browsable_id))
