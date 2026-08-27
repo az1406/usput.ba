@@ -158,6 +158,6 @@ class MomentsController < ApplicationController
   end
 
   def moment_params
-    params.require(:moment).permit(:photo, :note, :taken_at)
+    params.require(:moment).permit(:photo, :note)
   end
 end
