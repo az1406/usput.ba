@@ -82,7 +82,7 @@ class ExploreBosniaController < ApplicationController
   end
 
   def approximate_origin
-    @approximate_origin_coordinates ||= Maps::IpPosition.call(request.remote_ip)
+    @approximate_origin_coordinates ||= Maps::IpPosition.call(VisitorIp.from(request))
   end
 
   def apply_filters(scope)
