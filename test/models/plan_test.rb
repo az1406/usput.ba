@@ -562,6 +562,39 @@ class PlanTest < ActiveSupport::TestCase
     plan.destroy
   end
 
+  # Bullet is blind to a find_by-in-method N+1, so the guard is a query count.
+  test "location_days= resolves every uuid in one locations query" do
+    plan = Plan.create!(@valid_params)
+    extra = 4.times.map do |i|
+      Location.create!(name: "Batch #{i}", city: "Sarajevo", lat: 43.9 + (i / 1000.0), lng: 18.5)
+    end
+    uuids = ([ @location ] + extra).map(&:uuid)
+
+    selects = count_location_selects do
+      plan.location_days = { "1" => uuids.first(3), "2" => uuids.last(2) }
+    end
+
+    assert_equal 5, plan.location_days.values.flatten.size
+    assert_equal 1, selects, "expected one batched SELECT on locations, got #{selects}"
+  ensure
+    # The plan owns the join rows; the locations cannot go until it does.
+    plan&.destroy
+    extra&.each(&:destroy)
+  end
+
+  # An unresolvable uuid is skipped rather than raised on, so one bad entry in a
+  # curator proposal cannot roll back the locations that did resolve.
+  test "location_days= skips a uuid that matches no location" do
+    plan = Plan.create!(@valid_params)
+
+    plan.location_days = { "1" => [ @location.uuid, "no-such-uuid" ] }
+
+    assert_equal [ @location ], plan.locations_for_day(1)
+    assert_equal({ "1" => [ @location.uuid ] }, plan.location_days)
+  ensure
+    plan&.destroy
+  end
+
   # The sign-in door imports plans from a JSON string, which never passes through
   # strong parameters, so the marker is filtered at the model instead.
   test "a device payload cannot author the explore marker" do
@@ -708,6 +741,20 @@ class PlanTest < ActiveSupport::TestCase
 
   def create_traveller
     User.create!(username: "walker_#{SecureRandom.hex(4)}", password: "password123")
+  end
+
+  def count_location_selects
+    count = 0
+    subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |*, payload|
+      next if %w[SCHEMA TRANSACTION].include?(payload[:name]) || payload[:cached]
+
+      count += 1 if payload[:sql].match?(/SELECT .* FROM "locations"/)
+    end
+    ActiveRecord::Base.connection.clear_query_cache
+    yield
+    count
+  ensure
+    ActiveSupport::Notifications.unsubscribe(subscriber)
   end
 
   def build_moment(traveller, plan)

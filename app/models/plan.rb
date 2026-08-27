@@ -85,6 +85,8 @@ class Plan < ApplicationRecord
   def location_days=(days_hash)
     return if days_hash.blank?
 
+    by_uuid = Location.where(uuid: days_hash.values.flatten.compact_blank).index_by(&:uuid)
+
     transaction do
       # Clear existing standalone locations
       plan_locations.destroy_all
@@ -95,7 +97,7 @@ class Plan < ApplicationRecord
 
         location_uuids.each_with_index do |uuid, position|
           next if uuid.blank?
-          location = Location.find_by(uuid: uuid)
+          location = by_uuid[uuid]
           next unless location
 
           plan_locations.create!(
