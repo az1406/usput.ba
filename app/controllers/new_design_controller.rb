@@ -104,7 +104,7 @@ class NewDesignController < ApplicationController
     @open_band = band_holding_named_moment
 
     # Load city names for filter dropdown
-    @city_names = Location.where.not(city: [ nil, "" ])
+    @city_names = Location.not_archived.where.not(city: [ nil, "" ])
                           .distinct
                           .pluck(:city)
                           .sort

@@ -158,7 +158,8 @@ class ExploreBosniaController < ApplicationController
   def tile_location_ids
     type_ids = ExperienceType.active.where(key: @type_keys).select(:id)
 
-    Location.joins(:location_experience_types)
+    Location.not_archived
+            .joins(:location_experience_types)
             .where(location_experience_types: { experience_type_id: type_ids })
             .distinct
             .select(:id)

@@ -87,8 +87,11 @@ class Location < ApplicationRecord
   scope :with_coordinates, -> { where.not(lat: nil, lng: nil) }
   # Retired from the catalogue. Deliberately not a default scope: 165 symbols
   # depend on this model, and the curator surfaces that retire a place are the
-  # same ones that have to keep seeing it to bring it back. The traveller-facing
-  # readers ask for not_archived by name; Browse.syncable? does the rest.
+  # same ones that have to keep seeing it to bring it back. A default scope
+  # would also hide a retired place from Browse.sync_all, which has to see it
+  # to remove it, and from the associations on the moments and check-ins that
+  # survive retirement. Instead the traveller-facing entry points carry it:
+  # places, nearby, and Browse.syncable?.
   scope :archived, -> { where.not(archived_at: nil) }
   scope :not_archived, -> { where(archived_at: nil) }
   # Everything a walk card reads past the location's own columns. The card's
@@ -112,6 +115,7 @@ class Location < ApplicationRecord
     # Locations that either:
     # 1. Have no categories assigned, OR
     # 2. Have at least one non-contact category
+    # Retirement rides on the end: this is the traveller-facing catalogue.
     where(
       # No categories assigned
       "NOT EXISTS (SELECT 1 FROM location_category_assignments WHERE location_category_assignments.location_id = locations.id)"
@@ -122,7 +126,7 @@ class Location < ApplicationRecord
          JOIN location_categories lc ON lc.id = lca.location_category_id
          WHERE lca.location_id = locations.id AND lc.key NOT IN (?))", %w[guide business artisan]
       )
-    )
+    ).not_archived
   }
   scope :contacts, -> {
     # Locations with contact category
@@ -437,7 +441,6 @@ class Location < ApplicationRecord
   # LEFT JOIN: an uncategorised place still belongs on the map.
   def self.map_points
     places
-      .not_archived
       .where.not(lat: nil, lng: nil)
       .pluck(:uuid, :lat, :lng)
       .map { |uuid, lat, lng| { id: uuid, lat: lat.to_f, lng: lng.to_f } }
@@ -585,7 +588,7 @@ class Location < ApplicationRecord
 
   # Pronađi lokacije u određenom radijusu (u km)
   def self.nearby(lat, lng, radius_km: 10)
-    with_coordinates.near([ lat, lng ], radius_km, units: :km)
+    with_coordinates.not_archived.near([ lat, lng ], radius_km, units: :km)
   end
 
   # Pronađi lokacije u istom gradu
@@ -607,6 +610,7 @@ class Location < ApplicationRecord
     return self.class.none unless city.present?
 
     self.class
+      .not_archived
       .where(city: city)
       .where.not(id: id)
       .order(
