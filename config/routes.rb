@@ -101,6 +101,9 @@ Rails.application.routes.draw do
     resource :like, only: [ :create, :destroy ], module: :moments
   end
 
+  # Events - public listing (intentionally NOT part of Browse/explore)
+  resources :events, only: [ :index, :show ]
+
   # Plan wizard (must be before resources :plans to avoid matching plans#show)
   get "plans/wizard", to: "plans#wizard", as: :plan_wizard
   get "plans/wizard/:city_slug", to: "plans#wizard", as: :plan_wizard_city
@@ -147,6 +150,7 @@ Rails.application.routes.draw do
       end
     end
     resources :experiences
+    resources :events
     resources :reviews, only: [ :index, :show, :destroy ]
     resources :audio_tours
     resources :plans

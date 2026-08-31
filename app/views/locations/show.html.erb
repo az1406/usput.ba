@@ -429,6 +429,55 @@
           </div>
         </div>
 
+        <%# Upcoming Events at this location %>
+        <% if @upcoming_events.any? %>
+          <div class="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg overflow-hidden">
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <svg class="w-5 h-5 text-rose-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+              </svg>
+              <% if @upcoming_events_citywide %>
+                <%= t("locations.show.upcoming_events_in", city: @location.city) %>
+              <% else %>
+                <%= t("locations.show.upcoming_events") %>
+              <% end %>
+            </h3>
+            <div class="space-y-4">
+              <% @upcoming_events.each do |event| %>
+                <%= link_to event_path(event), class: "block group" do %>
+                  <div class="flex items-start space-x-3 min-w-0 overflow-hidden">
+                    <%# Date chip %>
+                    <div class="flex flex-col items-center justify-center flex-shrink-0 w-14 h-14 rounded-lg bg-rose-50 dark:bg-rose-900/20">
+                      <span class="text-[10px] font-semibold uppercase text-rose-600 dark:text-rose-400"><%= t("date.abbr_month_names")[event.starts_at.month] %></span>
+                      <span class="text-lg font-bold leading-none text-gray-900 dark:text-white"><%= event.starts_at.strftime("%d") %></span>
+                    </div>
+                    <div class="flex-1 min-w-0 overflow-hidden">
+                      <p class="font-medium text-gray-900 dark:text-white group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors truncate">
+                        <%= event.title %>
+                      </p>
+                      <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5"><%= l(event.starts_at, format: :long) %></p>
+                      <% if @upcoming_events_citywide && event.location.present? %>
+                        <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5 flex items-center min-w-0">
+                          <svg class="w-3 h-3 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                          </svg>
+                          <span class="truncate"><%= event.location.name %></span>
+                        </p>
+                      <% end %>
+                    </div>
+                  </div>
+                <% end %>
+              <% end %>
+            </div>
+            <%= link_to events_path, class: "mt-4 flex items-center justify-center w-full py-2.5 px-4 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl text-gray-700 dark:text-gray-300 text-sm font-medium transition-colors" do %>
+              <%= t("locations.show.all_events") %>
+              <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+              </svg>
+            <% end %>
+          </div>
+        <% end %>
+
         <%# Map — the place itself. Directions and the Google hand-off live on
             the canvas, so no coordinate card duplicates them here. %>
         <% if @location.lat && @location.lng %>

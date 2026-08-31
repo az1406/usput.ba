@@ -21,7 +21,7 @@ class ContentChange < ApplicationRecord
   enum :status, { pending: 0, approved: 1, rejected: 2 }
 
   # Supported content types
-  CHANGEABLE_CLASSES = %w[Location Experience Plan AudioTour Review].freeze
+  CHANGEABLE_CLASSES = %w[Location Experience Plan AudioTour Review Event].freeze
 
   validates :change_type, presence: true
   validates :status, presence: true
@@ -296,6 +296,8 @@ class ContentChange < ApplicationRecord
       %w[title notes city_name visibility start_date end_date user_id preferences experience_days location_days]
     when "AudioTour"
       %w[location_id locale script word_count duration]
+    when "Event"
+      %w[title description info starts_at duration location_uuid]
     when "Review"
       %w[rating comment]
     else

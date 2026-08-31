@@ -15,6 +15,7 @@ bs:
     previous: Prethodno
     search: Pretraži
     loading: Učitavanje...
+    load_more: Učitaj više
     saving: Spremanje...
     confirm: Potvrdi
     close: Zatvori
@@ -40,6 +41,7 @@ bs:
     experiences: Iskustva
     locations: Lokacije
     moments: Uspomene
+    events: Događaji
     explore: Istražuj
     about: O nama
     contact: Kontakt
@@ -914,6 +916,28 @@ bs:
     start_route: Pokreni rutu
     no_position: Lokacija nije dostupna
     no_route: Ruta nije dostupna
+  events:
+    badge: Događaj
+    upcoming: Nadolazeći
+    past: Prošli
+    all_cities: Svi
+    not_found: Događaj nije pronađen. Pogledajte druge događaje.
+    back_to_events: Svi događaji
+    index:
+      title: Događaji
+      subtitle: Otkrijte nadolazeće događaje širom Bosne i Hercegovine.
+      upcoming_heading: Nadolazeći događaji
+      past_heading: Prošli događaji
+      no_upcoming: Trenutno nema nadolazećih događaja. Provjerite uskoro!
+    show:
+      about: O događaju
+      info: Dobro je znati
+      details: Detalji
+      starts: Počinje
+      ends: Završava
+      duration: Trajanje
+      location: Lokacija
+      more_here: Više događaja ovdje
   locations:
     not_found: Lokacija nije pronađena. Istraži druga odredišta.
     retired: To mjesto se više ne nudi. Istraži druga odredišta.
@@ -949,6 +973,9 @@ bs:
     show:
       photos: Fotografije
       view_all: Pogledaj sve
+      upcoming_events: Nadolazeći događaji
+      upcoming_events_in: Nadolazeći događaji — %{city}
+      all_events: Svi događaji
       audio_tour: Audio Tura
       audio_tour_subtitle: Slušaj priču o ovoj lokaciji
       audio_not_supported: Tvoj preglednik ne podržava audio player.
@@ -1066,12 +1093,45 @@ bs:
       dashboard: Pregled
       locations: Lokacije
       experiences: Iskustva
+      events: Događaji
       plans: Planovi
       audio_tours: Audio ture
       photo_suggestions: Fotografije
       reviews: Recenzije
       proposals: Prijedlozi
       moments: Uspomene
+    events:
+      title: Događaji
+      new: Novi događaj
+      edit: Uredi
+      view: Pregledaj
+      view_in_app: Pogledaj u aplikaciji
+      back_to_list: Nazad na listu
+      back_to_view: Nazad na pregled
+      edit_title: 'Uredi: %{name}'
+      name: Naziv događaja
+      location: Lokacija
+      select_location: Odaberi lokaciju...
+      location_hint: Svaki događaj je vezan za lokaciju.
+      starts_at: Datum i vrijeme
+      duration: Trajanje
+      duration_placeholder: npr. 120
+      duration_hint: Unesi trajanje u minutama
+      description: Opis
+      info: Dodatne informacije
+      info_placeholder: Ulaznice, parking, pravila ulaska, ...
+      no_events: Nema pronađenih događaja
+      count:
+        one: 1 događaj
+        other: "%{count} događaja"
+      created_at: Kreirano
+      updated_at: Ažurirano
+      sections:
+        basic_info: Osnovne informacije
+        metadata: Metapodaci
+      filter:
+        all_cities: Sva mjesta
+        search_placeholder: Pretraži po nazivu...
     moments:
       title: Podijeljene uspomene
       subtitle: Fotografije putnika koje čekaju pregled prije nego postanu javne

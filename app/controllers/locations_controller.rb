@@ -24,6 +24,18 @@ class LocationsController < ApplicationController
     @review = Review.new
     @nearby_locations = @location.nearby_featured(limit: 3)
 
+    # What happens here answers the page's question; the city is the fallback for
+    # a place that has nothing of its own, and the heading says which one it is.
+    @upcoming_events = @location.events.upcoming.includes(:location).limit(4)
+    @upcoming_events_citywide = @upcoming_events.empty? && @location.city.present?
+
+    if @upcoming_events_citywide
+      @upcoming_events = Event.upcoming
+                              .includes(:location)
+                              .where(location: Location.where(city: @location.city))
+                              .limit(4)
+    end
+
     # Experiences that include this location
     experiences_scope = @location.experiences
                                  .includes(:experience_category)
