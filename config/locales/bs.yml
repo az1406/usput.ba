@@ -414,6 +414,7 @@ bs:
       login_to_capture: Prijavi se da sačuvaš uspomene na ovom putovanju.
       too_far: Predaleko si (%{distance}). Priđi na manje od %{max} m da označiš posjetu.
       need_location: Ne možemo potvrditi tvoju lokaciju. Uključi lokaciju i pokušaj ponovo.
+      no_coordinates: Ovo mjesto još nema koordinate, pa prijava dolaska ne može biti potvrđena.
       locating: Tražimo te…
       imprecise: Još te ne možemo dovoljno precizno locirati. Sačekaj trenutak i pokušaj ponovo.
       visit_failed: Nije uspjelo. Pokušaj ponovo.
