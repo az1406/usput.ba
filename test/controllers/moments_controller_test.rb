@@ -204,6 +204,19 @@ class MomentsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "1", gallery["data-photo-gallery-total-value"]
   end
 
+  # load_more sends "<resource>_page", so the gallery's loader asks for
+  # moments_page. Reading only :page pinned every request to the first page.
+  test "the gallery pages on the name its loader sends" do
+    publish_moment
+    login_as(@owner)
+
+    get location_moments_path(@location.uuid, context: "location",
+                              partial: "moments", moments_page: 2)
+
+    assert_response :success
+    assert_equal 0, css_select("[data-moment-id]").size
+  end
+
   private
 
   def publish_moment

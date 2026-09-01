@@ -17,7 +17,7 @@ class MomentsController < ApplicationController
     # still needs somewhere to upload to, and that is their explore plan. A guest
     # gets no plan and the form renders as a sign-in link.
     @plan ||= Plan.explore_bosnia_for(current_user) if logged_in?
-    @page = [ params[:page].to_i, 1 ].max
+    @page = [ (params[:moments_page] || params[:page]).to_i, 1 ].max
     @moments = if logged_in?
       current_user.moments.where(location: @location)
                   .with_attached_photo.includes(:plan).newest_first.page(@page).per(Moment::PAGE_SIZE)
