@@ -37,6 +37,8 @@ class Moment < ApplicationRecord
   scope :chronological, -> { order(created_at: :asc) }
   scope :newest_first, -> { order(created_at: :desc) }
   scope :publicly_visible, -> { visibility_public_moment.approved }
+  # nil for a signed-out reader, where there is nothing of theirs to leave out.
+  scope :not_by, ->(user) { where.not(user_id: user.id) if user }
 
   # Mirrors Location#display_photos: .variant on a non-image blob raises.
   def displayable?

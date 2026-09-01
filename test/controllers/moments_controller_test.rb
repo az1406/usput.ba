@@ -190,6 +190,20 @@ class MomentsControllerTest < ActionDispatch::IntegrationTest
     assert_nil tile["data-moment-share-url"]
   end
 
+  # Own and public are two scopes a traveller's own approved moment used to sit in
+  # at once, so every count that added them together said one more than existed.
+  test "a traveller's own public moment is counted once, not once per list" do
+    publish_moment
+    login_as(@owner)
+
+    get location_moments_path(@location.uuid, context: "location")
+
+    assert_response :success
+    assert_equal 1, css_select("[data-moment-id]").size
+    gallery = css_select("[data-photo-gallery-total-value]").first
+    assert_equal "1", gallery["data-photo-gallery-total-value"]
+  end
+
   private
 
   def publish_moment

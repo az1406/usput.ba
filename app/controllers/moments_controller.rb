@@ -24,9 +24,13 @@ class MomentsController < ApplicationController
     else
       Moment.none.page(1)
     end
+    # Yours are already in @moments, private and public alike. Leaving them out
+    # here keeps the two lists disjoint, so the counts that add them are right and
+    # a page arrives full instead of losing rows the gallery would drop anyway.
     @public_moments = Moment.where(location: @location)
                             .with_attached_photo.includes(:user)
-                            .publicly_visible.newest_first.page(@page).per(Moment::PAGE_SIZE)
+                            .publicly_visible.not_by(current_user)
+                            .newest_first.page(@page).per(Moment::PAGE_SIZE)
 
     return render partial: "plans/moment_gallery_items",
                   locals: gallery_locals, layout: false if params[:partial] == "moments"

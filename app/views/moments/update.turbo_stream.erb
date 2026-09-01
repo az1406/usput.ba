@@ -30,7 +30,8 @@
           location: location,
           moments: moments,
           public_moments: Moment.where(location_id: location.id).with_attached_photo.includes(:user)
-                                .publicly_visible.newest_first.page(1).per(Moment::PAGE_SIZE),
+                                .publicly_visible.not_by(current_user)
+                                .newest_first.page(1).per(Moment::PAGE_SIZE),
           context: params[:context] %>
   </div>
 <% end %>
