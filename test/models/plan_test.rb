@@ -668,6 +668,18 @@ class PlanTest < ActiveSupport::TestCase
     assert_equal stats, @user.reload.travel_profile_data["stats"]
   end
 
+  # Two GETs for the same traveller can both miss the read and both create.
+  # Only the database can refuse the second.
+  test "a traveller can hold one explore plan and no more" do
+    plan = Plan.explore_bosnia_for(@user)
+
+    assert_equal plan, Plan.explore_bosnia_for(@user)
+    assert_raises(ActiveRecord::RecordNotUnique) do
+      @user.plans.create!(title: "Explore Bosnia", visibility: :private_plan,
+                          preferences: { explore_bosnia: true })
+    end
+  end
+
   test "an owner with no explore plan yet gets one to hold their records" do
     plan = Plan.create!(@valid_params.merge(user: @user))
     @user.plan_visits.create!(plan: plan, location: @location)

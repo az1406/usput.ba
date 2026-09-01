@@ -134,15 +134,20 @@ class Plan < ApplicationRecord
   scope :for_user, ->(user) { where(user: user) }
   scope :public_plans, -> { visibility_public_plan }
   scope :private_plans, -> { visibility_private_plan }
+  scope :explore_bosnia, -> { where("preferences @> ?", { explore_bosnia: true }.to_json) }
   scope :without_explore_bosnia, -> { where("preferences IS NULL OR NOT (preferences @> ?)", { explore_bosnia: true }.to_json) }
 
   # The hidden per-user plan that explore-mode check-ins and moments ride on.
   # Marked in preferences so no schema change is needed; excluded from plan
   # listings via .without_explore_bosnia.
   def self.explore_bosnia_for(user)
-    user.plans.where("preferences @> ?", { explore_bosnia: true }.to_json).first ||
+    user.plans.explore_bosnia.first ||
       user.plans.create!(title: "Explore Bosnia", visibility: :private_plan,
                          preferences: { explore_bosnia: true })
+  rescue ActiveRecord::RecordNotUnique
+    # A concurrent request won the insert between the read and ours; its plan is
+    # the one that exists, so take that rather than failing the page.
+    user.plans.explore_bosnia.first
   end
 
   def explore_bosnia?
