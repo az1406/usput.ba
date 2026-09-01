@@ -513,7 +513,7 @@
           <%# Locations Section %>
           <% if @locations.any? %>
             <div class="mb-12" data-controller="load-more"
-                 data-load-more-url-value="<%= explore_path %>"
+                 data-load-more-url-value="<%= explore_path(@filter_params) %>"
                  data-load-more-resource-type-value="locations"
                  data-load-more-page-value="1"
                  data-load-more-total-count-value="<%= @locations.total_count %>"
@@ -557,7 +557,7 @@
           <%# Experiences Section %>
           <% if @experiences.any? %>
             <div class="mb-12" data-controller="load-more"
-                 data-load-more-url-value="<%= explore_path %>"
+                 data-load-more-url-value="<%= explore_path(@filter_params) %>"
                  data-load-more-resource-type-value="experiences"
                  data-load-more-page-value="1"
                  data-load-more-total-count-value="<%= @experiences.total_count %>"
@@ -601,7 +601,7 @@
           <%# Plans Section %>
           <% if @plans.any? %>
             <div class="mb-12" data-controller="load-more"
-                 data-load-more-url-value="<%= explore_path %>"
+                 data-load-more-url-value="<%= explore_path(@filter_params) %>"
                  data-load-more-resource-type-value="plans"
                  data-load-more-page-value="1"
                  data-load-more-total-count-value="<%= @plans.total_count %>"
@@ -650,7 +650,7 @@
                  data-photo-gallery-open-on-connect-value="<%= @open_band == "my_moments" %>"
                  data-photo-gallery-return-url-value="<%= explore_path(types: [ "moment" ]) %>"
                  data-action="photo-gallery:edgeReached->load-more#loadFromEdge"
-                 data-load-more-url-value="<%= explore_path %>"
+                 data-load-more-url-value="<%= explore_path(@filter_params) %>"
                  data-load-more-resource-type-value="my_moments"
                  data-load-more-page-value="1"
                  data-load-more-total-count-value="<%= @my_moments.total_count %>"
@@ -701,7 +701,7 @@
                  data-photo-gallery-open-on-connect-value="<%= @open_band == "moments" %>"
                  data-photo-gallery-return-url-value="<%= explore_path(types: [ "moment" ]) %>"
                  data-action="photo-gallery:edgeReached->load-more#loadFromEdge"
-                 data-load-more-url-value="<%= explore_path %>"
+                 data-load-more-url-value="<%= explore_path(@filter_params) %>"
                  data-load-more-resource-type-value="moments"
                  data-load-more-page-value="1"
                  data-load-more-total-count-value="<%= @moments.total_count %>"

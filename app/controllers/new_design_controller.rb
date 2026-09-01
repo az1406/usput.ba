@@ -70,6 +70,11 @@ class NewDesignController < ApplicationController
     @radius = params[:radius].presence&.to_i || 25
     @sort = params[:sort].presence || "relevance"
 
+    # The load-more fetch carries the filters in its own url instead of reading
+    # them back from the address bar: an open moment viewer rewrites that to the
+    # moment's own address, which has no query string.
+    @filter_params = filter_params
+
     # Pagination params per resource type
     @locations_page = (params[:locations_page] || 1).to_i
     @experiences_page = (params[:experiences_page] || 1).to_i
@@ -226,6 +231,16 @@ class NewDesignController < ApplicationController
 
     scope.reorder(Arel.sql(ActiveRecord::Base.sanitize_sql_array([ "(moments.id = ?) DESC", named ])),
                   created_at: :desc)
+  end
+
+  # Passed through as given rather than rebuilt from the ivars: the fetch has to
+  # reproduce this request, and @radius and @sort carry defaults that were never
+  # asked for. id, partial and the *_page keys stay out — loadMore sets its own
+  # page, and an id would re-name a moment on every fetch.
+  def filter_params
+    params.permit(:q, :season, :budget, :duration, :min_rating, :city_name,
+                  :origin, :audio_support, :lat, :lng, :radius, :sort, types: [])
+          .to_h.reject { |_, value| value.blank? }
   end
 
   # Unfiltered, a traveller keeps seeing every moment they own, including ones
