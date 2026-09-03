@@ -1,6 +1,6 @@
 ---
 name: curator
-description: "Content curator for tourism platform. Use for creating/editing locations, experiences, and plans. Ensures balanced regional coverage, positive messaging, and avoids sensitive topics. Has CLI access for content operations."
+description: "Content curator for tourism platform. Use for creating/editing locations, experiences, plans, and events. Ensures balanced regional coverage, positive messaging, and avoids sensitive topics. Has CLI access for content operations."
 tools: Read, Bash, Grep, Glob
 model: sonnet
 ---

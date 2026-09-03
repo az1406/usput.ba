@@ -48,6 +48,7 @@ module Platform
                 experiences: Experience.count,
                 plans: Plan.count,
                 audio_tours: AudioTour.count,
+                events: Event.count,
                 reviews: Review.count
               },
               ai_generated: {

@@ -238,6 +238,17 @@ class Platform::DSL::ExecutorTest < ActiveSupport::TestCase
     assert_equal "Test Experience", result[:title]
   end
 
+  test "format_record for Event" do
+    event = Event.create!(title: "Test Event", starts_at: 2.days.from_now, location: @sarajevo_location)
+
+    result = Platform::DSL::Executor.send(:format_record, event)
+
+    assert_equal event.id, result[:id]
+    assert_equal "Test Event", result[:title]
+    assert_equal @sarajevo_location.name, result[:location]
+    assert_equal @sarajevo_location.city, result[:city]
+  end
+
   test "format_record for Plan" do
     plan = Plan.create!(title: "Test Plan")
 

@@ -103,6 +103,7 @@ class Platform::DSL::ValidatorTest < ActiveSupport::TestCase
     assert_includes tables, "locations"
     assert_includes tables, "experiences"
     assert_includes tables, "plans"
+    assert_includes tables, "events"
   end
 
   test "returns ast in result" do

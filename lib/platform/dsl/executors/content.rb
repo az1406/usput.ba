@@ -660,6 +660,8 @@ module Platform
               "lokacija u Bosni i Hercegovini: #{record.name}, grad: #{record.city}"
             when Experience
               "turističko iskustvo: #{record.title}"
+            when Event
+              "događaj: #{record.title}, mjesto: #{record.location&.name}, grad: #{record.city}"
             else
               "#{record.class.name}: #{record.try(:name) || record.try(:title)}"
             end

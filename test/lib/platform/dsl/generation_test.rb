@@ -99,6 +99,20 @@ class Platform::DSL::GenerationTest < ActiveSupport::TestCase
     end
   end
 
+  test "generates translations for an event through the same command" do
+    event = Event.create!(title: "Baščaršijske noći", description: "Ljetni festival", info: "Besplatan ulaz",
+                          starts_at: 2.days.from_now, location: @location)
+
+    Platform::DSL::Executors::Content.stub(:generate_with_llm, "translated") do
+      result = Platform::DSL.execute("generate translations for event { id: #{event.id} } to [\"en\"]")
+
+      assert result[:success]
+      assert_equal %i[title description info], result[:fields_translated]
+      assert_equal 3, result[:translations_count]
+    end
+    assert_equal "translated", event.translate(:title, :en)
+  end
+
   test "rejects invalid locales" do
     error = assert_raises(Platform::DSL::ExecutionError) do
       Platform::DSL.execute("generate translations for location { id: #{@location.id} } to [\"invalid_locale\"]")

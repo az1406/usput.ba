@@ -23,6 +23,8 @@ module Platform
           "plan_experience" => "PlanExperience",
           "audio_tours" => "AudioTour",
           "audio_tour" => "AudioTour",
+          "events" => "Event",
+          "event" => "Event",
           "users" => "User",
           "user" => "User",
           "reviews" => "Review",
@@ -214,6 +216,14 @@ module Platform
                 id: record.id,
                 title: record.title,
                 experiences_count: record.experiences.count
+              }
+            when Event
+              {
+                id: record.id,
+                title: record.title,
+                starts_at: record.starts_at,
+                location: record.location&.name,
+                city: record.city
               }
             when User
               {

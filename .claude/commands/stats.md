@@ -43,6 +43,12 @@ plans | where(status: "published") | count
 plans | group_by(city) | count
 ```
 
+### Događaji
+```
+events | count
+events | where(title: "Naziv") | first
+```
+
 ### Kvaliteta
 ```
 locations | where(description: nil) | count

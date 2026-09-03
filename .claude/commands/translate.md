@@ -16,6 +16,7 @@ Prevedi sadržaj na sve podržane jezike.
 ```
 /translate location [ime]
 /translate experience [naslov]
+/translate event [naslov]
 /translate --missing
 ```
 
@@ -34,6 +35,7 @@ experiences | where(translations_missing: true) | select(title) | limit(10)
 ```
 locations | where(name: "Stari Most") | first
 experiences | where(title: "Mostarska čaršija") | first
+events | where(title: "Baščaršijske noći") | first
 ```
 
 ### Provjeri postojeće prijevode
