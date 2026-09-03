@@ -4,6 +4,7 @@ hr:
     name: Usput.ba
     tagline: Otkrij ljepote Bosne i Hercegovine
   common:
+    load_more: "Učitaj više"
     save: Spremi
     cancel: Odustani
     delete: Obriši
@@ -32,6 +33,7 @@ hr:
     link_copied: Link kopiran!
     error: Greška
   nav:
+    events: "Događanja"
     mine_check: "Provjera mina"
     home: Početna
     plans: Planovi
@@ -363,6 +365,9 @@ hr:
       none: Lokacije će uskoro biti dostupne!
       none_title: Nema lokacija
     show:
+      upcoming_events: "Nadolazeća događanja"
+      upcoming_events_in: "Nadolazeća događanja — %{city}"
+      all_events: "Sva događanja"
       about: O lokaciji
       history: Povijesni kontekst
       info: Informacije
@@ -831,8 +836,41 @@ hr:
       title: Kontakt
       text: 'Za pitanja o ovim uvjetima korištenja, kontaktiraj nas na:'
   curator:
+    events:
+      title: "Događanja"
+      new: "Novo događanje"
+      edit: "Uredi"
+      view: "Pregledaj"
+      view_in_app: "Pogledaj u aplikaciji"
+      back_to_list: "Natrag na popis"
+      back_to_view: "Natrag na pregled"
+      edit_title: "Uredi: %{name}"
+      name: "Naziv događanja"
+      location: "Lokacija"
+      select_location: "Odaberi lokaciju..."
+      location_hint: "Svako događanje vezano je uz lokaciju."
+      starts_at: "Datum i vrijeme"
+      duration: "Trajanje"
+      duration_placeholder: "npr. 120"
+      duration_hint: "Unesi trajanje u minutama"
+      description: "Opis"
+      info: "Dodatne informacije"
+      info_placeholder: "Ulaznice, parkiranje, pravila ulaska, ..."
+      no_events: "Nema pronađenih događanja"
+      count:
+        one: "1 događanje"
+        other: "%{count} događanja"
+      created_at: "Kreirano"
+      updated_at: "Ažurirano"
+      sections:
+        basic_info: "Osnovne informacije"
+        metadata: "Metapodaci"
+      filter:
+        all_cities: "Sva mjesta"
+        search_placeholder: "Pretraži po nazivu..."
     title: Kustos Kontrolna Ploča
     nav:
+      events: "Događanja"
       dashboard: Kontrolna Ploča
       content: Sadržaj
       media: Mediji
@@ -1082,3 +1120,25 @@ hr:
     play_here: "🎮 Igraj edukativni minolovac na ovoj lokaciji"
     areas_legend: "Približne granice evidentiranih minski sumnjivih područja (snimka 2024). Opasnost se može protezati i IZVAN prikazanih oblika."
     zoom_hint: "Približi kartu da vidiš granice područja."
+  events:
+    badge: "Događanje"
+    upcoming: "Nadolazeća"
+    past: "Prošla"
+    all_cities: "Sva"
+    not_found: "Događanje nije pronađeno. Pogledajte druga događanja."
+    back_to_events: "Sva događanja"
+    index:
+      title: "Događanja"
+      subtitle: "Otkrijte nadolazeća događanja diljem Bosne i Hercegovine."
+      upcoming_heading: "Nadolazeća događanja"
+      past_heading: "Prošla događanja"
+      no_upcoming: "Trenutno nema nadolazećih događanja. Provjerite uskoro!"
+    show:
+      about: "O događanju"
+      info: "Dobro je znati"
+      details: "Detalji"
+      starts: "Počinje"
+      ends: "Završava"
+      duration: "Trajanje"
+      location: "Lokacija"
+      more_here: "Više događanja ovdje"

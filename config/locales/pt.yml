@@ -4,6 +4,7 @@ pt:
     name: Usput.ba
     tagline: Descubra a beleza da Bósnia e Herzegovina
   common:
+    load_more: "Carregar mais"
     save: Salvar
     cancel: Cancelar
     delete: Excluir
@@ -31,6 +32,7 @@ pt:
     view_all: Ver tudo
     error: Erro
   nav:
+    events: "Eventos"
     mine_check: "Verificação de minas"
     home: Início
     plans: Planos
@@ -473,6 +475,9 @@ pt:
       phone: Telefone
       website: Site
     show:
+      upcoming_events: "Próximos eventos"
+      upcoming_events_in: "Próximos eventos — %{city}"
+      all_events: "Todos os eventos"
       audio_tour: Audio Tour
       audio_tour_subtitle: Ouça a história deste local
       audio_not_supported: Seu navegador não suporta o reprodutor de áudio.
@@ -929,8 +934,41 @@ pt:
         country_name: País
         region: Região
   curator:
+    events:
+      title: "Eventos"
+      new: "Novo evento"
+      edit: "Editar"
+      view: "Ver"
+      view_in_app: "Ver na app"
+      back_to_list: "Voltar à lista"
+      back_to_view: "Voltar à vista"
+      edit_title: "Editar: %{name}"
+      name: "Nome do evento"
+      location: "Local"
+      select_location: "Selecione um local..."
+      location_hint: "Cada evento está ligado a um local."
+      starts_at: "Data e hora"
+      duration: "Duração"
+      duration_placeholder: "ex. 120"
+      duration_hint: "Introduza a duração em minutos"
+      description: "Descrição"
+      info: "Informações adicionais"
+      info_placeholder: "Bilhetes, estacionamento, regras de entrada, ..."
+      no_events: "Nenhum evento encontrado"
+      count:
+        one: "1 evento"
+        other: "%{count} eventos"
+      created_at: "Criado"
+      updated_at: "Atualizado"
+      sections:
+        basic_info: "Informações básicas"
+        metadata: "Metadados"
+      filter:
+        all_cities: "Todos os locais"
+        search_placeholder: "Pesquisar por nome..."
     title: Painel do Curador
     nav:
+      events: "Eventos"
       dashboard: Painel
       locations: Locais
       experiences: Experiências
@@ -1103,3 +1141,25 @@ pt:
     play_here: "🎮 Joga ao campo minado educativo nesta localização"
     areas_legend: "Limites aproximados das áreas registadas suspeitas de minas (captura 2024). O perigo pode estender-se PARA LÁ das formas mostradas."
     zoom_hint: "Aproxima o mapa para veres os limites das áreas."
+  events:
+    badge: "Evento"
+    upcoming: "Próximos"
+    past: "Passados"
+    all_cities: "Todos"
+    not_found: "Evento não encontrado. Explore outros eventos."
+    back_to_events: "Todos os eventos"
+    index:
+      title: "Eventos"
+      subtitle: "Descubra os próximos eventos em toda a Bósnia e Herzegovina."
+      upcoming_heading: "Próximos eventos"
+      past_heading: "Eventos passados"
+      no_upcoming: "Sem eventos próximos de momento. Volte em breve!"
+    show:
+      about: "Sobre o evento"
+      info: "Bom saber"
+      details: "Detalhes"
+      starts: "Começa"
+      ends: "Termina"
+      duration: "Duração"
+      location: "Local"
+      more_here: "Mais eventos aqui"

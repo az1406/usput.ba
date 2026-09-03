@@ -4,6 +4,7 @@ pl:
     name: Usput.ba
     tagline: Odkryj piękno Bośni i Hercegowiny
   common:
+    load_more: "Załaduj więcej"
     save: Zapisz
     cancel: Anuluj
     delete: Usuń
@@ -31,6 +32,7 @@ pl:
     view_all: Zobacz wszystko
     error: Błąd
   nav:
+    events: "Wydarzenia"
     mine_check: "Sprawdzanie min"
     home: Strona główna
     plans: Plany
@@ -471,6 +473,9 @@ pl:
       phone: Telefon
       website: Strona internetowa
     show:
+      upcoming_events: "Nadchodzące wydarzenia"
+      upcoming_events_in: "Nadchodzące wydarzenia — %{city}"
+      all_events: "Wszystkie wydarzenia"
       audio_tour: Audioprzewodnik
       audio_tour_subtitle: Posłuchaj historii tego miejsca
       audio_not_supported: Twoja przeglądarka nie obsługuje odtwarzacza audio.
@@ -883,8 +888,41 @@ pl:
         country_name: Kraj
         region: Region
   curator:
+    events:
+      title: "Wydarzenia"
+      new: "Nowe wydarzenie"
+      edit: "Edytuj"
+      view: "Zobacz"
+      view_in_app: "Zobacz w aplikacji"
+      back_to_list: "Powrót do listy"
+      back_to_view: "Powrót do podglądu"
+      edit_title: "Edytuj: %{name}"
+      name: "Nazwa wydarzenia"
+      location: "Miejsce"
+      select_location: "Wybierz miejsce..."
+      location_hint: "Każde wydarzenie jest przypisane do miejsca."
+      starts_at: "Data i godzina"
+      duration: "Czas trwania"
+      duration_placeholder: "np. 120"
+      duration_hint: "Podaj czas trwania w minutach"
+      description: "Opis"
+      info: "Dodatkowe informacje"
+      info_placeholder: "Bilety, parking, zasady wstępu, ..."
+      no_events: "Nie znaleziono wydarzeń"
+      count:
+        one: "1 wydarzenie"
+        other: "%{count} wydarzeń"
+      created_at: "Utworzono"
+      updated_at: "Zaktualizowano"
+      sections:
+        basic_info: "Podstawowe informacje"
+        metadata: "Metadane"
+      filter:
+        all_cities: "Wszystkie miejsca"
+        search_placeholder: "Szukaj po nazwie..."
     title: Panel Kuratora
     nav:
+      events: "Wydarzenia"
       dashboard: Panel
       locations: Lokalizacje
       experiences: Doświadczenia
@@ -1057,3 +1095,25 @@ pl:
     play_here: "🎮 Zagraj w edukacyjnego sapera w tej lokalizacji"
     areas_legend: "Przybliżone granice zarejestrowanych obszarów podejrzanych o miny (migawka 2024). Niebezpieczeństwo może sięgać POZA pokazane kształty."
     zoom_hint: "Przybliż mapę, aby zobaczyć granice obszarów."
+  events:
+    badge: "Wydarzenie"
+    upcoming: "Nadchodzące"
+    past: "Minione"
+    all_cities: "Wszystkie"
+    not_found: "Nie znaleziono wydarzenia. Zobacz inne wydarzenia."
+    back_to_events: "Wszystkie wydarzenia"
+    index:
+      title: "Wydarzenia"
+      subtitle: "Odkryj nadchodzące wydarzenia w całej Bośni i Hercegowinie."
+      upcoming_heading: "Nadchodzące wydarzenia"
+      past_heading: "Minione wydarzenia"
+      no_upcoming: "Obecnie brak nadchodzących wydarzeń. Zajrzyj wkrótce!"
+    show:
+      about: "O wydarzeniu"
+      info: "Warto wiedzieć"
+      details: "Szczegóły"
+      starts: "Początek"
+      ends: "Koniec"
+      duration: "Czas trwania"
+      location: "Miejsce"
+      more_here: "Więcej wydarzeń tutaj"

@@ -5,7 +5,7 @@
     <% photo = event.location&.display_photos&.first %>
     <% if photo %>
       <%= image_tag photo.variant(resize_to_fill: [ 400, 300 ]),
-          alt: event.title,
+          alt: event.translate(:title, I18n.locale),
           loading: "lazy",
           class: "w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" %>
     <% else %>
@@ -20,7 +20,7 @@
     <% if event.starts_at.present? %>
       <div class="absolute top-2 left-2 flex flex-col items-center justify-center bg-white/90 dark:bg-gray-900/80 backdrop-blur-sm rounded-lg px-2.5 py-1 shadow-sm">
         <span class="text-xs font-semibold uppercase text-rose-600 dark:text-rose-400"><%= t("date.abbr_month_names")[event.starts_at.month] %></span>
-        <span class="text-lg font-bold leading-none text-gray-900 dark:text-white"><%= event.starts_at.strftime("%d") %></span>
+        <span class="text-lg font-bold leading-none text-gray-900 dark:text-white"><%= event.starts_at.day %></span>
       </div>
     <% end %>
 
@@ -41,7 +41,7 @@
   <%# Content %>
   <div class="p-4">
     <h3 class="font-semibold text-gray-900 dark:text-white group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors line-clamp-1 break-words">
-      <%= event.title %>
+      <%= event.translate(:title, I18n.locale) %>
     </h3>
 
     <% if event.starts_at.present? %>
@@ -62,9 +62,9 @@
       </p>
     <% end %>
 
-    <% if event.description.present? %>
+    <% if event.translate(:description, I18n.locale).present? %>
       <p class="mt-2 text-sm text-gray-600 dark:text-gray-300 line-clamp-2 break-words">
-        <%= truncate(strip_tags(event.description), length: 100) %>
+        <%= truncate(strip_tags(event.translate(:description, I18n.locale)), length: 100) %>
       </p>
     <% end %>
 

@@ -4,6 +4,7 @@ sr:
     name: Usput.ba
     tagline: Откријте лепоте Босне и Херцеговине
   common:
+    load_more: "Учитај више"
     save: Сачувај
     cancel: Откажи
     delete: Обриши
@@ -32,6 +33,7 @@ sr:
     view_all: Прикажи све
     error: Грешка
   nav:
+    events: "Догађаји"
     mine_check: "Провера мина"
     home: Почетна
     plans: Планови
@@ -522,6 +524,9 @@ sr:
       whatsapp: WhatsApp
       viber: Viber
     show:
+      upcoming_events: "Предстојећи догађаји"
+      upcoming_events_in: "Предстојећи догађаји — %{city}"
+      all_events: "Сви догађаји"
       audio_tour: Аудио Тура
       audio_tour_subtitle: Слушај причу о овој локацији
       audio_not_supported: Твој прегледач не подржава аудио плејер.
@@ -962,8 +967,41 @@ sr:
         country_name: Држава
         region: Регион
   curator:
+    events:
+      title: "Догађаји"
+      new: "Нови догађај"
+      edit: "Уреди"
+      view: "Прегледај"
+      view_in_app: "Погледај у апликацији"
+      back_to_list: "Назад на листу"
+      back_to_view: "Назад на преглед"
+      edit_title: "Уреди: %{name}"
+      name: "Назив догађаја"
+      location: "Локација"
+      select_location: "Одабери локацију..."
+      location_hint: "Сваки догађај је везан за локацију."
+      starts_at: "Датум и време"
+      duration: "Трајање"
+      duration_placeholder: "нпр. 120"
+      duration_hint: "Унеси трајање у минутима"
+      description: "Опис"
+      info: "Додатне информације"
+      info_placeholder: "Улазнице, паркинг, правила уласка, ..."
+      no_events: "Нема пронађених догађаја"
+      count:
+        one: "1 догађај"
+        other: "%{count} догађаја"
+      created_at: "Креирано"
+      updated_at: "Ажурирано"
+      sections:
+        basic_info: "Основне информације"
+        metadata: "Метаподаци"
+      filter:
+        all_cities: "Сва места"
+        search_placeholder: "Претражи по називу..."
     title: Куратор Панел
     nav:
+      events: "Догађаји"
       dashboard: Преглед
       locations: Локације
       experiences: Искуства
@@ -1135,3 +1173,25 @@ sr:
     play_here: "🎮 Играј едукативни миноловац на овој локацији"
     areas_legend: "Приближне границе евидентираних минско сумњивих подручја (снимак 2024). Опасност се може протезати и ИЗВАН приказаних облика."
     zoom_hint: "Приближи карту да видиш границе подручја."
+  events:
+    badge: "Догађај"
+    upcoming: "Предстојећи"
+    past: "Прошли"
+    all_cities: "Сви"
+    not_found: "Догађај није пронађен. Погледајте друге догађаје."
+    back_to_events: "Сви догађаји"
+    index:
+      title: "Догађаји"
+      subtitle: "Откријте предстојеће догађаје широм Босне и Херцеговине."
+      upcoming_heading: "Предстојећи догађаји"
+      past_heading: "Прошли догађаји"
+      no_upcoming: "Тренутно нема предстојећих догађаја. Проверите ускоро!"
+    show:
+      about: "О догађају"
+      info: "Добро је знати"
+      details: "Детаљи"
+      starts: "Почиње"
+      ends: "Завршава"
+      duration: "Трајање"
+      location: "Локација"
+      more_here: "Више догађаја овде"

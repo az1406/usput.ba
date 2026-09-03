@@ -4,6 +4,7 @@ nl:
     name: Usput.ba
     tagline: Ontdek de schoonheid van Bosnië en Herzegovina
   common:
+    load_more: "Meer laden"
     save: Opslaan
     cancel: Annuleren
     delete: Verwijderen
@@ -31,6 +32,7 @@ nl:
     view_all: Alles bekijken
     error: Fout
   nav:
+    events: "Evenementen"
     mine_check: "Mijnencheck"
     home: Home
     plans: Plannen
@@ -470,6 +472,9 @@ nl:
       phone: Telefoon
       website: Website
     show:
+      upcoming_events: "Aankomende evenementen"
+      upcoming_events_in: "Aankomende evenementen — %{city}"
+      all_events: "Alle evenementen"
       audio_tour: Audio Tour
       audio_tour_subtitle: Luister naar het verhaal van deze locatie
       audio_not_supported: Je browser ondersteunt de audiospeler niet.
@@ -884,8 +889,41 @@ nl:
         country_name: Land
         region: Regio
   curator:
+    events:
+      title: "Evenementen"
+      new: "Nieuw evenement"
+      edit: "Bewerken"
+      view: "Bekijken"
+      view_in_app: "Bekijk in de app"
+      back_to_list: "Terug naar lijst"
+      back_to_view: "Terug naar overzicht"
+      edit_title: "Bewerken: %{name}"
+      name: "Naam van het evenement"
+      location: "Locatie"
+      select_location: "Kies een locatie..."
+      location_hint: "Elk evenement is gekoppeld aan een locatie."
+      starts_at: "Datum en tijd"
+      duration: "Duur"
+      duration_placeholder: "bijv. 120"
+      duration_hint: "Voer de duur in minuten in"
+      description: "Beschrijving"
+      info: "Extra informatie"
+      info_placeholder: "Tickets, parkeren, toegangsregels, ..."
+      no_events: "Geen evenementen gevonden"
+      count:
+        one: "1 evenement"
+        other: "%{count} evenementen"
+      created_at: "Aangemaakt"
+      updated_at: "Bijgewerkt"
+      sections:
+        basic_info: "Basisinformatie"
+        metadata: "Metadata"
+      filter:
+        all_cities: "Alle plaatsen"
+        search_placeholder: "Zoeken op naam..."
     title: Curator Dashboard
     nav:
+      events: "Evenementen"
       dashboard: Dashboard
       locations: Locaties
       experiences: Ervaringen
@@ -1057,3 +1095,25 @@ nl:
     play_here: "🎮 Speel de educatieve mijnenveger op deze locatie"
     areas_legend: "Geschatte grenzen van geregistreerde mijnverdachte gebieden (momentopname 2024). Het gevaar kan zich TOT BUITEN de getoonde vormen uitstrekken."
     zoom_hint: "Zoom in om de grenzen van de gebieden te zien."
+  events:
+    badge: "Evenement"
+    upcoming: "Aankomend"
+    past: "Voorbij"
+    all_cities: "Alle"
+    not_found: "Evenement niet gevonden. Bekijk andere evenementen."
+    back_to_events: "Alle evenementen"
+    index:
+      title: "Evenementen"
+      subtitle: "Ontdek aankomende evenementen in heel Bosnië en Herzegovina."
+      upcoming_heading: "Aankomende evenementen"
+      past_heading: "Voorbije evenementen"
+      no_upcoming: "Momenteel geen aankomende evenementen. Kom snel terug!"
+    show:
+      about: "Over het evenement"
+      info: "Goed om te weten"
+      details: "Details"
+      starts: "Begint"
+      ends: "Eindigt"
+      duration: "Duur"
+      location: "Locatie"
+      more_here: "Meer evenementen hier"

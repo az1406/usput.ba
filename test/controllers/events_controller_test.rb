@@ -79,4 +79,16 @@ class EventsControllerTest < ActionDispatch::IntegrationTest
     get event_path("nonexistent-uuid")
     assert_redirected_to events_path
   end
+
+  test "show renders the venue map" do
+    get event_path(@upcoming)
+    assert_select "[data-controller=map] [data-map-target=container]", 1
+  end
+
+  test "show reads the event in the request's locale" do
+    @upcoming.set_translation(:title, "Bevorstehende Veranstaltung", :de)
+    get event_path(@upcoming), params: { locale: :de }
+    assert_match "Bevorstehende Veranstaltung", response.body
+    assert_no_match "Upcoming Event", response.body
+  end
 end

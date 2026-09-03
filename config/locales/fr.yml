@@ -4,6 +4,7 @@ fr:
     name: Usput.ba
     tagline: Découvrez la beauté de la Bosnie-Herzégovine
   common:
+    load_more: "Charger plus"
     save: Enregistrer
     cancel: Annuler
     delete: Supprimer
@@ -32,6 +33,7 @@ fr:
     view_all: Voir tout
     error: Erreur
   nav:
+    events: "Événements"
     mine_check: "Vérification des mines"
     home: Accueil
     plans: Plans
@@ -520,6 +522,9 @@ fr:
       phone: Téléphone
       website: Site web
     show:
+      upcoming_events: "Événements à venir"
+      upcoming_events_in: "Événements à venir — %{city}"
+      all_events: "Tous les événements"
       audio_tour: Visite Audio
       audio_tour_subtitle: Écoutez l'histoire de ce lieu
       audio_not_supported: Votre navigateur ne prend pas en charge le lecteur audio.
@@ -985,8 +990,41 @@ fr:
         country_name: Pays
         region: Région
   curator:
+    events:
+      title: "Événements"
+      new: "Nouvel événement"
+      edit: "Modifier"
+      view: "Voir"
+      view_in_app: "Voir dans l'application"
+      back_to_list: "Retour à la liste"
+      back_to_view: "Retour à l'aperçu"
+      edit_title: "Modifier : %{name}"
+      name: "Nom de l'événement"
+      location: "Lieu"
+      select_location: "Choisir un lieu..."
+      location_hint: "Chaque événement est rattaché à un lieu."
+      starts_at: "Date et heure"
+      duration: "Durée"
+      duration_placeholder: "ex. 120"
+      duration_hint: "Saisir la durée en minutes"
+      description: "Description"
+      info: "Informations complémentaires"
+      info_placeholder: "Billets, parking, règles d'entrée, ..."
+      no_events: "Aucun événement trouvé"
+      count:
+        one: "1 événement"
+        other: "%{count} événements"
+      created_at: "Créé"
+      updated_at: "Mis à jour"
+      sections:
+        basic_info: "Informations de base"
+        metadata: "Métadonnées"
+      filter:
+        all_cities: "Tous les lieux"
+        search_placeholder: "Rechercher par nom..."
     title: Tableau de Bord Curateur
     nav:
+      events: "Événements"
       dashboard: Tableau de Bord
       locations: Lieux
       experiences: Expériences
@@ -1232,3 +1270,25 @@ fr:
     play_here: "🎮 Jouer au démineur éducatif à cet endroit"
     areas_legend: "Limites approximatives des zones suspectées de mines enregistrées (instantané 2024). Le danger peut s'étendre AU-DELÀ des formes affichées."
     zoom_hint: "Zoomez pour voir les limites des zones."
+  events:
+    badge: "Événement"
+    upcoming: "À venir"
+    past: "Passés"
+    all_cities: "Tous"
+    not_found: "Événement introuvable. Découvrez d'autres événements."
+    back_to_events: "Tous les événements"
+    index:
+      title: "Événements"
+      subtitle: "Découvrez les événements à venir dans toute la Bosnie-Herzégovine."
+      upcoming_heading: "Événements à venir"
+      past_heading: "Événements passés"
+      no_upcoming: "Aucun événement à venir pour le moment. Revenez bientôt !"
+    show:
+      about: "À propos de l'événement"
+      info: "Bon à savoir"
+      details: "Détails"
+      starts: "Début"
+      ends: "Fin"
+      duration: "Durée"
+      location: "Lieu"
+      more_here: "Plus d'événements ici"

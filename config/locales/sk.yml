@@ -4,6 +4,7 @@ sk:
     name: Usput.ba
     tagline: Objavte krásy Bosny a Hercegoviny
   common:
+    load_more: "Načítať ďalšie"
     save: Uložiť
     cancel: Zrušiť
     delete: Vymazať
@@ -31,6 +32,7 @@ sk:
     view_all: Zobraziť všetko
     error: Chyba
   nav:
+    events: "Podujatia"
     mine_check: "Kontrola mín"
     home: Domov
     plans: Plány
@@ -467,6 +469,9 @@ sk:
       phone: Telefón
       website: Webová stránka
     show:
+      upcoming_events: "Nadchádzajúce podujatia"
+      upcoming_events_in: "Nadchádzajúce podujatia — %{city}"
+      all_events: "Všetky podujatia"
       audio_tour: Audio prehliadka
       audio_tour_subtitle: Vypočujte si príbeh tohto miesta
       audio_not_supported: Váš prehliadač nepodporuje audio prehrávač.
@@ -873,8 +878,41 @@ sk:
         country_name: Krajina
         region: Región
   curator:
+    events:
+      title: "Podujatia"
+      new: "Nové podujatie"
+      edit: "Upraviť"
+      view: "Zobraziť"
+      view_in_app: "Zobraziť v aplikácii"
+      back_to_list: "Späť na zoznam"
+      back_to_view: "Späť na náhľad"
+      edit_title: "Upraviť: %{name}"
+      name: "Názov podujatia"
+      location: "Miesto"
+      select_location: "Vyberte miesto..."
+      location_hint: "Každé podujatie je viazané na miesto."
+      starts_at: "Dátum a čas"
+      duration: "Trvanie"
+      duration_placeholder: "napr. 120"
+      duration_hint: "Zadajte trvanie v minútach"
+      description: "Popis"
+      info: "Ďalšie informácie"
+      info_placeholder: "Vstupenky, parkovanie, pravidlá vstupu, ..."
+      no_events: "Nenašli sa žiadne podujatia"
+      count:
+        one: "1 podujatie"
+        other: "%{count} podujatí"
+      created_at: "Vytvorené"
+      updated_at: "Aktualizované"
+      sections:
+        basic_info: "Základné informácie"
+        metadata: "Metadáta"
+      filter:
+        all_cities: "Všetky miesta"
+        search_placeholder: "Hľadať podľa názvu..."
     title: Panel Kurátora
     nav:
+      events: "Podujatia"
       dashboard: Panel
       locations: Miesta
       experiences: Zážitky
@@ -1047,3 +1085,25 @@ sk:
     play_here: "🎮 Zahraj si vzdelávacie míny na tomto mieste"
     areas_legend: "Približné hranice zaznamenaných oblastí podozrivých z výskytu mín (snímka 2024). Nebezpečenstvo môže siahať AJ ZA zobrazené tvary."
     zoom_hint: "Priblíž mapu pre zobrazenie hraníc oblastí."
+  events:
+    badge: "Podujatie"
+    upcoming: "Nadchádzajúce"
+    past: "Minulé"
+    all_cities: "Všetky"
+    not_found: "Podujatie sa nenašlo. Pozrite si ďalšie podujatia."
+    back_to_events: "Všetky podujatia"
+    index:
+      title: "Podujatia"
+      subtitle: "Objavte nadchádzajúce podujatia po celej Bosne a Hercegovine."
+      upcoming_heading: "Nadchádzajúce podujatia"
+      past_heading: "Minulé podujatia"
+      no_upcoming: "Momentálne žiadne nadchádzajúce podujatia. Vráťte sa čoskoro!"
+    show:
+      about: "O podujatí"
+      info: "Dobré vedieť"
+      details: "Podrobnosti"
+      starts: "Začiatok"
+      ends: "Koniec"
+      duration: "Trvanie"
+      location: "Miesto"
+      more_here: "Ďalšie podujatia tu"

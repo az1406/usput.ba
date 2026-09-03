@@ -75,6 +75,57 @@ class Curator::EventsControllerTest < ActionDispatch::IntegrationTest
     assert_equal @location, created.location
   end
 
+  test "update submits a proposal instead of changing the event" do
+    login_as(@curator)
+    assert_difference("ContentChange.count", 1) do
+      patch curator_event_path(@event), params: { event: { title: "Renamed Event", duration: 45 } }
+    end
+    assert_redirected_to curator_event_path(@event)
+    assert_equal "Existing Event", @event.reload.title
+
+    proposal = ContentChange.last
+    assert_equal "update_content", proposal.change_type
+    assert_equal @event, proposal.changeable
+    assert_equal "Renamed Event", proposal.proposed_data["title"]
+    assert_equal @location.uuid, proposal.original_data["location_uuid"]
+  end
+
+  test "approved update proposal changes the event" do
+    login_as(@curator)
+    patch curator_event_path(@event), params: { event: { title: "Renamed Event", duration: 45 } }
+
+    assert ContentChange.last.approve!(@admin), "approval should succeed"
+    @event.reload
+    assert_equal "Renamed Event", @event.title
+    assert_equal 45, @event.duration
+    assert_equal @location, @event.location
+  end
+
+  test "destroy submits a delete proposal instead of deleting" do
+    login_as(@curator)
+    assert_difference("ContentChange.count", 1) do
+      assert_no_difference("Event.count") { delete curator_event_path(@event) }
+    end
+    assert_redirected_to curator_events_path
+
+    proposal = ContentChange.last
+    assert_equal "delete_content", proposal.change_type
+    assert_equal @event, proposal.changeable
+    assert_equal @curator, proposal.user
+  end
+
+  test "approved delete proposal removes the event" do
+    login_as(@curator)
+    delete curator_event_path(@event)
+    assert_difference("Event.count", -1) { assert ContentChange.last.approve!(@admin) }
+  end
+
+  test "show prints the start in the curator's locale" do
+    login_as(@curator)
+    get curator_event_path(@event), params: { locale: :bs }
+    assert_match I18n.l(@event.starts_at, format: :long, locale: :bs), response.body
+  end
+
   private
 
   def login_as(user)

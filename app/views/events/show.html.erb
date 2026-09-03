@@ -1,11 +1,11 @@
 <%# Open Graph meta tags for social sharing %>
-<% content_for :title do %><%= @event.title %> - Usput.ba<% end %>
-<% content_for :meta_description do %><%= strip_tags(@event.description.to_s).squish.truncate(160) %><% end %>
+<% content_for :title do %><%= @event.translate(:title, I18n.locale) %> - Usput.ba<% end %>
+<% content_for :meta_description do %><%= strip_tags(@event.translate(:description, I18n.locale).to_s).squish.truncate(160) %><% end %>
 <% content_for :og_meta do %>
   <% og_photo = @event.location&.display_photos&.first %>
   <%= og_meta_tags(
-    title: "#{@event.title} - Usput.ba",
-    description: @event.description,
+    title: "#{@event.translate(:title, I18n.locale)} - Usput.ba",
+    description: @event.translate(:description, I18n.locale),
     image_url: og_photo ? safe_attachment_url(og_photo, variant_options: { resize_to_fill: [1200, 630] }) : nil,
     type: "article"
   ) %>
@@ -52,7 +52,7 @@
             <%= t("events.badge") %>
           </span>
           <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900 dark:text-white break-words">
-            <%= @event.title %>
+            <%= @event.translate(:title, I18n.locale) %>
           </h1>
 
           <div class="flex flex-wrap items-center gap-x-4 gap-y-2 mt-4 text-gray-600 dark:text-gray-400">
@@ -90,14 +90,14 @@
     <div class="grid gap-8 lg:grid-cols-3">
       <%# Main content %>
       <div class="lg:col-span-2 space-y-8 min-w-0">
-        <% if @event.description.present? %>
+        <% if @event.translate(:description, I18n.locale).present? %>
           <div class="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg">
             <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4"><%= t("events.show.about") %></h2>
-            <p class="text-gray-700 dark:text-gray-300 leading-relaxed break-words whitespace-pre-line [overflow-wrap:anywhere]"><%= @event.description %></p>
+            <p class="text-gray-700 dark:text-gray-300 leading-relaxed break-words whitespace-pre-line [overflow-wrap:anywhere]"><%= @event.translate(:description, I18n.locale) %></p>
           </div>
         <% end %>
 
-        <% if @event.info.present? %>
+        <% if @event.translate(:info, I18n.locale).present? %>
           <div class="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg">
             <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
               <svg class="w-5 h-5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -105,7 +105,7 @@
               </svg>
               <%= t("events.show.info") %>
             </h2>
-            <p class="text-gray-700 dark:text-gray-300 leading-relaxed break-words whitespace-pre-line [overflow-wrap:anywhere]"><%= @event.info %></p>
+            <p class="text-gray-700 dark:text-gray-300 leading-relaxed break-words whitespace-pre-line [overflow-wrap:anywhere]"><%= @event.translate(:info, I18n.locale) %></p>
           </div>
         <% end %>
       </div>
@@ -161,6 +161,7 @@
               </div>
             <% end %>
           </div>
+          <%= render "locations/map", location: @event.location %>
         <% end %>
 
         <%# Related events at this location %>
@@ -170,7 +171,7 @@
             <div class="space-y-4">
               <% @related_events.each do |ev| %>
                 <%= link_to event_path(ev), class: "block group" do %>
-                  <p class="font-medium text-gray-900 dark:text-white group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors truncate"><%= ev.title %></p>
+                  <p class="font-medium text-gray-900 dark:text-white group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors truncate"><%= ev.translate(:title, I18n.locale) %></p>
                   <% if ev.starts_at.present? %>
                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5"><%= l(ev.starts_at, format: :long) %></p>
                   <% end %>

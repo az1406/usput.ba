@@ -4,6 +4,7 @@ es:
     name: Usput.ba
     tagline: Descubre la belleza de Bosnia y Herzegovina
   common:
+    load_more: "Cargar más"
     save: Guardar
     cancel: Cancelar
     delete: Eliminar
@@ -32,6 +33,7 @@ es:
     view_all: Ver todo
     error: Error
   nav:
+    events: "Eventos"
     mine_check: "Comprobación de minas"
     home: Inicio
     plans: Planes
@@ -512,6 +514,9 @@ es:
       phone: Teléfono
       website: Sitio web
     show:
+      upcoming_events: "Próximos eventos"
+      upcoming_events_in: "Próximos eventos — %{city}"
+      all_events: "Todos los eventos"
       audio_tour: Audio Tour
       audio_tour_subtitle: Escucha la historia de este lugar
       audio_not_supported: Tu navegador no soporta el reproductor de audio.
@@ -967,8 +972,41 @@ es:
         country_name: País
         region: Región
   curator:
+    events:
+      title: "Eventos"
+      new: "Nuevo evento"
+      edit: "Editar"
+      view: "Ver"
+      view_in_app: "Ver en la app"
+      back_to_list: "Volver a la lista"
+      back_to_view: "Volver a la vista"
+      edit_title: "Editar: %{name}"
+      name: "Nombre del evento"
+      location: "Lugar"
+      select_location: "Selecciona un lugar..."
+      location_hint: "Cada evento está vinculado a un lugar."
+      starts_at: "Fecha y hora"
+      duration: "Duración"
+      duration_placeholder: "p. ej. 120"
+      duration_hint: "Introduce la duración en minutos"
+      description: "Descripción"
+      info: "Información adicional"
+      info_placeholder: "Entradas, aparcamiento, normas de acceso, ..."
+      no_events: "No se encontraron eventos"
+      count:
+        one: "1 evento"
+        other: "%{count} eventos"
+      created_at: "Creado"
+      updated_at: "Actualizado"
+      sections:
+        basic_info: "Información básica"
+        metadata: "Metadatos"
+      filter:
+        all_cities: "Todos los lugares"
+        search_placeholder: "Buscar por nombre..."
     title: Panel de Curador
     nav:
+      events: "Eventos"
       dashboard: Panel
       locations: Lugares
       experiences: Experiencias
@@ -1211,3 +1249,25 @@ es:
     play_here: "🎮 Juega al buscaminas educativo en esta ubicación"
     areas_legend: "Límites aproximados de las zonas registradas sospechosas de minas (instantánea 2024). El peligro puede extenderse MÁS ALLÁ de las formas mostradas."
     zoom_hint: "Acerca el mapa para ver los límites de las zonas."
+  events:
+    badge: "Evento"
+    upcoming: "Próximos"
+    past: "Pasados"
+    all_cities: "Todos"
+    not_found: "Evento no encontrado. Explora otros eventos."
+    back_to_events: "Todos los eventos"
+    index:
+      title: "Eventos"
+      subtitle: "Descubre los próximos eventos en toda Bosnia y Herzegovina."
+      upcoming_heading: "Próximos eventos"
+      past_heading: "Eventos pasados"
+      no_upcoming: "No hay eventos próximos por ahora. ¡Vuelve pronto!"
+    show:
+      about: "Sobre el evento"
+      info: "Bueno saber"
+      details: "Detalles"
+      starts: "Empieza"
+      ends: "Termina"
+      duration: "Duración"
+      location: "Lugar"
+      more_here: "Más eventos aquí"

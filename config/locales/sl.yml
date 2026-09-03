@@ -4,6 +4,7 @@ sl:
     name: Usput.ba
     tagline: Odkrijte lepote Bosne in Hercegovine
   common:
+    load_more: "Naloži več"
     save: Shrani
     cancel: Prekliči
     delete: Izbriši
@@ -31,6 +32,7 @@ sl:
     view_all: Prikaži vse
     error: Napaka
   nav:
+    events: "Dogodki"
     mine_check: "Preverjanje min"
     home: Domov
     plans: Načrti
@@ -478,6 +480,9 @@ sl:
       whatsapp: WhatsApp
       viber: Viber
     show:
+      upcoming_events: "Prihajajoči dogodki"
+      upcoming_events_in: "Prihajajoči dogodki — %{city}"
+      all_events: "Vsi dogodki"
       audio_tour: Avdio Ogled
       audio_tour_subtitle: Poslušajte zgodbo o tej lokaciji
       audio_not_supported: Vaš brskalnik ne podpira avdio predvajalnika.
@@ -874,8 +879,41 @@ sl:
         country_name: Država
         region: Regija
   curator:
+    events:
+      title: "Dogodki"
+      new: "Nov dogodek"
+      edit: "Uredi"
+      view: "Ogled"
+      view_in_app: "Ogled v aplikaciji"
+      back_to_list: "Nazaj na seznam"
+      back_to_view: "Nazaj na pregled"
+      edit_title: "Uredi: %{name}"
+      name: "Ime dogodka"
+      location: "Lokacija"
+      select_location: "Izberi lokacijo..."
+      location_hint: "Vsak dogodek je vezan na lokacijo."
+      starts_at: "Datum in ura"
+      duration: "Trajanje"
+      duration_placeholder: "npr. 120"
+      duration_hint: "Vnesi trajanje v minutah"
+      description: "Opis"
+      info: "Dodatne informacije"
+      info_placeholder: "Vstopnice, parkiranje, pravila vstopa, ..."
+      no_events: "Ni najdenih dogodkov"
+      count:
+        one: "1 dogodek"
+        other: "%{count} dogodkov"
+      created_at: "Ustvarjeno"
+      updated_at: "Posodobljeno"
+      sections:
+        basic_info: "Osnovni podatki"
+        metadata: "Metapodatki"
+      filter:
+        all_cities: "Vsi kraji"
+        search_placeholder: "Išči po imenu..."
     title: Nadzorna Plošča Kustosa
     nav:
+      events: "Dogodki"
       dashboard: Nadzorna Plošča
       locations: Lokacije
       experiences: Doživetja
@@ -1048,3 +1086,25 @@ sl:
     play_here: "🎮 Igraj izobraževalnega minolovca na tej lokaciji"
     areas_legend: "Približne meje zabeleženih območij, sumljivih zaradi min (posnetek 2024). Nevarnost lahko sega TUDI ONKRAJ prikazanih oblik."
     zoom_hint: "Približaj zemljevid za prikaz mej območij."
+  events:
+    badge: "Dogodek"
+    upcoming: "Prihajajoči"
+    past: "Pretekli"
+    all_cities: "Vsi"
+    not_found: "Dogodek ni najden. Oglejte si druge dogodke."
+    back_to_events: "Vsi dogodki"
+    index:
+      title: "Dogodki"
+      subtitle: "Odkrijte prihajajoče dogodke po vsej Bosni in Hercegovini."
+      upcoming_heading: "Prihajajoči dogodki"
+      past_heading: "Pretekli dogodki"
+      no_upcoming: "Trenutno ni prihajajočih dogodkov. Preverite kmalu!"
+    show:
+      about: "O dogodku"
+      info: "Dobro je vedeti"
+      details: "Podrobnosti"
+      starts: "Začetek"
+      ends: "Konec"
+      duration: "Trajanje"
+      location: "Lokacija"
+      more_here: "Več dogodkov tukaj"

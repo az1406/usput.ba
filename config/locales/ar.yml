@@ -4,6 +4,7 @@ ar:
     name: Usput.ba
     tagline: اكتشف جمال البوسنة والهرسك
   common:
+    load_more: "تحميل المزيد"
     save: حفظ
     cancel: إلغاء
     delete: حذف
@@ -31,6 +32,7 @@ ar:
     link_copied: تم نسخ الرابط!
     error: خطأ
   nav:
+    events: "الفعاليات"
     mine_check: "فحص الألغام"
     home: الرئيسية
     plans: الخطط
@@ -476,6 +478,9 @@ ar:
       whatsapp: واتساب
       viber: فايبر
     show:
+      upcoming_events: "الفعاليات القادمة"
+      upcoming_events_in: "الفعاليات القادمة — %{city}"
+      all_events: "كل الفعاليات"
       audio_tour: جولة صوتية
       audio_tour_subtitle: استمع للقصة عن هذا المكان
       audio_not_supported: متصفحك لا يدعم مشغل الصوت.
@@ -860,8 +865,41 @@ ar:
         country_name: البلد
         region: المنطقة
   curator:
+    events:
+      title: "الفعاليات"
+      new: "فعالية جديدة"
+      edit: "تعديل"
+      view: "عرض"
+      view_in_app: "عرض في التطبيق"
+      back_to_list: "العودة إلى القائمة"
+      back_to_view: "العودة إلى العرض"
+      edit_title: "تعديل: %{name}"
+      name: "اسم الفعالية"
+      location: "الموقع"
+      select_location: "اختر موقعًا..."
+      location_hint: "كل فعالية مرتبطة بموقع."
+      starts_at: "التاريخ والوقت"
+      duration: "المدة"
+      duration_placeholder: "مثلاً 120"
+      duration_hint: "أدخل المدة بالدقائق"
+      description: "الوصف"
+      info: "معلومات إضافية"
+      info_placeholder: "التذاكر، المواقف، قواعد الدخول، ..."
+      no_events: "لم يتم العثور على فعاليات"
+      count:
+        one: "فعالية واحدة"
+        other: "%{count} فعاليات"
+      created_at: "تم الإنشاء"
+      updated_at: "تم التحديث"
+      sections:
+        basic_info: "المعلومات الأساسية"
+        metadata: "البيانات الوصفية"
+      filter:
+        all_cities: "كل الأماكن"
+        search_placeholder: "البحث بالاسم..."
     title: لوحة تحكم أمين المحتوى
     nav:
+      events: "الفعاليات"
       dashboard: لوحة التحكم
       locations: الأماكن
       experiences: التجارب
@@ -1297,3 +1335,25 @@ ar:
     play_here: "🎮 العب كانسة الألغام التعليمية في هذا الموقع"
     areas_legend: "حدود تقريبية للمناطق المسجلة المشتبه في احتوائها على ألغام (لقطة 2024). قد يمتد الخطر إلى ما وراء الأشكال المعروضة."
     zoom_hint: "قرّب الخريطة لرؤية حدود المناطق."
+  events:
+    badge: "فعالية"
+    upcoming: "القادمة"
+    past: "السابقة"
+    all_cities: "الكل"
+    not_found: "الفعالية غير موجودة. استكشف فعاليات أخرى."
+    back_to_events: "كل الفعاليات"
+    index:
+      title: "الفعاليات"
+      subtitle: "اكتشف الفعاليات القادمة في جميع أنحاء البوسنة والهرسك."
+      upcoming_heading: "الفعاليات القادمة"
+      past_heading: "الفعاليات السابقة"
+      no_upcoming: "لا توجد فعاليات قادمة حاليًا. عد قريبًا!"
+    show:
+      about: "عن الفعالية"
+      info: "من المفيد معرفته"
+      details: "التفاصيل"
+      starts: "تبدأ"
+      ends: "تنتهي"
+      duration: "المدة"
+      location: "الموقع"
+      more_here: "المزيد من الفعاليات هنا"

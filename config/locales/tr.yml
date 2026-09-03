@@ -4,6 +4,7 @@ tr:
     name: Usput.ba
     tagline: Bosna Hersek'in güzelliklerini keşfedin
   common:
+    load_more: "Daha fazla yükle"
     save: Kaydet
     cancel: İptal
     delete: Sil
@@ -31,6 +32,7 @@ tr:
     link_copied: Bağlantı kopyalandı!
     error: Hata
   nav:
+    events: "Etkinlikler"
     mine_check: "Mayın kontrolü"
     home: Ana Sayfa
     plans: Planlar
@@ -484,6 +486,9 @@ tr:
       whatsapp: WhatsApp
       viber: Viber
     show:
+      upcoming_events: "Yaklaşan etkinlikler"
+      upcoming_events_in: "Yaklaşan etkinlikler — %{city}"
+      all_events: "Tüm etkinlikler"
       audio_tour: Sesli Tur
       audio_tour_subtitle: Bu mekan hakkındaki hikayeyi dinleyin
       audio_not_supported: Tarayıcınız ses oynatıcıyı desteklemiyor.
@@ -879,8 +884,41 @@ tr:
         country_name: Ülke
         region: Bölge
   curator:
+    events:
+      title: "Etkinlikler"
+      new: "Yeni etkinlik"
+      edit: "Düzenle"
+      view: "Görüntüle"
+      view_in_app: "Uygulamada görüntüle"
+      back_to_list: "Listeye dön"
+      back_to_view: "Görünüme dön"
+      edit_title: "Düzenle: %{name}"
+      name: "Etkinlik adı"
+      location: "Konum"
+      select_location: "Bir konum seçin..."
+      location_hint: "Her etkinlik bir konuma bağlıdır."
+      starts_at: "Tarih ve saat"
+      duration: "Süre"
+      duration_placeholder: "örn. 120"
+      duration_hint: "Süreyi dakika olarak girin"
+      description: "Açıklama"
+      info: "Ek bilgiler"
+      info_placeholder: "Biletler, otopark, giriş kuralları, ..."
+      no_events: "Etkinlik bulunamadı"
+      count:
+        one: "1 etkinlik"
+        other: "%{count} etkinlik"
+      created_at: "Oluşturuldu"
+      updated_at: "Güncellendi"
+      sections:
+        basic_info: "Temel bilgiler"
+        metadata: "Meta veriler"
+      filter:
+        all_cities: "Tüm yerler"
+        search_placeholder: "Ada göre ara..."
     title: Küratör Paneli
     nav:
+      events: "Etkinlikler"
       dashboard: Panel
       locations: Mekanlar
       experiences: Deneyimler
@@ -1324,3 +1362,25 @@ tr:
     play_here: "🎮 Bu konumda eğitici mayın tarlası oyna"
     areas_legend: "Kayıtlı mayın şüpheli bölgelerin yaklaşık sınırları (2024 görüntüsü). Tehlike, gösterilen şekillerin ÖTESİNE uzanabilir."
     zoom_hint: "Bölge sınırlarını görmek için haritayı yakınlaştır."
+  events:
+    badge: "Etkinlik"
+    upcoming: "Yaklaşan"
+    past: "Geçmiş"
+    all_cities: "Tümü"
+    not_found: "Etkinlik bulunamadı. Diğer etkinlikleri keşfedin."
+    back_to_events: "Tüm etkinlikler"
+    index:
+      title: "Etkinlikler"
+      subtitle: "Bosna-Hersek genelindeki yaklaşan etkinlikleri keşfedin."
+      upcoming_heading: "Yaklaşan etkinlikler"
+      past_heading: "Geçmiş etkinlikler"
+      no_upcoming: "Şu anda yaklaşan etkinlik yok. Yakında tekrar bakın!"
+    show:
+      about: "Etkinlik hakkında"
+      info: "Bilmekte fayda var"
+      details: "Ayrıntılar"
+      starts: "Başlangıç"
+      ends: "Bitiş"
+      duration: "Süre"
+      location: "Konum"
+      more_here: "Buradaki diğer etkinlikler"

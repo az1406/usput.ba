@@ -4,6 +4,7 @@ de:
     name: Usput.ba
     tagline: Entdecken Sie die Schönheit von Bosnien und Herzegowina
   common:
+    load_more: "Mehr laden"
     save: Speichern
     cancel: Abbrechen
     delete: Löschen
@@ -32,6 +33,7 @@ de:
     view_all: Alle anzeigen
     error: Fehler
   nav:
+    events: "Veranstaltungen"
     mine_check: "Minen-Check"
     home: Startseite
     plans: Pläne
@@ -535,6 +537,9 @@ de:
       whatsapp: WhatsApp
       viber: Viber
     show:
+      upcoming_events: "Bevorstehende Veranstaltungen"
+      upcoming_events_in: "Bevorstehende Veranstaltungen — %{city}"
+      all_events: "Alle Veranstaltungen"
       audio_tour: Audio-Tour
       audio_tour_subtitle: Hören Sie die Geschichte über diesen Ort
       audio_not_supported: Ihr Browser unterstützt den Audio-Player nicht.
@@ -983,8 +988,41 @@ de:
         country_name: Land
         region: Region
   curator:
+    events:
+      title: "Veranstaltungen"
+      new: "Neue Veranstaltung"
+      edit: "Bearbeiten"
+      view: "Ansehen"
+      view_in_app: "In der App ansehen"
+      back_to_list: "Zurück zur Liste"
+      back_to_view: "Zurück zur Ansicht"
+      edit_title: "Bearbeiten: %{name}"
+      name: "Name der Veranstaltung"
+      location: "Ort"
+      select_location: "Ort auswählen..."
+      location_hint: "Jede Veranstaltung ist an einen Ort gebunden."
+      starts_at: "Datum & Uhrzeit"
+      duration: "Dauer"
+      duration_placeholder: "z. B. 120"
+      duration_hint: "Dauer in Minuten eingeben"
+      description: "Beschreibung"
+      info: "Zusätzliche Informationen"
+      info_placeholder: "Tickets, Parken, Einlassregeln, ..."
+      no_events: "Keine Veranstaltungen gefunden"
+      count:
+        one: "1 Veranstaltung"
+        other: "%{count} Veranstaltungen"
+      created_at: "Erstellt"
+      updated_at: "Aktualisiert"
+      sections:
+        basic_info: "Grundinformationen"
+        metadata: "Metadaten"
+      filter:
+        all_cities: "Alle Orte"
+        search_placeholder: "Nach Name suchen..."
     title: Kurator-Dashboard
     nav:
+      events: "Veranstaltungen"
       dashboard: Übersicht
       locations: Orte
       experiences: Erlebnisse
@@ -1157,3 +1195,25 @@ de:
     play_here: "🎮 Lern-Minesweeper an diesem Ort spielen"
     areas_legend: "Ungefähre Grenzen der erfassten minenverdächtigen Gebiete (Stand 2024). Die Gefahr kann ÜBER die gezeigten Formen hinausreichen."
     zoom_hint: "Zoomen Sie hinein, um die Gebietsgrenzen zu sehen."
+  events:
+    badge: "Veranstaltung"
+    upcoming: "Bevorstehend"
+    past: "Vergangen"
+    all_cities: "Alle"
+    not_found: "Veranstaltung nicht gefunden. Entdecke andere Veranstaltungen."
+    back_to_events: "Alle Veranstaltungen"
+    index:
+      title: "Veranstaltungen"
+      subtitle: "Entdecke bevorstehende Veranstaltungen in ganz Bosnien und Herzegowina."
+      upcoming_heading: "Bevorstehende Veranstaltungen"
+      past_heading: "Vergangene Veranstaltungen"
+      no_upcoming: "Derzeit keine bevorstehenden Veranstaltungen. Schau bald wieder vorbei!"
+    show:
+      about: "Über die Veranstaltung"
+      info: "Gut zu wissen"
+      details: "Details"
+      starts: "Beginn"
+      ends: "Ende"
+      duration: "Dauer"
+      location: "Ort"
+      more_here: "Weitere Veranstaltungen hier"

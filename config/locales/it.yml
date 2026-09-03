@@ -4,6 +4,7 @@ it:
     name: Usput.ba
     tagline: Scopri la bellezza della Bosnia ed Erzegovina
   common:
+    load_more: "Carica altro"
     save: Salva
     cancel: Annulla
     delete: Elimina
@@ -32,6 +33,7 @@ it:
     view_all: Vedi tutto
     error: Errore
   nav:
+    events: "Eventi"
     mine_check: "Controllo mine"
     home: Home
     plans: Piani
@@ -512,6 +514,9 @@ it:
       phone: Telefono
       website: Sito web
     show:
+      upcoming_events: "Prossimi eventi"
+      upcoming_events_in: "Prossimi eventi — %{city}"
+      all_events: "Tutti gli eventi"
       audio_tour: Audio Tour
       audio_tour_subtitle: Ascolta la storia di questo luogo
       audio_not_supported: Il tuo browser non supporta il lettore audio.
@@ -973,8 +978,41 @@ it:
         country_name: Paese
         region: Regione
   curator:
+    events:
+      title: "Eventi"
+      new: "Nuovo evento"
+      edit: "Modifica"
+      view: "Visualizza"
+      view_in_app: "Apri nell'app"
+      back_to_list: "Torna all'elenco"
+      back_to_view: "Torna alla scheda"
+      edit_title: "Modifica: %{name}"
+      name: "Nome dell'evento"
+      location: "Luogo"
+      select_location: "Seleziona un luogo..."
+      location_hint: "Ogni evento è legato a un luogo."
+      starts_at: "Data e ora"
+      duration: "Durata"
+      duration_placeholder: "es. 120"
+      duration_hint: "Inserisci la durata in minuti"
+      description: "Descrizione"
+      info: "Informazioni aggiuntive"
+      info_placeholder: "Biglietti, parcheggio, regole d'ingresso, ..."
+      no_events: "Nessun evento trovato"
+      count:
+        one: "1 evento"
+        other: "%{count} eventi"
+      created_at: "Creato"
+      updated_at: "Aggiornato"
+      sections:
+        basic_info: "Informazioni di base"
+        metadata: "Metadati"
+      filter:
+        all_cities: "Tutti i luoghi"
+        search_placeholder: "Cerca per nome..."
     title: Dashboard Curatore
     nav:
+      events: "Eventi"
       dashboard: Dashboard
       locations: Luoghi
       experiences: Esperienze
@@ -1148,3 +1186,25 @@ it:
     play_here: "🎮 Gioca al campo minato educativo in questa posizione"
     areas_legend: "Confini approssimativi delle aree registrate sospette di mine (snapshot 2024). Il pericolo può estendersi OLTRE le forme mostrate."
     zoom_hint: "Ingrandisci per vedere i confini delle aree."
+  events:
+    badge: "Evento"
+    upcoming: "In programma"
+    past: "Passati"
+    all_cities: "Tutti"
+    not_found: "Evento non trovato. Scopri altri eventi."
+    back_to_events: "Tutti gli eventi"
+    index:
+      title: "Eventi"
+      subtitle: "Scopri i prossimi eventi in tutta la Bosnia ed Erzegovina."
+      upcoming_heading: "Prossimi eventi"
+      past_heading: "Eventi passati"
+      no_upcoming: "Al momento nessun evento in programma. Torna presto!"
+    show:
+      about: "Sull'evento"
+      info: "Buono a sapersi"
+      details: "Dettagli"
+      starts: "Inizio"
+      ends: "Fine"
+      duration: "Durata"
+      location: "Luogo"
+      more_here: "Altri eventi qui"

@@ -88,4 +88,13 @@ class EventTest < ActiveSupport::TestCase
     Event.create!(title: "Temp Event", starts_at: 1.day.from_now, location: loc)
     assert_difference("Event.count", -1) { loc.destroy }
   end
+
+  test "title reads the locale's translation and falls back to the source" do
+    event = Event.create!(title: "Baščaršijske noći", starts_at: 1.day.from_now, location: @location)
+    event.set_translation(:title, "Baščaršija Nights", :en)
+
+    assert_equal "Baščaršija Nights", event.translate(:title, :en)
+    assert_equal "Baščaršijske noći", event.translate(:title, :bs)
+    assert_equal "Baščaršija Nights", event.translate(:title, :de), "an untranslated locale falls back to en, not to the source"
+  end
 end

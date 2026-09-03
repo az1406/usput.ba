@@ -2,6 +2,9 @@
 
 class Event < ApplicationRecord
   include Identifiable
+  include Translatable
+
+  translates :title, :description, :info
 
   belongs_to :location
 

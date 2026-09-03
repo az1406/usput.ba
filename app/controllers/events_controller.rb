@@ -11,7 +11,7 @@ class EventsController < ApplicationController
   end
 
   def show
-    @event = Event.includes(location: { photos_attachments: :blob }).find_by_public_id!(params[:id])
+    @event = Event.includes(:locale_translations, location: { photos_attachments: :blob }).find_by_public_id!(params[:id])
     # The panel renders title and date only, so the location is not loaded.
     @related_events = Event.where(location_id: @event.location_id)
                            .where.not(id: @event.id)
@@ -25,7 +25,7 @@ class EventsController < ApplicationController
   # retiring the venue does not retire the event. The cards render the venue
   # photo, so the blobs load with the location.
   def listed_events
-    Event.includes(location: { photos_attachments: :blob })
+    Event.includes(:locale_translations, location: { photos_attachments: :blob })
   end
 
   # Picking a city narrows the whole page. A Past heading listing Mostar under
