@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_18_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_07_090000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -535,14 +535,41 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_18_120000) do
     t.index ["start_date"], name: "index_plans_on_start_date"
     t.index ["user_id", "visibility"], name: "index_plans_on_user_id_and_visibility", where: "(user_id IS NOT NULL)"
     t.index ["user_id"], name: "index_plans_on_user_id"
+    t.index ["user_id"], name: "index_plans_on_user_id_explore_bosnia", unique: true, where: "((preferences ->> 'explore_bosnia'::text) = 'true'::text)"
     t.index ["uuid"], name: "index_plans_on_uuid", unique: true
     t.index ["visibility"], name: "index_plans_on_visibility"
+  end
+
+  create_table "review_deletions", force: :cascade do |t|
+    t.string "author_name"
+    t.string "category"
+    t.text "comment"
+    t.float "confidence"
+    t.datetime "created_at", null: false
+    t.bigint "deleted_by_id"
+    t.string "model"
+    t.integer "rating", null: false
+    t.text "reason"
+    t.string "review_uuid", limit: 36, null: false
+    t.bigint "reviewable_id"
+    t.string "reviewable_type"
+    t.integer "source", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id"
+    t.index ["deleted_by_id"], name: "index_review_deletions_on_deleted_by_id"
+    t.index ["review_uuid"], name: "index_review_deletions_on_review_uuid"
+    t.index ["reviewable_type", "reviewable_id"], name: "index_review_deletions_on_reviewable"
+    t.index ["user_id"], name: "index_review_deletions_on_user_id"
   end
 
   create_table "reviews", force: :cascade do |t|
     t.string "author_name"
     t.text "comment"
     t.datetime "created_at", null: false
+    t.string "moderation_category"
+    t.float "moderation_confidence"
+    t.text "moderation_reason"
+    t.integer "moderation_status", default: 0, null: false
     t.integer "rating", null: false
     t.bigint "reviewable_id", null: false
     t.string "reviewable_type", null: false
@@ -551,6 +578,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_18_120000) do
     t.string "uuid", limit: 36, null: false
     t.index ["rating"], name: "index_reviews_on_rating"
     t.index ["reviewable_type", "reviewable_id", "created_at"], name: "index_reviews_on_reviewable_and_created_at"
+    t.index ["reviewable_type", "reviewable_id", "moderation_status"], name: "index_reviews_on_reviewable_and_moderation"
     t.index ["reviewable_type", "reviewable_id"], name: "index_reviews_on_reviewable"
     t.index ["user_id"], name: "index_reviews_on_user_id"
     t.index ["uuid"], name: "index_reviews_on_uuid", unique: true
@@ -637,5 +665,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_18_120000) do
   add_foreign_key "plan_visits", "plans"
   add_foreign_key "plan_visits", "users"
   add_foreign_key "plans", "users"
+  add_foreign_key "review_deletions", "users", column: "deleted_by_id", on_delete: :nullify
+  add_foreign_key "review_deletions", "users", on_delete: :nullify
   add_foreign_key "reviews", "users"
 end

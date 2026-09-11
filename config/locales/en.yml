@@ -804,6 +804,9 @@ en:
       destroyed: Moment deleted
       published: Moment shared — a curator will review it before it appears publicly
       unpublished: Moment is private again
+    review:
+      created: Thanks for your rating
+      pending: Thanks — a curator will review your comment before it appears publicly
     plan:
       created: Plan was successfully created
       updated: Plan was successfully updated
@@ -1437,6 +1440,35 @@ en:
       delete: Delete
       deleted: Review deleted successfully
       confirm_delete: Are you sure you want to delete this review?
+      all_reviews: All reviews
+      only_deleted: Deleted
+      deleted_by:
+        agent: Deleted by the agent
+        curator: Deleted by %{name}
+        manual: Deleted
+      any_status: Any status
+      approve: Publish
+      reject: Hide
+      flagged_as: Agent flagged this as %{category}
+      hidden_as: Agent hid this as %{category}
+      unsure: Waiting for you — the agent read this as %{category} but was not sure enough to publish it
+      unchecked: Waiting for you — the agent has not read this comment yet
+      status:
+        pending: Awaiting curator
+        approved: Public
+        rejected: Hidden
+      category:
+        clean: clean
+        slur: a slur
+        hate: hate speech
+        harassment: harassment
+        spam: spam
+        sexual: sexual content
+        insult: an insult
+        other: a violation
+      flash:
+        approved: Review published
+        rejected: Review hidden
     audio_tours:
       title: Audio Tours
       show_title: Audio Tour Details

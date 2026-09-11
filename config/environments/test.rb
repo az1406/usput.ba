@@ -10,6 +10,13 @@
 # each run. Without a key the fetcher returns nil, which is a state production
 # already has and every caller already draws nothing for.
 ENV["OPENROUTESERVICE_API_KEY"] = nil
+# The same holds for the LLM keys. Every review with a comment enqueues
+# moderation, and any test that reaches a generator unstubbed would spend real
+# tokens on a fixture. Without a key RubyLLM raises on the first call, so a
+# missing stub fails the test instead of billing for it.
+ENV["ANTHROPIC_API_KEY"] = nil
+ENV["OPENAI_API_KEY"] = nil
+ENV["GEMINI_API_KEY"] = nil
 
 Rails.application.configure do
   # Every user the suite creates and every login it performs hashes a password,

@@ -3,6 +3,8 @@
 require "test_helper"
 
 class ReviewTest < ActiveSupport::TestCase
+  include ActiveJob::TestHelper
+
   setup do
     @location = Location.create!(
       name: "Test Location",
@@ -110,12 +112,17 @@ class ReviewTest < ActiveSupport::TestCase
 
   # === Rating statistics ===
 
-  test "reviews update reviewable average_rating" do
+  test "reviews update reviewable average_rating once approved" do
     review1 = Review.create!(@valid_params.merge(rating: 5))
+    @location.reload
+    assert_equal 0.0, @location.average_rating, "a pending comment must not move the score"
+
+    review1.approved!
     @location.reload
     assert_equal 5.0, @location.average_rating
 
     review2 = Review.create!(@valid_params.merge(rating: 3, author_name: "Second"))
+    review2.approved!
     @location.reload
     assert_equal 4.0, @location.average_rating
 
@@ -149,5 +156,54 @@ class ReviewTest < ActiveSupport::TestCase
       comment: "Predivno mjesto! Preporuka svima."
     ))
     assert review.valid?
+  end
+
+  test "a new comment is sent for moderation" do
+    assert_enqueued_with(job: OpenaiRequestJob, queue: "ai_generation") do
+      Review.create!(@valid_params)
+    end
+
+    assert_equal "Ai::ReviewModerator", enqueued_jobs.last[:args].first["callback_class"]
+  end
+
+  test "a moderation failure never blocks the comment" do
+    Ai::OpenaiQueue.stub :enqueue, ->(**) { raise Ai::OpenaiQueue::RequestError, "API key is invalid." } do
+      review = Review.create!(@valid_params)
+
+      assert review.persisted?
+      assert Review.exists?(review.id)
+    end
+  end
+
+  test "destroying a review by hand records a manual deletion" do
+    review = Review.create!(@valid_params)
+
+    assert_difference "ReviewDeletion.count", 1 do
+      review.destroy!
+    end
+
+    deletion = ReviewDeletion.last
+    assert deletion.manual?
+    assert_equal review.uuid, deletion.review_uuid
+    assert_equal "Great place to visit!", deletion.comment
+    assert_equal 4, deletion.rating
+    assert_equal @location, deletion.reviewable
+  ensure
+    ReviewDeletion.delete_all
+  end
+
+  test "a review going down with its place is not a deletion" do
+    place = Location.create!(name: "Doomed", city: "Mostar", lat: 43.34, lng: 17.81)
+    place.reviews.create!(rating: 3, comment: "Fine.")
+
+    assert_no_difference "ReviewDeletion.count" do
+      place.destroy!
+    end
+  end
+
+  test "a rating without a comment is not sent for moderation" do
+    assert_no_enqueued_jobs do
+      Review.create!(@valid_params.merge(comment: nil))
+    end
   end
 end

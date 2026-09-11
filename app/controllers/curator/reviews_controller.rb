@@ -1,10 +1,15 @@
 module Curator
   class ReviewsController < BaseController
-    before_action :set_review, only: [ :show, :destroy ]
+    before_action :set_review, only: [ :show, :destroy, :approve, :reject ]
     rescue_from ActiveRecord::RecordNotFound, with: :review_not_found
 
     def index
-      @reviews = Review.includes(:reviewable, :user).order(created_at: :desc)
+      @reviews = if params[:deleted].present?
+        ReviewDeletion.includes(:reviewable, :user, :deleted_by).recent
+      else
+        scope = Review.includes(:reviewable, :user).order(created_at: :desc)
+        params[:status].present? ? scope.where(moderation_status: params[:status]) : scope
+      end
       @reviews = @reviews.by_rating(params[:rating]) if params[:rating].present?
       @reviews = @reviews.where(reviewable_type: params[:type]) if params[:type].present?
 
@@ -16,7 +21,10 @@ module Curator
 
       @stats = {
         total: Review.count,
-        average_rating: Review.average(:rating)&.round(2) || 0,
+        pending: Review.pending.count,
+        approved: Review.approved.count,
+        rejected: Review.rejected.count,
+        average_rating: Review.approved.average(:rating)&.round(2) || 0,
         with_comments: Review.with_comments.count,
         by_type: Review.group(:reviewable_type).count,
         by_rating: Review.group(:rating).count
@@ -30,6 +38,20 @@ module Curator
     end
 
     def show
+    end
+
+    def approve
+      @review.update!(moderation_status: :approved)
+      record_activity(:approve_review, recordable: @review)
+      redirect_to curator_reviews_path, notice: t("curator.reviews.flash.approved"), status: :see_other
+    end
+
+    # Rejecting hides a comment rather than destroying it: the deletion trail is
+    # for what is gone, and a curator can still change their mind here.
+    def reject
+      @review.update!(moderation_status: :rejected)
+      record_activity(:reject_review, recordable: @review)
+      redirect_to curator_reviews_path, notice: t("curator.reviews.flash.rejected"), status: :see_other
     end
 
     def destroy

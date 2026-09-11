@@ -26,6 +26,8 @@ class CuratorActivity < ApplicationRecord
     reject_content_change
     approve_moment
     reject_moment
+    approve_review
+    reject_review
     archive_location
     restore_location
   ].freeze

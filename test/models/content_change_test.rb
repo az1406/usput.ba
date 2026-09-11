@@ -132,6 +132,28 @@ class ContentChangeTest < ActiveSupport::TestCase
     assert change.approved?
   end
 
+  test "approving a review deletion records who deleted it and why" do
+    review = @location.reviews.create!(rating: 1, comment: "Užas.", author_name: "Konj")
+    change = ContentChange.create!(
+      user: @curator,
+      change_type: :delete_content,
+      changeable: review,
+      original_data: { "comment" => review.comment }
+    )
+
+    assert_difference("Review.count" => -1, "ReviewDeletion.count" => 1) do
+      change.approve!(@admin, notes: "Not a review.")
+    end
+
+    deletion = ReviewDeletion.last
+    assert deletion.curator?
+    assert_equal @admin, deletion.deleted_by
+    assert_equal "Not a review.", deletion.reason
+    assert_equal "Užas.", deletion.comment
+  ensure
+    ReviewDeletion.delete_all
+  end
+
   test "reject sets status and notes" do
     change = ContentChange.create!(
       user: @curator,

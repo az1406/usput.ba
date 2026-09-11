@@ -203,6 +203,7 @@ settings_data = [
 
   # AI settings
   { key: "ai.request_timeout", value: "120", type: "integer", category: "ai", description: "Request timeout for AI calls in seconds" },
+  { key: "ai.moderation.flag_threshold", value: "0.85", type: "float", category: "ai", description: "Confidence above which the review moderator treats a comment as a violation" },
   { key: "experience.min_locations", value: "1", type: "integer", category: "ai", description: "Minimum locations required for experience generation" },
   { key: "experience.max_locations", value: "5", type: "integer", category: "ai", description: "Maximum locations per experience" },
   { key: "location.max_tags", value: "10", type: "integer", category: "ai", description: "Maximum tags per location" },

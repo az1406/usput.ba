@@ -14,10 +14,12 @@ app/prompts/
 ├── experience_type_classifier/
 │   ├── system.md.erb              # System prompt za klasifikator
 │   └── classify.md.erb            # Klasifikacija pojedinačne lokacije
-└── location_enricher/
-    ├── metadata.md.erb            # Metadata (tags, tips, experience types)
-    ├── descriptions.md.erb        # Opisi na više jezika
-    └── historical_context.md.erb  # Historijski kontekst
+├── location_enricher/
+│   ├── metadata.md.erb            # Metadata (tags, tips, experience types)
+│   ├── descriptions.md.erb        # Opisi na više jezika
+│   └── historical_context.md.erb  # Historijski kontekst
+└── review_moderator/
+    └── review.md.erb              # Provjera recenzije: brisanje uvreda, mržnje i spama
 ```
 
 ## Korištenje
@@ -44,6 +46,7 @@ prompt = load_prompt("location_enricher/metadata.md.erb",
 |--------|----------------|
 | `Ai::ExperienceTypeClassifier` | `experience_type_classifier/system.md.erb`, `classify.md.erb` |
 | `Ai::LocationEnricher` | `location_enricher/metadata.md.erb`, `descriptions.md.erb`, `historical_context.md.erb` |
+| `Ai::ReviewModerator` | `review_moderator/review.md.erb` |
 | `Ai::AudioTourGenerator` | `audio_tour_generator/script.md.erb` |
 | `Ai::ExperienceLocationSyncer` | `experience_location_syncer/extract_locations.md.erb` |
 

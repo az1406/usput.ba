@@ -725,7 +725,7 @@ class ExploreBosniaTest < ActionDispatch::IntegrationTest
   end
 
   test "the reviews frame renders the scoped section with its form" do
-    Review.create!(reviewable: @near, rating: 5, comment: "Amazing fortress views", author_name: "Mira")
+    Review.create!(reviewable: @near, rating: 5, comment: "Amazing fortress views", author_name: "Mira").approved!
     login_as(@user)
 
     get location_reviews_path(@near),
@@ -737,7 +737,7 @@ class ExploreBosniaTest < ActionDispatch::IntegrationTest
     assert_select "form[action=?]", location_reviews_path(@near), minimum: 1
   end
 
-  test "submitting a review from the explore panel creates it and streams the scoped section back" do
+  test "submitting a comment from the explore panel parks it and streams the section back" do
     login_as(@user)
 
     assert_difference -> { @near.reviews.count }, 1 do
@@ -748,7 +748,20 @@ class ExploreBosniaTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_match ActionView::RecordIdentifier.dom_id(@near, :reviews_section), response.body
-    assert_includes response.body, "Prelijepo mjesto"
+    assert @near.reviews.last.pending?
+    assert_not_includes response.body, "Prelijepo mjesto"
+  end
+
+  test "submitting a rating with no comment is public straight away" do
+    login_as(@user)
+
+    post location_reviews_path(@near),
+         params: { review: { rating: 5, author_name: "Amela" } },
+         headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+    assert_response :success
+    assert @near.reviews.last.approved?
+    assert_equal 5.0, @near.reload.average_rating
   end
 
   test "opening a deck creates the hidden plan and check-ins land on it" do

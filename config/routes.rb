@@ -151,7 +151,12 @@ Rails.application.routes.draw do
     end
     resources :experiences
     resources :events
-    resources :reviews, only: [ :index, :show, :destroy ]
+    resources :reviews, only: [ :index, :show, :destroy ] do
+      member do
+        post :approve
+        post :reject
+      end
+    end
     resources :audio_tours
     resources :plans
     resources :proposals, only: [ :index, :show ] do

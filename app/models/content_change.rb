@@ -109,6 +109,11 @@ class ContentChange < ApplicationRecord
     return false unless pending?
 
     transaction do
+      # Assigned before applying: a deletion is recorded with the admin who
+      # approved it, so the reviewer must be known while it runs.
+      self.reviewed_by = admin
+      self.admin_notes = notes
+
       case change_type.to_sym
       when :create_content
         apply_create!
@@ -250,6 +255,8 @@ class ContentChange < ApplicationRecord
     if changeable.respond_to?(:destroy_with_traveller_records!)
       changeable.destroy_with_traveller_records!
     else
+      changeable.deleted_by = reviewed_by if changeable.respond_to?(:deleted_by=)
+      changeable.deletion_reason = admin_notes if changeable.respond_to?(:deletion_reason=)
       changeable.destroy!
     end
   end

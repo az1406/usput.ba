@@ -2,6 +2,10 @@
 # https://rubyllm.com/
 
 RubyLLM.configure do |config|
+  # The legacy acts_as API is removed in RubyLLM 2.0; no model uses it here,
+  # so opting in early is inert and silences the boot-time deprecation.
+  config.use_new_acts_as = true
+
   # OpenAI API key for GPT models
   config.openai_api_key = ENV.fetch("OPENAI_API_KEY", nil)
 

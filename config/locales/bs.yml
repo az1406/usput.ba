@@ -598,6 +598,9 @@ bs:
       destroyed: Uspomena obrisana
       published: Uspomena podijeljena — curator će je pregledati prije nego postane javna
       unpublished: Uspomena je ponovo privatna
+    review:
+      created: Hvala na ocjeni
+      pending: Hvala — kustos će pregledati tvoj komentar prije nego postane javan
   auth:
     register_title: Registracija - Usput
     register_heading: Kreiraj nalog
@@ -1132,6 +1135,36 @@ bs:
       filter:
         all_cities: Sva mjesta
         search_placeholder: Pretraži po nazivu...
+    reviews:
+      all_reviews: Sve recenzije
+      only_deleted: Obrisane
+      deleted_by:
+        agent: Obrisao agent
+        curator: Obrisao/la %{name}
+        manual: Obrisano
+      any_status: Bilo koji status
+      approve: Objavi
+      reject: Sakrij
+      flagged_as: Agent je označio ovo kao %{category}
+      hidden_as: Agent je sakrio ovo kao %{category}
+      unsure: Čeka tebe — agent je ovo pročitao kao %{category}, ali nije bio dovoljno siguran da objavi
+      unchecked: Čeka tebe — agent još nije pročitao ovaj komentar
+      status:
+        pending: Čeka pregled
+        approved: Javno
+        rejected: Sakriveno
+      category:
+        clean: čisto
+        slur: uvredljiv naziv
+        hate: govor mržnje
+        harassment: uznemiravanje
+        spam: spam
+        sexual: seksualni sadržaj
+        insult: uvreda
+        other: kršenje pravila
+      flash:
+        approved: Recenzija objavljena
+        rejected: Recenzija sakrivena
     moments:
       title: Podijeljene uspomene
       subtitle: Fotografije putnika koje čekaju pregled prije nego postanu javne

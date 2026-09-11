@@ -1,6 +1,18 @@
 <% if @saved %>
   <%= turbo_stream.replace dom_id(@reviewable, :reviews_section),
         partial: "reviews/reviews_section", locals: { reviewable: @reviewable } %>
+  <%# A comment waits for a curator, so it is absent from the list just redrawn.
+      Without a word here the writer reads that as a failed post and writes it
+      again. A rating alone is public immediately and needs no explaining. %>
+  <% if @review.comment.present? %>
+    <%= turbo_stream.replace dom_id(@reviewable, :reviews_flash) do %>
+      <div id="<%= dom_id(@reviewable, :reviews_flash) %>">
+        <div data-controller="flash" class="rounded-lg bg-emerald-50 dark:bg-emerald-900/30 px-4 py-3 text-sm text-emerald-800 dark:text-emerald-300 shadow">
+          <%= t("flash.review.pending") %>
+        </div>
+      </div>
+    <% end %>
+  <% end %>
 <% else %>
   <%= turbo_stream.replace dom_id(@reviewable, :review_form),
         partial: "reviews/form", locals: { reviewable: @reviewable, review: @review } %>

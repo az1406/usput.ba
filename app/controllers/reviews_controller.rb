@@ -4,7 +4,7 @@ class ReviewsController < ApplicationController
   def index
     @page = (params[:page] || 1).to_i
     @per_page = 5
-    @reviews = @reviewable.reviews.recent.offset((@page - 1) * @per_page).limit(@per_page)
+    @reviews = @reviewable.reviews.publicly_visible.recent.offset((@page - 1) * @per_page).limit(@per_page)
     @total_reviews = @reviewable.reviews_count
     @has_more = (@page * @per_page) < @total_reviews
 
@@ -26,7 +26,7 @@ class ReviewsController < ApplicationController
 
     respond_to do |format|
       if @saved
-        format.html { redirect_back fallback_location: root_path, notice: t("flash.review.created") }
+        format.html { redirect_back fallback_location: root_path, notice: t(@review.comment.present? ? "flash.review.pending" : "flash.review.created") }
       else
         format.html { redirect_back fallback_location: root_path, alert: @review.errors.full_messages.join(", ") }
       end

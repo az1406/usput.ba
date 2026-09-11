@@ -20,7 +20,7 @@ class LocationsController < ApplicationController
       # anywhere falls through to the ambient explore plan.
       @moments_plan = visit&.plan || Plan.explore_bosnia_for(current_user)
     end
-    @reviews = @location.reviews.recent.limit(10)
+    @reviews = @location.reviews.publicly_visible.recent.limit(10)
     @review = Review.new
     @nearby_locations = @location.nearby_featured(limit: 3)
 
