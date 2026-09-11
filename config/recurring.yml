@@ -1,0 +1,13 @@
+# Solid Queue recurring tasks. Recurring schedules live here, not in queue.yml —
+# queue.yml is parsed for :workers and :dispatchers only, so anything else there
+# is silently dropped.
+#
+# Empty in every environment: PR #124 declared platform_statistics,
+# platform_summaries and platform_clusters, but those job classes were never
+# written. Add a schedule here once a real job exists.
+
+development:
+
+test:
+
+production:
