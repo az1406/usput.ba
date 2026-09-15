@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_18_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_01_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -535,6 +535,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_18_120000) do
     t.index ["start_date"], name: "index_plans_on_start_date"
     t.index ["user_id", "visibility"], name: "index_plans_on_user_id_and_visibility", where: "(user_id IS NOT NULL)"
     t.index ["user_id"], name: "index_plans_on_user_id"
+    t.index ["user_id"], name: "index_plans_on_user_id_explore_bosnia", unique: true, where: "((preferences ->> 'explore_bosnia'::text) = 'true'::text)"
     t.index ["uuid"], name: "index_plans_on_uuid", unique: true
     t.index ["visibility"], name: "index_plans_on_visibility"
   end

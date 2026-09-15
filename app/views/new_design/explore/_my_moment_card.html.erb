@@ -23,6 +23,8 @@
   <div class="mt-auto flex items-center gap-2 px-4 pb-4">
     <%= render "new_design/explore/moment_card_likes", moment: moment, scope: "my_moments" %>
 
+    <span class="text-xs text-gray-400 dark:text-gray-500"><%= moment_uploaded_at(moment) %></span>
+
     <%# Opens the same viewer the photo does — a signpost, not a second surface. %>
     <button type="button" data-action="click->photo-gallery#openLightbox"
             class="ml-auto inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1.5 text-xs font-semibold text-gray-700 transition-colors hover:bg-blue-100 hover:text-blue-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-yellow-500/20 dark:hover:text-yellow-500">

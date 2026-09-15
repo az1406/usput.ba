@@ -17,16 +17,20 @@ class MomentsController < ApplicationController
     # still needs somewhere to upload to, and that is their explore plan. A guest
     # gets no plan and the form renders as a sign-in link.
     @plan ||= Plan.explore_bosnia_for(current_user) if logged_in?
-    @page = [ params[:page].to_i, 1 ].max
+    @page = [ (params[:moments_page] || params[:page]).to_i, 1 ].max
     @moments = if logged_in?
       current_user.moments.where(location: @location)
                   .with_attached_photo.includes(:plan).newest_first.page(@page).per(Moment::PAGE_SIZE)
     else
       Moment.none.page(1)
     end
+    # Yours are already in @moments, private and public alike. Leaving them out
+    # here keeps the two lists disjoint, so the counts that add them are right and
+    # a page arrives full instead of losing rows the gallery would drop anyway.
     @public_moments = Moment.where(location: @location)
                             .with_attached_photo.includes(:user)
-                            .publicly_visible.newest_first.page(@page).per(Moment::PAGE_SIZE)
+                            .publicly_visible.not_by(current_user)
+                            .newest_first.page(@page).per(Moment::PAGE_SIZE)
 
     return render partial: "plans/moment_gallery_items",
                   locals: gallery_locals, layout: false if params[:partial] == "moments"
@@ -158,6 +162,6 @@ class MomentsController < ApplicationController
   end
 
   def moment_params
-    params.require(:moment).permit(:photo, :note, :taken_at)
+    params.require(:moment).permit(:photo, :note)
   end
 end

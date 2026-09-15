@@ -37,10 +37,21 @@ class Moment < ApplicationRecord
   scope :chronological, -> { order(created_at: :asc) }
   scope :newest_first, -> { order(created_at: :desc) }
   scope :publicly_visible, -> { visibility_public_moment.approved }
+  # nil for a signed-out reader, where there is nothing of theirs to leave out.
+  scope :not_by, ->(user) { where.not(user_id: user.id) if user }
 
   # Mirrors Location#display_photos: .variant on a non-image blob raises.
   def displayable?
     photo.attached? && photo.blob&.variable?
+  end
+
+  # The badge's colour, ordered the same way its words are. Spelled out in full
+  # because Tailwind only generates class names it can read in the source — a
+  # built-up string would leave the badge with no background and no error.
+  def status_classes
+    return "bg-gray-900/80 text-yellow-200" if visibility_private_moment?
+
+    approved? ? "bg-emerald-900/80 text-emerald-100" : "bg-amber-900/80 text-amber-100"
   end
 
   # Private wins first: publishing is what sends a moment to moderation, so a

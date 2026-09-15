@@ -20,14 +20,25 @@ const FOCUS_ZOOM = 15
 // until a hard reload, pins and clusters alike.
 let cataloguePromise = null
 let catalogueVersion = null
+// The version already refetched because a pin turned out to be gone. One refetch
+// answers for the whole page: it returns the server's current list, so a second
+// dead pin tapped after it is already absent. Without this, retiring ten places
+// would cost ten downloads of the country.
+let healedVersion = null
 
-function catalogue(version) {
-  if (cataloguePromise && catalogueVersion === version) return cataloguePromise
+// fresh: the catalogue we hold is known wrong, so the browser's own copy is too.
+// It is asked for at a url the cache has never seen, because neither cache mode
+// is reliable here — "no-cache" revalidates and hands a 304 back to fetch() as a
+// 200 carrying the stale body, and "reload" is a hint a browser may ignore
+// (headless Chrome does). A url it has never seen cannot be answered from a
+// cache by anything, browser or proxy.
+function catalogue(version, { fresh = false } = {}) {
+  if (!fresh && cataloguePromise && catalogueVersion === version) return cataloguePromise
 
   catalogueVersion = version
 
   const key = `usput_map_points/${version}`
-  const held = sessionStorage.getItem(key)
+  const held = fresh ? null : sessionStorage.getItem(key)
   if (held) {
     try {
       cataloguePromise = Promise.resolve(JSON.parse(held))
@@ -37,7 +48,14 @@ function catalogue(version) {
     }
   }
 
-  cataloguePromise = fetch("/locations/map_points", { headers: { Accept: "application/json" } })
+  // no-cache asks the server every time rather than trusting the browser's own
+  // copy. The etag still answers 304 when nothing moved, so this costs a
+  // round trip and no payload — and sessionStorage above means we rarely get
+  // here at all. Without it, forgetting a stale catalogue achieved nothing: the
+  // refetch was served from the browser's cache, stale pin included.
+  const url = fresh ? `/locations/map_points?fresh=${cacheBuster()}` : "/locations/map_points"
+
+  cataloguePromise = fetch(url, { headers: { Accept: "application/json" } })
     .then((response) => (response.ok ? response.json() : Promise.reject(new Error(response.status))))
     .then((points) => {
       try {
@@ -59,6 +77,26 @@ function catalogue(version) {
     })
 
   return cataloguePromise
+}
+
+// A pin the server says is gone proves the catalogue is out of date, whatever
+// version it claims. Forget both copies so the next draw asks the server again.
+// Unique per call, and never persisted: it exists only to make the url new.
+function cacheBuster() {
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+}
+
+function forgetCatalogue() {
+  cataloguePromise = null
+  catalogueVersion = null
+
+  try {
+    Object.keys(sessionStorage)
+      .filter((key) => key.startsWith("usput_map_points/"))
+      .forEach((key) => sessionStorage.removeItem(key))
+  } catch {
+    // Storage the browser will not hand over holds nothing to forget.
+  }
 }
 
 // Renders a simple OpenStreetMap view with pins, plus a full-viewport toggle.
@@ -159,12 +197,22 @@ export default class extends Controller {
       if (this.userLocationValue && !this.located && this.#onScreen()) this.#locateUser()
     }
     window.addEventListener("resize", this.onResize)
+
+    // Listened for on the map, not declared on the panel: turbo:frame-load fires
+    // as the frame lands, which is before Stimulus has bound anything inside it,
+    // so an action written on the gone panel itself would never run.
+    this.onPanelLoad = (event) => {
+      if (event.target.querySelector?.("[data-map-catalogue-stale]")) this.catalogueWentStale()
+    }
+    // Capture phase: turbo:frame-load does not bubble, so a listener on the map
+    // only sees a panel's load on the way down.
+    this.element.addEventListener("turbo:frame-load", this.onPanelLoad, true)
   }
 
   // The whole catalogue, clustered. chunkedLoading is read by addLayers alone,
   // so adding markers one at a time opted out of it and blocked the main thread.
-  async #loadCatalogue() {
-    const points = await catalogue(this.catalogueVersionValue)
+  async #loadCatalogue({ fresh = false } = {}) {
+    const points = await catalogue(this.catalogueVersionValue, { fresh })
     if (!this.map) return
     if (points === null) return this.#showChip(this.loadFailedLabelValue)
     if (points.length === 0) return
@@ -204,6 +252,27 @@ export default class extends Controller {
 
     this.clusters.addLayers(markers)
     this.map.addLayer(this.clusters)
+  }
+
+  // The panel answered that this place is no longer listed, so the map is still
+  // drawing a pin for it and every tap would repeat that answer. Drop the
+  // catalogue and draw again — the traveller never clears storage by hand.
+  catalogueWentStale() {
+    if (healedVersion === this.catalogueVersionValue) return
+
+    healedVersion = this.catalogueVersionValue
+    forgetCatalogue()
+
+    if (!this.map) return
+
+    if (this.clusters) {
+      this.map.removeLayer(this.clusters)
+      this.clusters.clearLayers()
+      this.clusters = null
+    }
+    this.markers = new Map()
+
+    this.#loadCatalogue({ fresh: true })
   }
 
   #iconFor({ selected = false } = {}) {
@@ -427,6 +496,7 @@ export default class extends Controller {
   }
 
   disconnect() {
+    if (this.onPanelLoad) this.element.removeEventListener("turbo:frame-load", this.onPanelLoad, true)
     this.revealObserver?.disconnect()
     clearTimeout(this.chipTimer)
     this.#stopFollowing()

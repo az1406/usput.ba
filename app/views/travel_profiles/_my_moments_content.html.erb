@@ -20,16 +20,16 @@
 
       <%= render "shared/photo_lightbox", count: moments.total_count, moment_caption: "profile" %>
 
-      <div class="mt-6 hidden text-center" data-load-more-target="loading">
+      <div class="mt-8 hidden text-center" data-load-more-target="loading">
         <div class="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-emerald-500"></div>
       </div>
 
       <% if moments.total_count > TravelProfilesController::PER_PAGE %>
-        <div class="mt-6 text-center">
+        <div class="mt-8 text-center">
           <button type="button"
                   data-load-more-target="button"
                   data-action="click->load-more#loadMore"
-                  class="inline-flex items-center rounded-full bg-gray-100 px-6 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                  class="inline-flex items-center rounded-full bg-gray-100 px-6 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">
             <svg class="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
             </svg>

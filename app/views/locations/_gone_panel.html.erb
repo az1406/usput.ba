@@ -1,7 +1,14 @@
 <%# The map panel for a place that is no longer listed. Locals: message, frame_id.
     A frame cannot redirect the page, so the answer is delivered inside it. %>
+<%# Announces itself to the map: a pin whose place is gone means the cached
+    catalogue is stale, and the map drops it rather than leaving the traveller
+    tapping a pin that answers this every time. %>
 <turbo-frame id="<%= local_assigns.fetch(:frame_id, "map_panel") %>">
-  <div class="relative flex h-full flex-col items-center justify-center gap-4 bg-gray-50 p-8 text-center dark:bg-gray-900">
+  <%# The marker sits inside the frame, not on it: Turbo copies a frame's
+      children into the frame already on the page and drops the response frame's
+      own attributes, so a flag written up there would never arrive. %>
+  <div data-map-catalogue-stale
+       class="relative flex h-full flex-col items-center justify-center gap-4 bg-gray-50 p-8 text-center dark:bg-gray-900">
     <button type="button" data-action="map#closePanel"
             class="absolute right-3 top-3 flex size-9 items-center justify-center rounded-full bg-black/50 text-white transition-colors hover:bg-black/70"
             aria-label="<%= t("common.close") %>">

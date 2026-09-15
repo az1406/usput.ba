@@ -70,6 +70,11 @@ class NewDesignController < ApplicationController
     @radius = params[:radius].presence&.to_i || 25
     @sort = params[:sort].presence || "relevance"
 
+    # The load-more fetch carries the filters in its own url instead of reading
+    # them back from the address bar: an open moment viewer rewrites that to the
+    # moment's own address, which has no query string.
+    @filter_params = filter_params
+
     # Pagination params per resource type
     @locations_page = (params[:locations_page] || 1).to_i
     @experiences_page = (params[:experiences_page] || 1).to_i
@@ -104,7 +109,7 @@ class NewDesignController < ApplicationController
     @open_band = band_holding_named_moment
 
     # Load city names for filter dropdown
-    @city_names = Location.where.not(city: [ nil, "" ])
+    @city_names = Location.not_archived.where.not(city: [ nil, "" ])
                           .distinct
                           .pluck(:city)
                           .sort
@@ -228,6 +233,16 @@ class NewDesignController < ApplicationController
                   created_at: :desc)
   end
 
+  # Passed through as given rather than rebuilt from the ivars: the fetch has to
+  # reproduce this request, and @radius and @sort carry defaults that were never
+  # asked for. id, partial and the *_page keys stay out — loadMore sets its own
+  # page, and an id would re-name a moment on every fetch.
+  def filter_params
+    params.permit(:q, :season, :budget, :duration, :min_rating, :city_name,
+                  :origin, :audio_support, :lat, :lng, :radius, :sort, types: [])
+          .to_h.reject { |_, value| value.blank? }
+  end
+
   # Unfiltered, a traveller keeps seeing every moment they own, including ones
   # at places since retired that browse no longer indexes.
   def filters_active?
@@ -236,9 +251,7 @@ class NewDesignController < ApplicationController
   end
 
   def build_moments_from_browse(base_browse)
-    # Relevance leads with the place's rating, which every moment at a place
-    # shares — their own likes are the only thing that separates them. Id breaks
-    # the remaining ties so a page boundary lands in the same place twice.
+    # reorder replaces the caller's by_relevance: a moment ranks on its own likes.
     moment_rows = base_browse.moments
     moment_rows = moment_rows.reorder(reviews_count: :desc, id: :desc) if @sort == "relevance"
     matching_ids = lead_with_named(moment_rows.pluck(:browsable_id))

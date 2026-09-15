@@ -181,6 +181,17 @@ class NewDesignControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  # The moment viewer replaceStates the address bar to /moments/<uuid>, which has
+  # no query string, so load_more cannot recover the filters from there.
+  test "load more carries the filters in its own url rather than the address bar" do
+    get explore_path, params: { types: [ "location" ], city_name: "Sarajevo" }
+
+    assert_response :success
+    assert_select "[data-load-more-url-value=?]",
+                  explore_path(types: [ "location" ], city_name: "Sarajevo"),
+                  minimum: 1
+  end
+
   test "explore returns approved public moments under the moment type" do
     user = User.create!(username: "explorer_sharer", password: "password123")
     moment = user.moments.build(plan: @plan, location: @location)
