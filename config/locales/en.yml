@@ -105,6 +105,10 @@ en:
       plan: Plans
       moment: Moments
     moment_by: by %{user}
+    moment_like_add: Like this moment
+    moment_like_undo: Remove like
+    moment_download: Download photo
+    moment_like_sign_in: Sign in to like this moment
     moments_home_subtitle: Photos travellers shared from their trips
     nearby: Nearby
     more_filters: More filters
@@ -428,6 +432,11 @@ en:
       share: Share this moment
       share_prompt: Would you like to share this moment with other travellers?
       make_private: Make private
+      edit_moment: Edit moment
+      note_label: Your note
+      note_save: Save note
+      note_saved: Note saved
+      note_failed: That note could not be saved
       public: Public
       pending: Awaiting review
       add_for_plan: Add moments
@@ -591,6 +600,7 @@ en:
       one: 1 location
       other: '%{count} locations'
     show:
+      photos: Location photos
       about: About
       locations: Locations in experience
       info: Information
@@ -661,6 +671,8 @@ en:
       whatsapp: WhatsApp
       viber: Viber
     show:
+      photos: Photos
+      view_all: View all
       audio_tour: Audio Tour
       audio_tour_subtitle: Listen to the story about this location
       audio_not_supported: Your browser does not support the audio player.
@@ -1099,6 +1111,7 @@ en:
   curator:
     title: Curator Dashboard
     nav:
+      admin_photo_suggestions: Photos
       dashboard: Dashboard
       content: Content
       media: Media

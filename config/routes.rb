@@ -88,6 +88,13 @@ Rails.application.routes.draw do
     resources :reviews, only: [ :index, :create ]
   end
 
+  # A moment is reacted to from wherever it is browsed, which is not the plan
+  # that captured it — so the like hangs off the moment itself. No :show: the
+  # moment view is the shared gallery's caption, not a page.
+  resources :moments, only: [] do
+    resource :like, only: [ :create, :destroy ], module: :moments
+  end
+
   # Plan wizard (must be before resources :plans to avoid matching plans#show)
   get "plans/wizard", to: "plans#wizard", as: :plan_wizard
   get "plans/wizard/:city_slug", to: "plans#wizard", as: :plan_wizard_city
@@ -112,7 +119,7 @@ Rails.application.routes.draw do
     # Private photos a logged-in traveller attaches to this plan's locations.
     # The photo is served by our own action rather than Active Storage's route,
     # which does not check the session — see MomentsController#photo.
-    resources :moments, only: [ :index, :create, :destroy ] do
+    resources :moments, only: [ :index, :create, :destroy, :update ] do
       member do
         get :photo
         patch :publish

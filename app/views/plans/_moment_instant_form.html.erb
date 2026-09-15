@@ -4,7 +4,9 @@
     beside the library — Android hides the camera when the list is explicit, and
     iOS offers it either way. Never name image/heic here: Safari 17+ converts
     *other* formats to HEIC when it sees it advertised. %>
-<% tile = "flex aspect-square w-full items-center justify-center rounded-full border-2 border-dashed cursor-pointer transition-colors #{local_assigns[:overlay] ? "border-white/60 text-white hover:border-white" : "border-gray-300 dark:border-gray-600 text-gray-400 hover:border-emerald-400 hover:text-emerald-500"}" %>
+<%# Square like the photo tiles beside it, and sized by the caller when one says. %>
+<% shape = local_assigns[:tile]&.dig(:image) || "aspect-square w-full"
+   tile = "flex #{shape} items-center justify-center rounded-xl border-2 border-dashed cursor-pointer transition-colors #{local_assigns[:overlay] ? "border-white/60 text-white hover:border-white" : "border-gray-300 dark:border-gray-600 text-gray-400 hover:border-emerald-400 hover:text-emerald-500"}" %>
 
 <% if !logged_in? %>
   <%= link_to login_path(return_to: sign_in_return_path), class: tile,

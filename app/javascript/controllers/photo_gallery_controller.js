@@ -1,12 +1,29 @@
 import { Controller } from "@hotwired/stimulus"
 
+// Literal, not interpolated: Tailwind only generates class names it can read.
+const LIKED_HEART = [ "text-red-500", "hover:bg-white/10" ]
+const UNLIKED_HEART = [ "text-white/80", "hover:bg-white/10", "hover:text-red-500" ]
+
 // Connects to data-controller="photo-gallery"
 // Photo gallery with horizontal slider and lightbox mode
 export default class extends Controller {
-  static targets = ["slide", "counter", "dot", "thumbnail", "slider", "lightbox", "lightboxImage", "lightboxCounter", "lightboxThumbnail"]
+  static targets = [
+    "slide", "counter", "dot", "thumbnail", "slider", "lightbox", "lightboxImage",
+    "lightboxCounter", "lightboxThumbnail",
+    "captionAuthor", "captionPlace", "captionPlaceName", "captionNote", "captionLike",
+    "captionLikeCount", "captionDownload", "captionVisibility", "captionVisibilityButton",
+    "captionDelete", "captionNoteForm", "captionNoteField", "captionStatus"
+  ]
   static values = {
     index: { type: Number, default: 0 },
-    lightboxOpen: { type: Boolean, default: false }
+    lightboxOpen: { type: Boolean, default: false },
+    // The whole collection: counting tiles would call three of forty "everything".
+    total: { type: Number, default: 0 }
+  }
+
+  // Unpaged galleries have no total, where tiles and collection are the same.
+  get collectionSize() {
+    return this.totalValue > 0 ? this.totalValue : this.thumbnailTargets.length
   }
 
   connect() {
@@ -14,25 +31,85 @@ export default class extends Controller {
     this.boundKeyHandler = this.handleKeyDown.bind(this)
     document.addEventListener("keydown", this.boundKeyHandler)
 
+    // The caption reads the rewritten tile, so it re-reads once the stream lands.
+    this.boundWriteBack = this.rereadTile.bind(this)
+    document.addEventListener("turbo:before-stream-render", this.boundWriteBack)
+    this.element.addEventListener("turbo:submit-end", this.boundWriteBack)
+
+    // Turbo snapshots the body as it is; an open viewer would cache unscrollable.
+    this.boundBeforeCache = this.closeLightbox.bind(this)
+    document.addEventListener("turbo:before-cache", this.boundBeforeCache)
+
     // Enable swipe on mobile
     this.setupSwipe()
   }
 
   disconnect() {
     document.removeEventListener("keydown", this.boundKeyHandler)
+    document.removeEventListener("turbo:before-cache", this.boundBeforeCache)
+    document.removeEventListener("turbo:before-stream-render", this.boundWriteBack)
+    this.element.removeEventListener("turbo:submit-end", this.boundWriteBack)
     this.closeLightbox()
   }
 
-  // Navigate to next slide
+  // Wrapped, not timed: a stream renders async, so anything scheduled reads stale.
+  rereadTile(event) {
+    const render = event?.detail?.render
+    if (!render) return this.refillFromTile()
+
+    event.detail.render = async (streamElement) => {
+      await render(streamElement)
+      this.refillFromTile()
+    }
+  }
+
+  refillFromTile() {
+    this.fillCaption(this.thumbnailTargets[this.indexValue])
+    this.clearStatusLater()
+  }
+
+  // The status is a thing said, not a thing stored, so it leaves on its own.
+  clearStatusLater() {
+    if (!this.hasCaptionStatusTarget) return
+
+    // Unconditional: the message arrives after this, so checking here finds none.
+    clearTimeout(this.statusTimer)
+    this.statusTimer = setTimeout(() => {
+      if (!this.hasCaptionStatusTarget) return
+      this.captionStatusTarget.textContent = ""
+      this.captionStatusTarget.classList.add("hidden")
+    }, 4000)
+  }
+
+  // Stepping off the last loaded tile fetches rather than wrapping to the first.
   next() {
     const total = this.hasSlideTarget ? this.slideTargets.length : this.thumbnailTargets.length
+    if (this.indexValue === total - 1 && this.requestMore()) return
+
     const newIndex = (this.indexValue + 1) % total
     this.goToIndex(newIndex)
   }
 
-  // Navigate to previous slide
+  // Announcing keeps the two controllers ignorant of each other.
+  requestMore() {
+    const event = this.dispatch("edgeReached", {
+      cancelable: true,
+      detail: { advance: () => this.advanceAfterLoad() }
+    })
+    return event.defaultPrevented
+  }
+
+  // Called by the loader once new tiles are in the DOM.
+  advanceAfterLoad() {
+    const total = this.hasSlideTarget ? this.slideTargets.length : this.thumbnailTargets.length
+    if (this.indexValue < total - 1) this.goToIndex(this.indexValue + 1)
+  }
+
+  // Wrapping back only makes sense once the last loaded tile is the last one.
   previous() {
     const total = this.hasSlideTarget ? this.slideTargets.length : this.thumbnailTargets.length
+    if (this.indexValue === 0 && this.collectionSize > total) return
+
     const newIndex = (this.indexValue - 1 + total) % total
     this.goToIndex(newIndex)
   }
@@ -99,7 +176,7 @@ export default class extends Controller {
         }
       }
       if (this.hasLightboxCounterTarget) {
-        this.lightboxCounterTarget.textContent = `${index + 1} / ${total}`
+        this.lightboxCounterTarget.textContent = `${index + 1} / ${this.collectionSize}`
       }
 
       // Update lightbox thumbnails
@@ -112,19 +189,96 @@ export default class extends Controller {
           lbThumb.classList.add("ring-transparent", "opacity-60")
         }
       })
+
+      this.fillCaption(this.thumbnailTargets[index])
     }
 
     this.indexValue = index
   }
 
+  // Reads the tile, so swiping issues no request.
+  fillCaption(thumb) {
+    if (!thumb || !this.hasCaptionAuthorTarget) return
+
+    const moment = thumb.dataset
+    this.captionAuthorTarget.textContent = moment.momentAuthor || ""
+    this.captionPlaceNameTarget.textContent = moment.momentPlace || ""
+    this.captionPlaceTarget.href = moment.momentPlaceUrl || "#"
+    this.captionNoteTarget.textContent = moment.momentNote || ""
+    this.captionNoteTarget.hidden = !moment.momentNote
+    this.captionDownloadTarget.href = moment.momentDownloadUrl || "#"
+
+    this.fillLike(moment)
+    this.fillOwnerControls(moment)
+  }
+
+  // A tile that is not yours carries none of these urls.
+  fillOwnerControls(moment) {
+    const owned = moment.momentOwned === "true"
+
+    if (this.hasCaptionNoteFormTarget) {
+      this.captionNoteFormTarget.classList.toggle("hidden", !owned)
+      this.captionNoteTarget.hidden = owned || !moment.momentNote
+      if (owned) {
+        this.captionNoteFormTarget.action = moment.momentNoteUrl
+        this.captionNoteFieldTarget.value = moment.momentNote || ""
+      }
+    }
+
+    if (this.hasCaptionVisibilityTarget) {
+      this.captionVisibilityTarget.classList.toggle("hidden", !owned)
+      if (owned) {
+        this.captionVisibilityTarget.action = moment.momentVisibilityUrl
+        this.captionVisibilityButtonTarget.textContent = moment.momentVisibilityLabel || ""
+      }
+    }
+
+    if (this.hasCaptionDeleteTarget) {
+      this.captionDeleteTarget.classList.toggle("hidden", !owned)
+      if (owned) this.captionDeleteTarget.action = moment.momentDeleteUrl
+    }
+  }
+
+  // No audience means no like url, and no heart.
+  fillLike(moment) {
+    if (!this.hasCaptionLikeTarget) return
+
+    const like = this.captionLikeTarget
+    const likeable = Boolean(moment.momentLikeUrl)
+    like.hidden = !likeable
+    this.captionLikeCountTarget.hidden = !likeable
+    if (!likeable) {
+      // Cleared, not just hidden: a stale href would react on the moment before.
+      like.removeAttribute("href")
+      like.dataset.liked = "false"
+      this.captionLikeCountTarget.textContent = ""
+      return
+    }
+
+    const liked = moment.momentLiked === "true"
+    const count = Number(moment.momentLikesCount || 0)
+
+    like.href = moment.momentLikeUrl
+    // A guest's heart is an ordinary link into sign-in, not a react.
+    if (moment.momentLikeGuest === "true") delete like.dataset.turboMethod
+    else like.dataset.turboMethod = liked ? "delete" : "post"
+    like.dataset.liked = liked
+    like.setAttribute("aria-pressed", liked)
+    like.querySelector("svg").setAttribute("fill", liked ? "currentColor" : "none")
+    like.classList.remove(...(liked ? UNLIKED_HEART : LIKED_HEART))
+    like.classList.add(...(liked ? LIKED_HEART : UNLIKED_HEART))
+
+    this.captionLikeCountTarget.textContent = count > 0 ? count : ""
+  }
+
+
   // Open lightbox mode
   openLightbox(event) {
     if (event) {
-      // Cards appended by load-more can't carry a server-rendered index, so
-      // fall back to the thumbnail's live position.
+      // Appended cards carry no index, and the opener may be the tile's edit button.
       const index = event.currentTarget.dataset.index
         ? parseInt(event.currentTarget.dataset.index, 10)
-        : this.thumbnailTargets.indexOf(event.currentTarget)
+        : this.thumbnailTargets.indexOf(this.thumbnailFor(event.currentTarget))
       if (!isNaN(index) && index >= 0) {
         this.indexValue = index
       }
@@ -147,8 +301,18 @@ export default class extends Controller {
       }
     }
     if (this.hasLightboxCounterTarget) {
-      this.lightboxCounterTarget.textContent = `${this.indexValue + 1} / ${total}`
+      this.lightboxCounterTarget.textContent = `${this.indexValue + 1} / ${this.collectionSize}`
     }
+
+    this.fillCaption(thumb)
+  }
+
+  // Whichever control was clicked, the thumbnail is its frame's.
+  thumbnailFor(opener) {
+    if (this.thumbnailTargets.includes(opener)) return opener
+
+    const tile = opener.closest("turbo-frame")
+    return tile?.querySelector("[data-photo-gallery-target='thumbnail']") ?? opener
   }
 
   // Thumbnails may carry a larger source for the lightbox; galleries that
@@ -210,10 +374,9 @@ export default class extends Controller {
     }
   }
 
-  // Keyboard navigation
+  // Gated on this viewer being open: explore mounts two galleries.
   handleKeyDown(event) {
-    // Only handle if this gallery is visible
-    if (!this.element.offsetParent) return
+    if (!this.lightboxOpenValue) return
 
     if (event.key === "ArrowRight") {
       this.next()
@@ -235,6 +398,9 @@ export default class extends Controller {
     }, { passive: true })
 
     this.element.addEventListener("touchend", (e) => {
+      // The listener covers the whole section, not just the open viewer.
+      if (!this.lightboxOpenValue) return
+
       const endX = e.changedTouches[0].clientX
       const endY = e.changedTouches[0].clientY
       const diffX = startX - endX

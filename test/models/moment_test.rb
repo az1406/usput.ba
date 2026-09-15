@@ -182,24 +182,24 @@ class MomentTest < ActiveSupport::TestCase
     assert moment.reload.photo.attached?
   end
 
-  test "recent_own caps a traveller's collection at the newest slice" do
-    made = (Moment::OWN_LIMIT + 3).times.map { build_moment.tap(&:save!) }
+  test "recent_own returns one page of a traveller's newest" do
+    made = (Moment::PAGE_SIZE + 3).times.map { build_moment.tap(&:save!) }
 
     recent = @user.moments.recent_own.to_a
 
-    assert_equal Moment::OWN_LIMIT, recent.size
-    assert_equal made.last(Moment::OWN_LIMIT).map(&:id).reverse, recent.map(&:id)
+    assert_equal Moment::PAGE_SIZE, recent.size
+    assert_equal made.last(Moment::PAGE_SIZE).map(&:id).reverse, recent.map(&:id)
   end
 
-  test "recent_public caps a place's shared moments and hides unapproved ones" do
-    (Moment::PUBLIC_LIMIT + 2).times { publish(build_moment.tap(&:save!)) }
+  test "recent_public returns one page of a place's shared moments, hiding unapproved" do
+    (Moment::PAGE_SIZE + 2).times { publish(build_moment.tap(&:save!)) }
     pending = build_moment
     pending.visibility = :public_moment
     pending.save!
 
     shared = Moment.where(location: @location).recent_public.to_a
 
-    assert_equal Moment::PUBLIC_LIMIT, shared.size
+    assert_equal Moment::PAGE_SIZE, shared.size
     assert_not_includes shared.map(&:id), pending.id
   end
 
