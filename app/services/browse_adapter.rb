@@ -99,7 +99,9 @@ class BrowseAdapter
         lat: location.lat,
         lng: location.lng,
         average_rating: location.average_rating,
-        reviews_count: location.reviews_count,
+        # Relevance reads this column, and a like is the only response a moment
+        # can receive — without it every moment at a place sorts identically.
+        reviews_count: moment.likes_count,
         budget: location.budget_before_type_cast,
         category_keys: location.category_keys,
         seasons: location.seasons,

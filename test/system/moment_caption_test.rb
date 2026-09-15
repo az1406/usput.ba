@@ -29,12 +29,12 @@ class MomentCaptionTest < ApplicationSystemTestCase
 
     open_first_moment
 
-    assert_selector "[data-photo-gallery-target='captionAuthor']", text: "cap_author", wait: 5
+    assert_selector "[data-photo-gallery-target='captionAuthor']", text: "cap_author"
     assert_selector "[data-photo-gallery-target='captionPlaceName']", text: "Caption Falls"
     assert_selector "[data-photo-gallery-target='captionNote']", text: "worth the walk"
 
     find("[data-photo-gallery-target='captionPlace']").click
-    assert_current_path location_path(@location), wait: 5
+    assert_current_path location_path(@location)
   end
 
   test "swiping to the next moment carries the caption with it" do
@@ -46,7 +46,7 @@ class MomentCaptionTest < ApplicationSystemTestCase
 
     find("button[data-action='photo-gallery#next']").click
 
-    assert_no_selector "[data-photo-gallery-target='captionNote']", text: first_note, wait: 5
+    assert_no_selector "[data-photo-gallery-target='captionNote']", text: first_note
   end
 
   test "the heart fills when liked and empties when taken back" do
@@ -59,11 +59,11 @@ class MomentCaptionTest < ApplicationSystemTestCase
     assert_equal "false", heart.reload[:"data-liked"]
 
     heart.click
-    assert_selector "[data-photo-gallery-target='captionLike'][data-liked='true']", wait: 5
+    assert_selector "[data-photo-gallery-target='captionLike'][data-liked='true']"
     assert_equal 1, Like.count
 
     find("[data-photo-gallery-target='captionLike']").click
-    assert_selector "[data-photo-gallery-target='captionLike'][data-liked='false']", wait: 5
+    assert_selector "[data-photo-gallery-target='captionLike'][data-liked='false']"
     assert_equal 0, Like.count
   end
 
@@ -74,7 +74,7 @@ class MomentCaptionTest < ApplicationSystemTestCase
       first("a[aria-label='#{I18n.t("explore.moment_like_sign_in")}']", wait: 10).click
     end
 
-    assert_current_path(/#{Regexp.escape(login_path)}/, wait: 5)
+    assert_current_path(/#{Regexp.escape(login_path)}/)
 
     within "form" do
       fill_in "username", with: "cap_reader"
@@ -84,7 +84,7 @@ class MomentCaptionTest < ApplicationSystemTestCase
 
     # Both signing in and registering honour return_to, so the traveller lands
     # back where the heart was rather than on the home page.
-    assert_current_path(/explore/, wait: 5)
+    assert_current_path(/explore/)
     assert_equal 0, Like.count
   end
 
@@ -122,7 +122,7 @@ class MomentCaptionTest < ApplicationSystemTestCase
     # Publishing re-enters moderation by design, so the tile the edit view was
     # opened from comes back carrying the pending badge, without a reload.
     assert_selector "[data-load-more-resource-type-value='my_moments']",
-                    text: I18n.t("plans.start.story_pending"), wait: 5
+                    text: I18n.t("plans.start.story_pending")
     assert private_one.reload.visibility_public_moment?
   end
 
@@ -150,7 +150,7 @@ class MomentCaptionTest < ApplicationSystemTestCase
 
     within "[data-load-more-resource-type-value='moments']" do
       first("a[aria-pressed='false']", wait: 10).click
-      assert_selector "a[aria-pressed='true']", wait: 5
+      assert_selector "a[aria-pressed='true']"
     end
 
     assert_equal 1, Like.count
@@ -164,7 +164,7 @@ class MomentCaptionTest < ApplicationSystemTestCase
       assert_selector "turbo-frame[id^='moment_']", count: 2, wait: 10
       first("button", text: I18n.t("plans.moments.edit_moment")).click
       accept_confirm { find("button[aria-label='#{I18n.t("plans.start.story_delete")}']").click }
-      assert_selector "turbo-frame[id^='moment_']", count: 1, wait: 5
+      assert_selector "turbo-frame[id^='moment_']", count: 1
     end
 
     assert_equal 1, Moment.count
@@ -176,13 +176,13 @@ class MomentCaptionTest < ApplicationSystemTestCase
 
     within "[data-load-more-resource-type-value='my_moments']" do
       first("button", text: I18n.t("plans.moments.edit_moment"), wait: 10).click
-      assert_selector "[data-photo-gallery-target='captionNoteField']", visible: true, wait: 5
+      assert_selector "[data-photo-gallery-target='captionNoteField']", visible: true
       find("[data-photo-gallery-target='captionNoteField']").set("rewritten on the spot")
       click_button I18n.t("plans.moments.note_save")
 
       # The response rewrites the tile, which is how we know the round-trip
       # finished — asserting the database straight after the click races it.
-      assert_text "rewritten on the spot", wait: 5
+      assert_text "rewritten on the spot"
     end
 
     assert_equal 1, Moment.where(note: "rewritten on the spot").count
@@ -200,7 +200,7 @@ class MomentCaptionTest < ApplicationSystemTestCase
 
       # Four exist, three are loaded. Reading "1 / 3" would say the traveller
       # has seen everything when they have seen a page.
-      assert_selector "[data-photo-gallery-target='lightboxCounter']", text: "1 / 4", wait: 5
+      assert_selector "[data-photo-gallery-target='lightboxCounter']", text: "1 / 4"
     end
   end
 
@@ -210,10 +210,10 @@ class MomentCaptionTest < ApplicationSystemTestCase
 
     open_first_moment
     find("[data-photo-gallery-target='captionPlace']").click
-    assert_current_path location_path(@location), wait: 5
+    assert_current_path location_path(@location)
 
     page.go_back
-    assert_current_path(/explore/, wait: 5)
+    assert_current_path(/explore/)
 
     # The viewer navigated away while open. If its teardown did not run before
     # Turbo cached the body, the restored page is locked against scrolling.
@@ -221,7 +221,7 @@ class MomentCaptionTest < ApplicationSystemTestCase
     assert_no_selector "dialog[open]"
 
     open_first_moment
-    assert_selector "[data-photo-gallery-target='captionAuthor']", text: "cap_author", wait: 5
+    assert_selector "[data-photo-gallery-target='captionAuthor']", text: "cap_author"
   end
 
   test "a private moment shows no heart on the card or in the viewer" do
@@ -240,7 +240,7 @@ class MomentCaptionTest < ApplicationSystemTestCase
       find("[data-photo-gallery-target='thumbnail']").click
     end
 
-    assert_selector "dialog[open]", wait: 5
+    assert_selector "dialog[open]"
     # A private moment must show no heart the traveller can press.
     assert_no_selector "[data-photo-gallery-target='captionLike']"
   end
@@ -258,7 +258,7 @@ class MomentCaptionTest < ApplicationSystemTestCase
     within "[data-load-more-resource-type-value='my_moments']" do
       # Newest first, so the private one is the tile before the liked public one.
       all("[data-photo-gallery-target='thumbnail']", wait: 10)[1].click
-      assert_selector "[data-photo-gallery-target='captionLike']", wait: 5
+      assert_selector "[data-photo-gallery-target='captionLike']"
 
       find("button[data-action='photo-gallery#previous']").click
       # The heart must not survive the swipe onto a private moment.
@@ -286,7 +286,7 @@ class MomentCaptionTest < ApplicationSystemTestCase
       buttons[1].click
     end
 
-    assert_selector "dialog[open]", wait: 5
+    assert_selector "dialog[open]"
     assert_equal "private older",
                  find("[data-photo-gallery-target='captionNoteField']", visible: true).value,
                  "the viewer must open on the moment whose edit button was pressed"
@@ -299,13 +299,13 @@ class MomentCaptionTest < ApplicationSystemTestCase
     within "[data-load-more-resource-type-value='moments']" do
       first("[data-photo-gallery-target='thumbnail']", wait: 10).click
       find("[data-photo-gallery-target='captionLike']").click
-      assert_selector "[data-photo-gallery-target='captionLike'][data-liked='true']", wait: 5
+      assert_selector "[data-photo-gallery-target='captionLike'][data-liked='true']"
 
       find("button[data-action='photo-gallery#closeLightbox']").click
-      assert_no_selector "dialog[open]", wait: 5
+      assert_no_selector "dialog[open]"
 
       # The card behind the viewer must agree with what was just done to it.
-      assert_selector "[data-load-more-target='container'] a[aria-pressed='true']", wait: 5
+      assert_selector "[data-load-more-target='container'] a[aria-pressed='true']"
     end
   end
 
@@ -315,13 +315,13 @@ class MomentCaptionTest < ApplicationSystemTestCase
 
     within "[data-load-more-resource-type-value='moments']" do
       first("a[aria-pressed='false']", wait: 10).click
-      assert_selector "a[aria-pressed='true']", wait: 5
+      assert_selector "a[aria-pressed='true']"
 
       first("[data-photo-gallery-target='thumbnail']").click
-      assert_selector "dialog[open]", wait: 5
+      assert_selector "dialog[open]"
 
       # The viewer reads the tile, so the tile has to have heard about it too.
-      assert_selector "[data-photo-gallery-target='captionLike'][data-liked='true']", wait: 5
+      assert_selector "[data-photo-gallery-target='captionLike'][data-liked='true']"
       assert_equal "1", find("[data-photo-gallery-target='captionLikeCount']").text.strip
     end
   end
@@ -332,13 +332,13 @@ class MomentCaptionTest < ApplicationSystemTestCase
 
     within "[data-load-more-resource-type-value='my_moments']" do
       first("a[aria-pressed='false']", wait: 10).click
-      assert_selector "a[aria-pressed='true']", wait: 5
+      assert_selector "a[aria-pressed='true']"
 
       first("[data-photo-gallery-target='thumbnail']").click
-      assert_selector "[data-photo-gallery-target='captionLike'][data-liked='true']", wait: 5
+      assert_selector "[data-photo-gallery-target='captionLike'][data-liked='true']"
 
       find("[data-photo-gallery-target='captionLike']").click
-      assert_selector "[data-photo-gallery-target='captionLike'][data-liked='false']", wait: 5
+      assert_selector "[data-photo-gallery-target='captionLike'][data-liked='false']"
     end
 
     assert_equal 0, Like.count, "the unlike must reach the database, not just the heart"
@@ -354,8 +354,8 @@ class MomentCaptionTest < ApplicationSystemTestCase
       click_button I18n.t("plans.moments.note_save")
 
       assert_selector "[data-photo-gallery-target='captionStatus']",
-                      text: I18n.t("plans.moments.note_saved"), wait: 5
-      assert_text "said and gone", wait: 5
+                      text: I18n.t("plans.moments.note_saved")
+      assert_text "said and gone"
       # Said once: it clears itself rather than being stored anywhere.
       assert_no_selector "[data-photo-gallery-target='captionStatus']",
                          text: I18n.t("plans.moments.note_saved"), wait: 8
@@ -379,7 +379,7 @@ class MomentCaptionTest < ApplicationSystemTestCase
       click_button I18n.t("plans.moments.note_save")
 
       assert_selector "[data-photo-gallery-target='captionStatus']",
-                      text: I18n.t("plans.moments.note_saved"), wait: 5
+                      text: I18n.t("plans.moments.note_saved")
       # What was saved must still be in the box that saved it.
       assert_equal "first words",
                    find("[data-photo-gallery-target='captionNoteField']").value
@@ -395,7 +395,7 @@ class MomentCaptionTest < ApplicationSystemTestCase
     within "[data-load-more-resource-type-value='moments']" do
       assert_selector "[data-photo-gallery-target='thumbnail']", count: 3, wait: 10
       first("[data-photo-gallery-target='thumbnail']").click
-      assert_selector "[data-photo-gallery-target='lightboxCounter']", text: "1 / 4", wait: 5
+      assert_selector "[data-photo-gallery-target='lightboxCounter']", text: "1 / 4"
 
       find("button[data-action='photo-gallery#previous']").click
 
@@ -405,21 +405,108 @@ class MomentCaptionTest < ApplicationSystemTestCase
     end
   end
 
+  test "opening a moment puts its own address in the bar, and closing gives it back" do
+    login_as("cap_reader")
+    visit explore_path(types: [ "moment" ])
+    surface = page.current_url
+
+    open_first_moment
+
+    assert_match(%r{/moments/[0-9a-f-]{36}\z}, page.current_url)
+
+    find("[data-action='photo-gallery#closeLightbox']", match: :first).click
+    assert_no_selector "dialog[open]"
+    assert_equal surface, page.current_url
+  end
+
+  test "a private moment shows its own address but offers no link to share" do
+    private_one = @author.moments.build(plan: @plan, location: @location, note: "mine alone")
+    private_one.photo.attach(io: File.open(file_fixture("real_image.jpg")), filename: "mine.jpg",
+                             content_type: "image/jpeg")
+    private_one.save!
+
+    login_as("cap_author")
+    visit explore_path(types: [ "moment" ])
+
+    within first("turbo-frame[id^='moment_']", wait: 10) do
+      find("[data-photo-gallery-target='thumbnail']").click
+    end
+
+    assert_selector "dialog[open]"
+    assert_current_path moment_path(private_one.public_id)
+    assert_no_selector "[data-photo-gallery-target='captionShare']", visible: true
+  end
+
+  test "a heart pressed on the moment's own page fills without a reload" do
+    login_as("cap_reader")
+    visit moment_path(@moments.last.public_id)
+
+    # The address opens the viewer over the grid, so the heart to press is the
+    # caption's, not the tile's behind it.
+    assert_selector "dialog[open]"
+    within("dialog[open]") { find("[aria-pressed='false']").click }
+
+    # Replaced in place: the frame comes back filled and the page never left.
+    assert_selector "[aria-pressed='true']"
+    assert_current_path moment_path(@moments.last.public_id)
+    assert_equal 1, @moments.last.reload.likes_count
+  end
+
+  test "the profile opens its moments in the same viewer, with the owner's controls" do
+    login_as("cap_author")
+    visit profile_page_path
+    load_profile_moments
+
+    find("#my-moments-frame [data-photo-gallery-target='thumbnail']", match: :first).click
+
+    assert_selector "dialog[open]"
+    assert_selector "[data-photo-gallery-target='captionVisibility']", visible: true
+    assert_selector "[data-photo-gallery-target='captionDelete']", visible: true
+  end
+
+  test "the profile tile carries no publish or delete of its own" do
+    login_as("cap_author")
+    visit profile_page_path
+    load_profile_moments
+    assert_no_selector "form[action*='unpublish']"
+    assert_no_selector "form[action*='publish']"
+  end
+
+  test "the viewer offers a link to the moment, wherever it was opened from" do
+    login_as("cap_reader")
+    visit explore_path(types: [ "moment" ])
+
+    open_first_moment
+
+    assert_selector "[data-photo-gallery-target='captionShare']", visible: true
+  end
+
+  test "a private moment offers no link in the viewer" do
+    private_one = @author.moments.build(plan: @plan, location: @location, note: "mine alone")
+    private_one.photo.attach(io: File.open(file_fixture("real_image.jpg")), filename: "mine.jpg",
+                             content_type: "image/jpeg")
+    private_one.save!
+
+    login_as("cap_author")
+    visit explore_path(types: [ "moment" ])
+
+    within first("turbo-frame[id^='moment_']", wait: 10) do
+      find("[data-photo-gallery-target='thumbnail']").click
+    end
+
+    assert_selector "dialog[open]"
+    assert_no_selector "[data-photo-gallery-target='captionShare']", visible: true
+  end
+
   private
 
   def open_first_moment
     first("[data-photo-gallery-target='thumbnail'][data-moment-author]", wait: 10).click
-    assert_selector "dialog[open]", wait: 5
+    assert_selector "dialog[open]"
   end
 
   def login_as(username)
-    visit login_path
-    within "form" do
-      fill_in "username", with: username
-      fill_in "password", with: "password123"
-      click_button
-    end
-    assert_no_current_path login_path, wait: 5
+    sign_in_as(username)
   end
 
   def public_moment(note)

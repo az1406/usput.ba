@@ -1,3 +1,25 @@
+<%# Reached at a moment's own address as well as at /explore: when a moment is
+    named it leads its band and the viewer opens on it, and the page previews as
+    that moment rather than as the search. %>
+<% if @named_moment %>
+  <% content_for :title do %><%= t("explore.moment_by", user: @named_moment.user.username) %> · <%= @named_moment.location.name %> - Usput.ba<% end %>
+  <% content_for :meta_description do %><%= strip_tags(@named_moment.note.to_s).squish.truncate(160) %><% end %>
+
+  <%# Only a public moment carries a preview: the image url in an og tag is a
+      bearer token, and a private photo is served through a session-checked
+      action for exactly that reason. %>
+  <% if @named_moment.shareable? %>
+    <% content_for :og_meta do %>
+      <%= og_meta_tags(
+        title: "#{t("explore.moment_by", user: @named_moment.user.username)} · #{@named_moment.location.name} - Usput.ba",
+        description: @named_moment.note.presence || @named_moment.location.translate(:description, I18n.locale),
+        image_url: safe_attachment_url(@named_moment.photo, variant_options: { resize_to_fill: [ 1200, 630 ] }),
+        type: "article"
+      ) %>
+    <% end %>
+  <% end %>
+<% end %>
+
 <%#
   EXPLORE / SEARCH STRANICA
   - Koristi isti header i footer kao homepage
@@ -625,6 +647,8 @@
             <div class="mb-12" data-controller="load-more photo-gallery"
                  data-photo-gallery-index-value="0"
                  data-photo-gallery-total-value="<%= @my_moments.total_count %>"
+                 data-photo-gallery-open-on-connect-value="<%= @open_band == "my_moments" %>"
+                 data-photo-gallery-return-url-value="<%= explore_path(types: [ "moment" ]) %>"
                  data-action="photo-gallery:edgeReached->load-more#loadFromEdge"
                  data-load-more-url-value="<%= explore_path %>"
                  data-load-more-resource-type-value="my_moments"
@@ -665,6 +689,8 @@
             <div class="mb-12" data-controller="load-more photo-gallery"
                  data-photo-gallery-index-value="0"
                  data-photo-gallery-total-value="<%= @moments.total_count %>"
+                 data-photo-gallery-open-on-connect-value="<%= @open_band == "moments" %>"
+                 data-photo-gallery-return-url-value="<%= explore_path(types: [ "moment" ]) %>"
                  data-action="photo-gallery:edgeReached->load-more#loadFromEdge"
                  data-load-more-url-value="<%= explore_path %>"
                  data-load-more-resource-type-value="moments"

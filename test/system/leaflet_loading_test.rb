@@ -15,7 +15,7 @@ class LeafletLoadingTest < ApplicationSystemTestCase
 
   test "the home page never loads the mapping library" do
     visit root_path
-    assert_selector "body [data-controller]", wait: 5
+    assert_selector "body [data-controller]"
 
     assert_equal "undefined", page.evaluate_script("typeof window.L"),
                  "the home page loaded Leaflet, which it has no map for"
@@ -23,7 +23,7 @@ class LeafletLoadingTest < ApplicationSystemTestCase
 
   test "the sign-in page never loads the mapping library" do
     visit login_path
-    assert_selector "form", wait: 5
+    assert_selector "form"
 
     assert_equal "undefined", page.evaluate_script("typeof window.L"),
                  "the sign-in page loaded Leaflet, which it has no map for"

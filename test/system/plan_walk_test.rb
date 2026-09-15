@@ -40,13 +40,7 @@ class PlanWalkTest < ApplicationSystemTestCase
   end
 
   def login
-    visit login_path
-    within "form" do
-      fill_in "username", with: "sys_walker"
-      fill_in "password", with: "password123"
-      click_button
-    end
-    assert_no_current_path login_path, wait: 5
+    sign_in_as("sys_walker")
   end
 
   # Put the headless browser at a real position so the geo-visit check passes —
@@ -69,7 +63,7 @@ class PlanWalkTest < ApplicationSystemTestCase
 
     # Browse deck (same as explore): every stop stays in the scroll, none hidden
     # behind a deal-one deck.
-    assert_selector "##{ActionView::RecordIdentifier.dom_id(@location, :step)}", visible: true, wait: 5
+    assert_selector "##{ActionView::RecordIdentifier.dom_id(@location, :step)}", visible: true
     assert_selector "##{ActionView::RecordIdentifier.dom_id(second, :step)}", visible: true
   ensure
     second&.destroy
@@ -83,7 +77,7 @@ class PlanWalkTest < ApplicationSystemTestCase
     visit start_plan_path(@plan)
 
     # Both cards stay in the deck; the visited one is stamped, not hidden away.
-    assert_selector "##{ActionView::RecordIdentifier.dom_id(@location, :step)}", visible: true, wait: 5
+    assert_selector "##{ActionView::RecordIdentifier.dom_id(@location, :step)}", visible: true
     assert_selector "##{ActionView::RecordIdentifier.dom_id(second, :step)}", visible: true
     assert_text "Visited"
   ensure
@@ -96,12 +90,15 @@ class PlanWalkTest < ApplicationSystemTestCase
     moment.save!
     login
     visit profile_page_path
+    load_profile_moments
 
     frame = "##{ActionView::RecordIdentifier.dom_id(moment)}"
-    # The card carries a delete button alongside publish, so target the form.
-    within("#{frame} form[action='#{publish_plan_moment_path(@plan, moment)}']") { find("button[type=submit]").click }
+    # Publishing lives in the viewer now, the same one every surface opens.
+    find("#{frame} [data-photo-gallery-target='thumbnail']").click
+    assert_selector "dialog[open]"
+    within("[data-photo-gallery-target='captionVisibility']") { find("button[type=submit]").click }
 
-    assert_selector "#{frame} form[action='#{unpublish_plan_moment_path(@plan, moment)}']", wait: 5
+    assert_selector frame, text: I18n.t("plans.start.story_pending")
     assert moment.reload.visibility_public_moment?, "the moment must be public after publishing"
   end
 
@@ -111,12 +108,17 @@ class PlanWalkTest < ApplicationSystemTestCase
     moment.save!
     login
     visit profile_page_path
+    load_profile_moments
 
     frame = "##{ActionView::RecordIdentifier.dom_id(moment)}"
     assert_selector frame
-    accept_confirm { within("#{frame} form[action='#{plan_moment_path(@plan, moment)}']") { find("button[type=submit]").click } }
+    find("#{frame} [data-photo-gallery-target='thumbnail']").click
+    assert_selector "dialog[open]"
+    accept_confirm { within("[data-photo-gallery-target='captionDelete']") { find("button[type=submit]").click } }
 
-    assert_no_selector frame, wait: 5
+    # The viewer held the moment that just went: it must not stay open on it.
+    assert_no_selector "dialog[open]"
+    assert_no_selector frame
     refute Moment.exists?(moment.id), "the moment must be gone from the database"
   end
 
@@ -130,7 +132,7 @@ class PlanWalkTest < ApplicationSystemTestCase
 
     click_button I18n.t("plans.start.mark_visited")
 
-    assert_text "Visited", wait: 5
+    assert_text "Visited"
   end
 
   test "mark visited then drop a photo in the moments panel, it appears without a reload" do
@@ -139,16 +141,16 @@ class PlanWalkTest < ApplicationSystemTestCase
     stand_at(@location)
 
     click_button I18n.t("plans.start.mark_visited")
-    assert_text "Visited", wait: 5
+    assert_text "Visited"
 
     open_moments_panel
-    assert_selector "[data-card-menu-target='panel'][data-panel='moments']", visible: true, wait: 5
+    assert_selector "[data-card-menu-target='panel'][data-panel='moments']", visible: true
 
     # The upload tile fronts a native picker Capybara can't drive; attach to the
     # sr-only field behind it.
     attach_file "moment[photo]", file_fixture("real_image.jpg").to_s, make_visible: true
 
-    assert_selector "img[src*='/moments/']", visible: :all, wait: 5
+    assert_selector "img[src*='/moments/']", visible: :all
   end
 
   test "the fullscreen moment closes on the X, even sitting over a swipeable card" do
@@ -160,14 +162,14 @@ class PlanWalkTest < ApplicationSystemTestCase
     visit start_plan_path(@plan)
 
     open_moments_panel
-    assert_selector "[data-card-menu-target='panel'][data-panel='moments']", visible: true, wait: 5
+    assert_selector "[data-card-menu-target='panel'][data-panel='moments']", visible: true
 
     find("[data-photo-gallery-target='thumbnail']", match: :first).click
-    assert_selector "[data-photo-gallery-target='lightbox']", visible: true, wait: 5
+    assert_selector "[data-photo-gallery-target='lightbox']", visible: true
 
     within("[data-photo-gallery-target='lightbox']") { find("button[aria-label]", match: :first).click }
 
-    assert_no_selector "[data-photo-gallery-target='lightbox']", visible: true, wait: 5
+    assert_no_selector "[data-photo-gallery-target='lightbox']", visible: true
     refute @user.plan_visits.where(plan: @plan, location: @location).count > 1,
       "closing the lightbox must not reach the card underneath"
   end
@@ -179,7 +181,7 @@ class PlanWalkTest < ApplicationSystemTestCase
     @experience.locations << second
     login
     visit start_plan_path(@plan)
-    assert_selector "##{ActionView::RecordIdentifier.dom_id(@location, :step)}", wait: 5
+    assert_selector "##{ActionView::RecordIdentifier.dom_id(@location, :step)}"
 
     assert_equal 0, page.evaluate_script("document.querySelectorAll('.leaflet-container').length"),
       "a hidden card map must not mount Leaflet"
@@ -187,7 +189,7 @@ class PlanWalkTest < ApplicationSystemTestCase
     find("[data-plan-deck-target='card'] button[data-action='card-menu#openFromHandle']", match: :first).click
     find("button", text: I18n.t("plans.start.map"), match: :first).click
 
-    assert_selector "[data-card-menu-target='panel'][data-panel='map'] .leaflet-container", visible: true, wait: 5
+    assert_selector "[data-card-menu-target='panel'][data-panel='map'] .leaflet-container", visible: true
     assert_equal 1, page.evaluate_script("document.querySelectorAll('.leaflet-container').length"),
       "only the opened card's map may mount"
   ensure
@@ -199,7 +201,7 @@ class PlanWalkTest < ApplicationSystemTestCase
     visit start_plan_path(@plan)
     stand_at(@location)
     click_button I18n.t("plans.start.mark_visited")
-    assert_text "Visited", wait: 5
+    assert_text "Visited"
 
     visit plan_path(@plan)
     visit start_plan_path(@plan)

@@ -34,7 +34,7 @@
 
     <%= form_with url: "#", method: :patch, class: "hidden",
                   data: { photo_gallery_target: "captionNoteForm" } do %>
-      <input type="hidden" name="context" value="browse">
+      <input type="hidden" name="context" value="<%= scope %>">
       <input type="hidden" name="scope" value="<%= scope %>">
       <div class="flex items-end gap-2">
         <textarea name="moment[note]" rows="2" maxlength="1000"
@@ -51,6 +51,17 @@
     <div class="mt-1 flex flex-wrap items-center gap-2">
       <%= render "shared/moment_like", moment: nil, scope: scope %>
 
+      <button type="button" data-photo-gallery-target="captionShare"
+              data-action="click->photo-gallery#shareMoment"
+              class="hidden size-10 items-center justify-center rounded-full text-white/80 transition-colors hover:bg-white/10 hover:text-yellow-500"
+              data-copied-label="<%= t("explore.moment_share_copied") %>"
+              data-failed-label="<%= t("explore.moment_share_failed") %>"
+              aria-label="<%= t("explore.moment_share") %>">
+        <svg class="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684zm0-12a3 3 0 105.368-2.684 3 3 0 00-5.368 2.684z"></path>
+        </svg>
+      </button>
+
       <a data-photo-gallery-target="captionDownload" href="#" download
          class="flex size-10 items-center justify-center rounded-full text-white/80 transition-colors hover:bg-white/10 hover:text-yellow-500"
          aria-label="<%= t("explore.moment_download") %>">
@@ -61,16 +72,20 @@
 
       <%= form_with url: "#", method: :patch, class: "hidden",
                     data: { photo_gallery_target: "captionVisibility" } do %>
-        <input type="hidden" name="context" value="browse">
+        <input type="hidden" name="context" value="<%= scope %>">
         <button type="submit"
                 data-photo-gallery-target="captionVisibilityButton"
                 class="rounded-full bg-blue-600 px-4 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-blue-700"></button>
       <% end %>
 
+      <%# Closes on success: the moment being read is the one being deleted, so
+          leaving the viewer open leaves it showing a photo that no longer exists
+          until something else happens to move it. %>
       <%= form_with url: "#", method: :delete, class: "ml-auto hidden",
                     data: { photo_gallery_target: "captionDelete",
+                            action: "turbo:submit-end->photo-gallery#closeOnDelete",
                             turbo_confirm: t("plans.start.story_delete_confirm") } do %>
-        <input type="hidden" name="context" value="browse">
+        <input type="hidden" name="context" value="<%= scope %>">
         <button type="submit"
                 class="flex size-10 items-center justify-center rounded-full text-red-400 transition-colors hover:bg-red-500/20"
                 aria-label="<%= t("plans.start.story_delete") %>">

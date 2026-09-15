@@ -34,5 +34,11 @@ module ServesMomentPhotos
   rescue Vips::Error, MiniMagick::Error => e
     Rails.logger.warn "[Moments] Unprocessable photo for moment #{params[:id]}: #{e.message}"
     head :unprocessable_entity
+  # The blob can be deleted while its variant is being recorded — the moment was
+  # removed under a request already in flight. That is a photo that is gone, not
+  # a server that is broken.
+  rescue ActiveRecord::InvalidForeignKey => e
+    Rails.logger.warn "[Moments] Photo vanished mid-request for moment #{params[:id]}: #{e.message}"
+    head :not_found
   end
 end

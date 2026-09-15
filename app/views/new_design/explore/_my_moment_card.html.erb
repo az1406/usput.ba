@@ -1,6 +1,6 @@
 <%# Locals: moment. No rendered index: an appended tile cannot know its own.
     Owner actions live in the viewer; edit is a signpost to it. %>
-<%= turbo_frame_tag dom_id(moment), class: "group block bg-white dark:bg-gray-800 rounded-2xl shadow-sm transition-all hover:shadow-lg overflow-hidden" do %>
+<%= turbo_frame_tag dom_id(moment), class: "group flex h-full flex-col bg-white dark:bg-gray-800 rounded-2xl shadow-sm transition-all hover:shadow-lg overflow-hidden" do %>
   <button type="button"
           data-action="click->photo-gallery#openLightbox"
           data-photo-gallery-target="thumbnail"
@@ -20,7 +20,7 @@
 
   <%= render "new_design/explore/moment_card_body", moment: moment, linked: true %>
 
-  <div class="flex items-center gap-2 px-4 pb-4">
+  <div class="mt-auto flex items-center gap-2 px-4 pb-4">
     <%= render "new_design/explore/moment_card_likes", moment: moment, scope: "my_moments" %>
 
     <%# Opens the same viewer the photo does — a signpost, not a second surface. %>
