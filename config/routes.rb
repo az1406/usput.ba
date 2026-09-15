@@ -128,6 +128,10 @@ Rails.application.routes.draw do
       collection do
         get :needs_photos
       end
+      member do
+        patch :archive
+        patch :restore
+      end
     end
     resources :experiences
     resources :reviews, only: [ :index, :show, :destroy ]

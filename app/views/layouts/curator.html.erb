@@ -191,6 +191,8 @@
                   class: "block rounded-md px-3 py-2 text-base font-medium #{request.path.start_with?(curator_reviews_path) ? 'bg-emerald-800 dark:bg-gray-900 text-white' : 'text-emerald-100 dark:text-gray-300 hover:bg-emerald-600 dark:hover:bg-gray-700'}" %>
               <%= link_to t("curator.nav.proposals"), curator_proposals_path,
                   class: "block rounded-md px-3 py-2 text-base font-medium #{request.path.start_with?(curator_proposals_path) ? 'bg-emerald-800 dark:bg-gray-900 text-white' : 'text-emerald-100 dark:text-gray-300 hover:bg-emerald-600 dark:hover:bg-gray-700'}" %>
+              <%= link_to t("curator.nav.moments", default: "Moments"), curator_moments_path,
+                  class: "block rounded-md px-3 py-2 text-base font-medium #{request.path.start_with?(curator_moments_path) ? 'bg-emerald-800 dark:bg-gray-900 text-white' : 'text-emerald-100 dark:text-gray-300 hover:bg-emerald-600 dark:hover:bg-gray-700'}" %>
             </div>
 
             <%# Admin section - only for admin users %>
